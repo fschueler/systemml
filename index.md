@@ -74,3 +74,8 @@ machine learning algorithms included with SystemML in detail.
 
 * [Debugger Guide](debugger-guide.html) - SystemML supports DML script-level debugging through a
 command-line interface.
+
+## Developer Guide
+
+* [Setup Development Environment (Intellij)](dev-setup.html) Setup a delevopment environment with debugging in Intellij.
+* [Compiler Documentation](compiler-pipeline.html) Overview of the SystemML compiler pipeline.
