@@ -92,10 +92,12 @@ public class ReblockFLInstruction extends UnaryFLInstruction {
         }
         else if(iimd.getInputInfo()==InputInfo.BinaryCellInputInfo) {
             //TODO
+            throw new DMLUnsupportedOperationException("Not supported yet");
         }
         else if(iimd.getInputInfo()== InputInfo.BinaryBlockInputInfo)
         {
             //TODO
+            throw new DMLUnsupportedOperationException("Not supported yet");
         }
         else {
             throw new DMLRuntimeException("The given InputInfo is not implemented for ReblockSPInstruction:" + iimd.getInputInfo());
