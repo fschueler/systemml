@@ -27,6 +27,7 @@ import org.apache.sysml.runtime.matrix.data.InputInfo;
 import org.apache.sysml.runtime.matrix.data.MatrixBlock;
 import org.apache.sysml.runtime.matrix.data.MatrixIndexes;
 import org.apache.sysml.runtime.matrix.data.OutputInfo;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -42,7 +43,7 @@ public class TsmmFLInstructionTest {
      *
      * @throws Exception
      */
-    @Test
+    @Ignore
     public void testTSMMWithInstructions() throws Exception {
         // input data and blocking parameters
         String testFile = getClass().getClassLoader().getResource("flink/haberman.data").getFile();
@@ -82,7 +83,7 @@ public class TsmmFLInstructionTest {
         flec.getFlinkContext().execute("WriteFLInstruction");
     }
 
-    @Test
+    @Ignore
     public void testTSMMWithMLConext() throws Exception {
         // input data and blocking parameters
         String testFile = getClass().getClassLoader().getResource("flink/haberman.data").getFile();

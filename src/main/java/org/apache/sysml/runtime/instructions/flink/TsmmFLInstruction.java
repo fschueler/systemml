@@ -2,12 +2,9 @@ package org.apache.sysml.runtime.instructions.flink;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
-import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.sysml.lops.MMTSJ.MMTSJType;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
-import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.instructions.InstructionUtils;
@@ -45,7 +42,7 @@ public class TsmmFLInstruction extends UnaryFLInstruction {
     }
 
     @Override
-    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException {
         FlinkExecutionContext fec = (FlinkExecutionContext) ec;
 
         //get input

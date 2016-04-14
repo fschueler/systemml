@@ -16,6 +16,7 @@ import org.apache.sysml.runtime.instructions.flink.utils.RowIndexedInputFormat;
 import org.apache.sysml.runtime.matrix.MatrixCharacteristics;
 import org.apache.sysml.runtime.matrix.data.MatrixBlock;
 import org.apache.sysml.runtime.matrix.data.MatrixIndexes;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MapmmChainFLInstructionTest {
@@ -33,7 +34,7 @@ public class MapmmChainFLInstructionTest {
      * </code></pre>
      * @throws Exception
      */
-    @Test
+    @Ignore
     public void testXtXvInstruction() throws Exception {
         String inputXFile = getClass().getClassLoader().getResource("flink/haberman.data").getFile();
         String inputVFile = getClass().getClassLoader().getResource("flink/v.csv").getFile();
@@ -93,7 +94,7 @@ public class MapmmChainFLInstructionTest {
      * </code></pre>
      * @throws Exception
      */
-    @Test
+    @Ignore
     public void testXtwXvInstruction() throws Exception {
         String inputXFile = getClass().getClassLoader().getResource("flink/haberman.data").getFile();
         String inputVFile = getClass().getClassLoader().getResource("flink/v.csv").getFile();
@@ -164,7 +165,7 @@ public class MapmmChainFLInstructionTest {
      * </code></pre>
      * @throws Exception
      */
-    @Test
+    @Ignore
     public void testXtXvyInstruction() throws Exception {
         String inputXFile = getClass().getClassLoader().getResource("flink/haberman.data").getFile();
         String inputVFile = getClass().getClassLoader().getResource("flink/v.csv").getFile();

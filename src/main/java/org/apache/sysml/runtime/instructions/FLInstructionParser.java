@@ -3,10 +3,8 @@ package org.apache.sysml.runtime.instructions;
 import org.apache.sysml.lops.Checkpoint;
 import org.apache.sysml.lops.DataGen;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.instructions.flink.*;
 import org.apache.sysml.runtime.instructions.flink.FLInstruction.FLINSTRUCTION_TYPE;
-import org.apache.sysml.runtime.instructions.spark.*;
 
 import java.util.HashMap;
 
@@ -86,14 +84,14 @@ public class FLInstructionParser extends InstructionParser {
     }
 
     public static FLInstruction parseSingleInstruction(String str)
-        throws DMLRuntimeException, DMLUnsupportedOperationException
+        throws DMLRuntimeException
     {
         if ( str == null || str.isEmpty() )
             return null;
 
         FLINSTRUCTION_TYPE cptype = InstructionUtils.getFLType(str);
         if ( cptype == null )
-            throw new DMLUnsupportedOperationException("Invalid FL Instruction Type: " + str);
+            throw new DMLRuntimeException("Invalid FL Instruction Type: " + str);
         FLInstruction flinst = parseSingleInstruction(cptype, str);
         if ( flinst == null )
             throw new DMLRuntimeException("Unable to parse instruction: " + str);
@@ -101,7 +99,7 @@ public class FLInstructionParser extends InstructionParser {
     }
 
     public static FLInstruction parseSingleInstruction(FLINSTRUCTION_TYPE fltype, String str)
-        throws DMLRuntimeException, DMLUnsupportedOperationException
+        throws DMLRuntimeException
     {
         if (str == null || str.isEmpty())
             return null;
@@ -142,7 +140,7 @@ public class FLInstructionParser extends InstructionParser {
 
             case INVALID:
             default:
-                throw new DMLUnsupportedOperationException("Invalid FL Instruction Type: " + fltype);
+                throw new DMLRuntimeException("Invalid FL Instruction Type: " + fltype);
         }
     }
 }

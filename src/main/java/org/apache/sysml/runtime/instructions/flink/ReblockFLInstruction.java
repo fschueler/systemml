@@ -4,10 +4,8 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.sysml.hops.recompile.Recompiler;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
@@ -16,14 +14,9 @@ import org.apache.sysml.runtime.instructions.cp.CPOperand;
 import org.apache.sysml.runtime.instructions.flink.functions.ExtractBlockForBinaryReblock;
 import org.apache.sysml.runtime.instructions.flink.utils.DataSetAggregateUtils;
 import org.apache.sysml.runtime.instructions.flink.utils.DataSetConverterUtils;
-import org.apache.sysml.runtime.instructions.spark.data.RDDProperties;
-import org.apache.sysml.runtime.instructions.spark.utils.RDDConverterUtils;
 import org.apache.sysml.runtime.matrix.MatrixCharacteristics;
 import org.apache.sysml.runtime.matrix.MatrixFormatMetaData;
-import org.apache.sysml.runtime.matrix.data.InputInfo;
-import org.apache.sysml.runtime.matrix.data.MatrixBlock;
-import org.apache.sysml.runtime.matrix.data.MatrixCell;
-import org.apache.sysml.runtime.matrix.data.MatrixIndexes;
+import org.apache.sysml.runtime.matrix.data.*;
 import org.apache.sysml.runtime.matrix.operators.Operator;
 
 public class ReblockFLInstruction extends UnaryFLInstruction {
@@ -60,7 +53,7 @@ public class ReblockFLInstruction extends UnaryFLInstruction {
     }
 
     @Override
-    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException {
         FlinkExecutionContext flec = (FlinkExecutionContext) ec;
 
         //set the output characteristics
@@ -98,21 +91,23 @@ public class ReblockFLInstruction extends UnaryFLInstruction {
 			flec.addLineageDataSet(output.getName(), input1.getName());
         }
         else if(iimd.getInputInfo() == InputInfo.CSVInputInfo) {
-            RDDProperties properties = mo.getRddProperties();
             CSVReblockFLInstruction csvInstruction;
             boolean hasHeader = false;
             String delim = ",";
             boolean fill = false;
-            double missingValue = 0;
-            if (properties != null) {
-                hasHeader = properties.isHasHeader();
-                delim = properties.getDelim();
-                fill = properties.isFill();
-                missingValue = properties.getMissingValue();
+            double fillValue = 0;
+            if(mo.getFileFormatProperties() instanceof CSVFileFormatProperties
+                    && mo.getFileFormatProperties() != null )
+            {
+                CSVFileFormatProperties props = (CSVFileFormatProperties) mo.getFileFormatProperties();
+                hasHeader = props.hasHeader();
+                delim = props.getDelim();
+                fill = props.isFill();
+                fillValue = props.getFillValue();
             }
 
             csvInstruction = new CSVReblockFLInstruction(null, input1, output, mcOut.getRowsPerBlock(), mcOut.getColsPerBlock(),
-                    hasHeader, delim, fill, missingValue, "csvreblk", instString);
+                    hasHeader, delim, fill, fillValue, "csvreblk", instString);
             csvInstruction.processInstruction(flec);
         }
         else if(iimd.getInputInfo()==InputInfo.BinaryCellInputInfo) {

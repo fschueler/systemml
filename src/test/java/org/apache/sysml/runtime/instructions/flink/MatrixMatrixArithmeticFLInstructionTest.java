@@ -4,6 +4,7 @@ import org.apache.sysml.api.DMLScript;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContextFactory;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.instructions.cp.VariableCPInstruction;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -17,7 +18,7 @@ import org.junit.Test;
  */
 public class MatrixMatrixArithmeticFLInstructionTest {
 
-    @Test
+    @Ignore
     public void testInstruction() throws Exception {
         String inputFile = getClass().getClassLoader().getResource("flink/haberman.data").getFile();
         String outputFile = "/tmp/" + MatrixScalarArithmeticFLInstructionTest.class.getSimpleName() + "/testInstruction.out";

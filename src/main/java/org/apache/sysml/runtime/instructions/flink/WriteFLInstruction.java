@@ -6,7 +6,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.hadoop.mapred.SequenceFileOutputFormat;
 import org.apache.sysml.parser.Expression;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
@@ -103,7 +102,7 @@ public class WriteFLInstruction extends FLInstruction {
 
 	@Override
 	public void processInstruction(ExecutionContext ec)         
-		throws DMLRuntimeException, DMLUnsupportedOperationException {
+		throws DMLRuntimeException {
 		FlinkExecutionContext flec = (FlinkExecutionContext) ec;
 
 		//get filename (literal or variable expression)

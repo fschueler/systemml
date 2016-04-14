@@ -6,7 +6,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.sysml.hops.AggBinaryOp;
 import org.apache.sysml.lops.PartialAggregate;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.functionobjects.ReduceAll;
@@ -63,7 +62,7 @@ public class AggregateUnaryFLInstruction extends UnaryFLInstruction {
 
     @Override
     public void processInstruction( ExecutionContext ec )
-            throws DMLRuntimeException, DMLUnsupportedOperationException {
+            throws DMLRuntimeException {
 
         FlinkExecutionContext fec = (FlinkExecutionContext) ec;
         MatrixCharacteristics mc = fec.getMatrixCharacteristics(input1.getName());

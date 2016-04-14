@@ -5,7 +5,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.sysml.lops.MapMultChain;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.instructions.cp.CPOperand;
@@ -83,7 +82,7 @@ public class MapmmChainFLInstruction extends FLInstruction {
     }
 
     @Override
-    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException {
         assert ec instanceof FlinkExecutionContext :
                 "Expected " + FlinkExecutionContext.class.getCanonicalName() + " got " + ec.getClass().getCanonicalName();
         FlinkExecutionContext fec = (FlinkExecutionContext) ec;

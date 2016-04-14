@@ -4,7 +4,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.sysml.parser.Expression;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.instructions.cp.CPOperand;
@@ -31,22 +30,21 @@ public class MapmmFLInstruction extends BinaryFLInstruction {
      * @param instr Instruction string, operands separated by <code>°</code> and value types by <code>·</code>
      * @return a new MapmmFLInstruction
      * @throws DMLRuntimeException
-     * @throws DMLUnsupportedOperationException
      */
-    public static MapmmFLInstruction parseInstruction(String instr) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    public static MapmmFLInstruction parseInstruction(String instr) throws DMLRuntimeException {
         CPOperand input1 = new CPOperand("", Expression.ValueType.UNKNOWN, Expression.DataType.UNKNOWN);
         CPOperand input2 = new CPOperand("", Expression.ValueType.UNKNOWN, Expression.DataType.UNKNOWN);
         CPOperand output = new CPOperand("", Expression.ValueType.UNKNOWN, Expression.DataType.UNKNOWN);
         String opCode = parseBinaryInstruction(instr, input1, input2, output);
         if (!"mapMM".equalsIgnoreCase(opCode)) {
-            throw new DMLUnsupportedOperationException("Unsupported operation with opcode " + opCode);
+            throw new DMLRuntimeException("Unsupported operation with opcode " + opCode);
         }
 
         return new MapmmFLInstruction(input1, input2, output, opCode, instr);
     }
 
     @Override
-    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException {
         assert ec instanceof FlinkExecutionContext :
                 "Expected " + FlinkExecutionContext.class.getCanonicalName() + " got " + ec.getClass().getCanonicalName();
         FlinkExecutionContext fec = (FlinkExecutionContext) ec;

@@ -2,11 +2,8 @@ package org.apache.sysml.runtime.instructions.flink;
 
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.sysml.hops.recompile.Recompiler;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
@@ -72,7 +69,7 @@ public class CSVReblockFLInstruction extends UnaryFLInstruction {
     @Override
     @SuppressWarnings("unchecked")
     public void processInstruction(ExecutionContext ec)
-            throws DMLRuntimeException, DMLUnsupportedOperationException {
+            throws DMLRuntimeException {
         FlinkExecutionContext flec = (FlinkExecutionContext) ec;
 
         //sanity check input info

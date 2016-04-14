@@ -4,34 +4,22 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.sysml.api.DMLScript;
-import org.apache.sysml.hops.OptimizerUtils;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.Program;
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.instructions.flink.data.DataSetObject;
-import org.apache.sysml.runtime.instructions.spark.data.PartitionedBroadcastMatrix;
 import org.apache.sysml.runtime.instructions.flink.functions.CopyBinaryCellFunction;
 import org.apache.sysml.runtime.instructions.flink.functions.CopyBlockPairFunction;
 import org.apache.sysml.runtime.instructions.flink.functions.CopyTextInputFunction;
 import org.apache.sysml.runtime.instructions.flink.utils.DataSetAggregateUtils;
 import org.apache.sysml.runtime.instructions.flink.utils.IOUtils;
-import org.apache.sysml.runtime.instructions.flink.utils.RowIndexedInputFormat;
-import org.apache.sysml.runtime.instructions.spark.data.RDDObject;
-import org.apache.sysml.runtime.instructions.spark.utils.SparkUtils;
 import org.apache.sysml.runtime.matrix.data.*;
 import org.apache.sysml.utils.Statistics;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,13 +45,13 @@ public class FlinkExecutionContext extends ExecutionContext {
     }
 
     public DataSet<Tuple2<MatrixIndexes, MatrixBlock>> getBinaryBlockDataSetHandleForVariable(String varname)
-            throws DMLRuntimeException, DMLUnsupportedOperationException {
+            throws DMLRuntimeException {
 
         return (DataSet<Tuple2<MatrixIndexes, MatrixBlock>>) getDataSetHandleForVariable(varname, InputInfo.BinaryBlockInputInfo);
     }
 
     public DataSet<?> getDataSetHandleForVariable(String varname, InputInfo inputInfo)
-            throws DMLRuntimeException, DMLUnsupportedOperationException {
+            throws DMLRuntimeException {
 
         MatrixObject mo = getMatrixObject(varname);
         return getDataSetHandleForMatrixObject(mo, inputInfo);
@@ -86,7 +74,7 @@ public class FlinkExecutionContext extends ExecutionContext {
 	
 	
     private DataSet<?> getDataSetHandleForMatrixObject(MatrixObject mo, InputInfo inputInfo)
-            throws DMLRuntimeException, DMLUnsupportedOperationException {
+            throws DMLRuntimeException {
 
         //FIXME this logic should be in matrix-object (see spark version of this method for more info)
         DataSet<?> dataSet = null;
@@ -158,11 +146,10 @@ public class FlinkExecutionContext extends ExecutionContext {
      * @param env
      * @param src
      * @return
-     * @throws DMLUnsupportedOperationException
      * @throws DMLRuntimeException
      */
     public static DataSet<Tuple2<MatrixIndexes,MatrixBlock>> toDataSet(ExecutionEnvironment env, MatrixBlock src, int brlen, int bclen)
-            throws DMLRuntimeException, DMLUnsupportedOperationException
+            throws DMLRuntimeException
     {
         LinkedList<Tuple2<MatrixIndexes,MatrixBlock>> list = new LinkedList<Tuple2<MatrixIndexes,MatrixBlock>>();
 

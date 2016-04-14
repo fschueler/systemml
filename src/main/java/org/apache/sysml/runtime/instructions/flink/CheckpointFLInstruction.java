@@ -4,7 +4,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
@@ -43,7 +42,7 @@ public class CheckpointFLInstruction extends UnaryFLInstruction {
 
     @Override
     public void processInstruction(ExecutionContext ec)
-            throws DMLUnsupportedOperationException, DMLRuntimeException {
+            throws DMLRuntimeException {
 
         FlinkExecutionContext flec = (FlinkExecutionContext) ec;
 

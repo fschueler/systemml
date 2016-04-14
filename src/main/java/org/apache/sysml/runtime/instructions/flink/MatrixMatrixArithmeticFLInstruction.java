@@ -1,7 +1,6 @@
 package org.apache.sysml.runtime.instructions.flink;
 
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.instructions.cp.CPOperand;
 import org.apache.sysml.runtime.matrix.operators.Operator;
@@ -22,7 +21,7 @@ public class MatrixMatrixArithmeticFLInstruction extends ArithmeticBinaryFLInstr
     }
 
     @Override
-    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    public void processInstruction(ExecutionContext ec) throws DMLRuntimeException {
         //common binary matrix-matrix process instruction
         super.processMatrixMatrixBinaryInstruction(ec);
     }

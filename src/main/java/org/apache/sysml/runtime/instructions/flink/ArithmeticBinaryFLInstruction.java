@@ -24,13 +24,8 @@ import org.apache.sysml.lops.Lop;
 import org.apache.sysml.parser.Expression.DataType;
 import org.apache.sysml.parser.Expression.ValueType;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.instructions.InstructionUtils;
 import org.apache.sysml.runtime.instructions.cp.CPOperand;
-import org.apache.sysml.runtime.instructions.spark.BinarySPInstruction;
-import org.apache.sysml.runtime.instructions.spark.MatrixBVectorArithmeticSPInstruction;
-import org.apache.sysml.runtime.instructions.spark.MatrixMatrixArithmeticSPInstruction;
-import org.apache.sysml.runtime.instructions.spark.MatrixScalarArithmeticSPInstruction;
 import org.apache.sysml.runtime.matrix.operators.Operator;
 
 public abstract class ArithmeticBinaryFLInstruction extends BinaryFLInstruction 
@@ -47,10 +42,9 @@ public abstract class ArithmeticBinaryFLInstruction extends BinaryFLInstruction
 	 * @param str
 	 * @return
 	 * @throws DMLRuntimeException
-	 * @throws DMLUnsupportedOperationException
 	 */
 	public static ArithmeticBinaryFLInstruction parseInstruction (String str ) 
-		throws DMLRuntimeException, DMLUnsupportedOperationException 
+		throws DMLRuntimeException
 	{
 		CPOperand in1 = new CPOperand("", ValueType.UNKNOWN, DataType.UNKNOWN);
 		CPOperand in2 = new CPOperand("", ValueType.UNKNOWN, DataType.UNKNOWN);

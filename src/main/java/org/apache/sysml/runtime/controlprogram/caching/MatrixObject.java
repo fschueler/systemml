@@ -36,7 +36,6 @@ import org.apache.sysml.runtime.controlprogram.ParForProgramBlock.PDataPartition
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.SparkExecutionContext;
 import org.apache.sysml.runtime.instructions.flink.data.DataSetObject;
-import org.apache.sysml.runtime.instructions.spark.data.BroadcastObject;
 import org.apache.sysml.runtime.instructions.spark.data.RDDObject;
 import org.apache.sysml.runtime.matrix.MatrixCharacteristics;
 import org.apache.sysml.runtime.matrix.MatrixDimensionsMetaData;
@@ -250,373 +249,6 @@ public class MatrixObject extends CacheableData<MatrixBlock>
 		return str.toString();
 	}
 
-    /**
-     * Flink specifics
-     */
-
-    public DataSetObject getDataSetHandle() {
-        return _dataSetHandle;
-    }
-
-    public void setDataSetHandle(DataSetObject ds) {
-
-        if(_dataSetHandle != null)
-            _dataSetHandle.setBackReference(null);
-
-        _dataSetHandle = ds;
-        if(_dataSetHandle != null)
-            ds.setBackReference(this);
-    }
-
-
-    // *********************************************
-	// ***                                       ***
-	// ***    HIGH-LEVEL METHODS THAT SPECIFY    ***
-	// ***   THE LOCKING AND CACHING INTERFACE   ***
-	// ***                                       ***
-	// *********************************************
-	
-	
-	/**
-	 * Acquires a shared "read-only" lock, produces the reference to the matrix data,
-	 * restores the matrix to main memory, reads from HDFS if needed.
-	 * 
-	 * Synchronized because there might be parallel threads (parfor local) that
-	 * access the same MatrixObjectNew object (in case it was created before the loop).
-	 * 
-	 * In-Status:  EMPTY, EVICTABLE, EVICTED, READ;
-	 * Out-Status: READ(+1).
-	 * 
-	 * @return the matrix data reference
-	 * @throws CacheException 
-	 */
-	@Override
-	public synchronized MatrixBlock acquireRead()
-		throws CacheException
-	{
-		if( LOG.isTraceEnabled() )
-			LOG.trace("Acquire read "+_varName);
-		long t0 = DMLScript.STATISTICS ? System.nanoTime() : 0;
-		
-		if ( !isAvailableToRead() )
-			throw new CacheStatusException ("MatrixObject not available to read.");
-		
-		//get object from cache
-		if( _data == null )
-			getCache();
-		
-		//read data from HDFS/RDD if required
-		//(probe data for cache_nowrite / jvm_reuse)  
-		if( isEmpty(true) && _data==null ) 
-		{			
-			try
-			{
-				if( DMLScript.STATISTICS )
-					CacheStatistics.incrementHDFSHits();
-
-				if( getDataSetHandle() == null && (getRDDHandle() == null || getRDDHandle().allowsShortCircuitRead()))
-				{
-					//check filename
-					if( _hdfsFileName == null )
-						throw new CacheException("Cannot read matrix for empty filename.");
-
-					//read matrix from hdfs
-					_data = readMatrixFromHDFS( _hdfsFileName );
-
-					//mark for initial local write despite read operation
-					_requiresLocalWrite = CACHING_WRITE_CACHE_ON_READ;
-				}
-				else
-				{
-					MutableBoolean writeStatus = new MutableBoolean();
-
-					if (DMLScript.rtplatform == RUNTIME_PLATFORM.HYBRID_SPARK || DMLScript.rtplatform == RUNTIME_PLATFORM.SPARK) {
-						//read matrix from rdd (incl execute pending rdd operations)
-						_data = readMatrixFromRDD(getRDDHandle(), writeStatus);
-
-						//mark for initial local write (prevent repeated execution of rdd operations)
-						if (writeStatus.booleanValue())
-							_requiresLocalWrite = CACHING_WRITE_CACHE_ON_READ;
-						else
-							_requiresLocalWrite = true;
-					} else if (DMLScript.rtplatform == RUNTIME_PLATFORM.HYBRID_FLINK || DMLScript.rtplatform == RUNTIME_PLATFORM.FLINK) {
-						//read matrix from rdd (incl execute pending rdd operations)
-						_data = readMatrixFromDataSet(getDataSetHandle(), writeStatus);
-
-						//mark for initial local write (prevent repeated execution of rdd operations)
-						if (writeStatus.booleanValue())
-							_requiresLocalWrite = CACHING_WRITE_CACHE_ON_READ;
-						else
-							_requiresLocalWrite = true;
-					}
-				}
-				
-				_dirtyFlag = false;
-			}
-			catch (IOException e)
-			{
-				throw new CacheIOException("Reading of " + _hdfsFileName + " ("+_varName+") failed.", e);
-			}
-			
-			_isAcquireFromEmpty = true;
-		}
-		else if( DMLScript.STATISTICS )
-		{
-			if( _data!=null )
-				CacheStatistics.incrementMemHits();
-		}
-		
-		//cache status maintenance
-		super.acquire( false, _data==null );	
-		updateStatusPinned(true);
-		
-		if( DMLScript.STATISTICS ){
-			long t1 = System.nanoTime();
-			CacheStatistics.incrementAcquireRTime(t1-t0);
-		}
-		
-		return _data;
-	}
-	
-	/**
-	 * Acquires the exclusive "write" lock for a thread that wants to change matrix
-	 * cell values.  Produces the reference to the matrix data, restores the matrix
-	 * to main memory, reads from HDFS if needed.
-	 * 
-	 * In-Status:  EMPTY, EVICTABLE, EVICTED;
-	 * Out-Status: MODIFY.
-	 * 
-	 * @return the matrix data reference
-	 * @throws CacheException 
-	 */
-	@Override
-	public synchronized MatrixBlock acquireModify() 
-		throws CacheException
-	{
-		if( LOG.isTraceEnabled() )
-			LOG.trace("Acquire modify "+_varName);
-		long t0 = DMLScript.STATISTICS ? System.nanoTime() : 0;
-		
-		if ( !isAvailableToModify() )
-			throw new CacheStatusException("MatrixObject not available to modify.");
-		
-		//get object from cache
-		if( _data == null )
-			getCache();
-		
-		//read data from HDFS if required
-		if( isEmpty(true) && _data == null )
-		{
-			//check filename
-			if( _hdfsFileName == null )
-				throw new CacheException("Cannot read matrix for empty filename.");
-			
-			//load data
-			try
-			{
-				_data = readMatrixFromHDFS( _hdfsFileName );
-			}
-			catch (IOException e)
-			{
-				throw new CacheIOException("Reading of " + _hdfsFileName + " ("+_varName+") failed.", e);
-			}
-		}
-
-		//cache status maintenance
-		super.acquire( true, _data==null );
-		updateStatusPinned(true);
-		_dirtyFlag = true;
-		_isAcquireFromEmpty = false;
-		
-		if( DMLScript.STATISTICS ){
-			long t1 = System.nanoTime();
-			CacheStatistics.incrementAcquireMTime(t1-t0);
-		}
-		
-		return _data;
-	}
-	
-	/**
-	 * Acquires the exclusive "write" lock for a thread that wants to throw away the
-	 * old matrix data and link up with new matrix data.  Abandons the old matrix data
-	 * without reading it.  Sets the new matrix data reference.
-
-	 * In-Status:  EMPTY, EVICTABLE, EVICTED;
-	 * Out-Status: MODIFY.
-	 * 
-	 * @param newData : the new matrix data reference
-	 * @return the matrix data reference, which is the same as the argument
-	 * @throws CacheException 
-	 */
-	@Override
-	public synchronized MatrixBlock acquireModify(MatrixBlock newData)
-		throws CacheException
-	{
-		if( LOG.isTraceEnabled() )
-			LOG.trace("Acquire modify newdata "+_varName);
-		long t0 = DMLScript.STATISTICS ? System.nanoTime() : 0;
-		
-		if (! isAvailableToModify ())
-			throw new CacheStatusException ("MatrixObject not available to modify.");
-		
-		//clear old data 
-		clearData(); 
-		
-		//cache status maintenance
-		super.acquire (true, false); //no need to load evicted matrix
-		_dirtyFlag = true;
-		_isAcquireFromEmpty = false;
-		
-		//set references to new data
-		if (newData == null)
-			throw new CacheException("acquireModify with empty matrix block.");
-		_data = newData; 
-		updateStatusPinned(true);
-		
-		if( DMLScript.STATISTICS ){
-			long t1 = System.nanoTime();
-			CacheStatistics.incrementAcquireMTime(t1-t0);
-		}
-		
-		return _data;
-	}
-
-	/**
-	 * Releases the shared ("read-only") or exclusive ("write") lock.  Updates
-	 * the matrix size, last-access time, metadata, etc.
-	 * 
-	 * Synchronized because there might be parallel threads (parfor local) that
-	 * access the same MatrixObjectNew object (in case it was created before the loop).
-	 * 
-	 * In-Status:  READ, MODIFY;
-	 * Out-Status: READ(-1), EVICTABLE, EMPTY.
-	 * 
-	 * @throws CacheStatusException
-	 */
-	@Override
-	public synchronized void release() 
-		throws CacheException
-	{
-		if( LOG.isTraceEnabled() )
-			LOG.trace("Release "+_varName);
-		long t0 = DMLScript.STATISTICS ? System.nanoTime() : 0;
-		
-		boolean write = false;
-		if ( isModify() )
-		{
-			//set flags for write
-			write = true;
-			_dirtyFlag = true;
-			
-			//update meta data
-			refreshMetaData();
-		}
-
-		//compact empty in-memory block 
-		if( _data.isEmptyBlock(false) && _data.isAllocated() )
-			_data.cleanupBlock(true, true);
-		
-		//cache status maintenance (pass cacheNoWrite flag)
-		super.release(_isAcquireFromEmpty && !_requiresLocalWrite);
-		updateStatusPinned(false);
-		
-		if(    isCachingActive() //only if caching is enabled (otherwise keep everything in mem)
-			&& isCached(true)    //not empty and not read/modify
-			&& !isUpdateInPlace()        //pinned result variable
-		    && !isBelowCachingThreshold() ) //min size for caching
-		{
-			if( write || _requiresLocalWrite ) 
-			{
-				//evict blob
-				String filePath = getCacheFilePathAndName();
-				try {
-					writeMatrix (filePath);
-				}
-				catch (Exception e)
-				{
-					throw new CacheException("Eviction to local path " + filePath + " ("+_varName+") failed.", e);
-				}
-				_requiresLocalWrite = false;
-			}
-			
-			//create cache
-			createCache();
-			_data = null;			
-		}
-		else if( LOG.isTraceEnabled() ){
-			LOG.trace("Var "+_varName+" not subject to caching: rows="+_data.getNumRows()+", cols="+_data.getNumColumns()+", state="+getStatusAsString());
-		}
-
-		if( DMLScript.STATISTICS ){
-			long t1 = System.nanoTime();
-			CacheStatistics.incrementReleaseTime(t1-t0);
-		}
-	}
-
-	/**
-	 * Sets the matrix data reference to <code>null</code>, abandons the old matrix.
-	 * Makes the "envelope" empty.  Run it to finalize the matrix (otherwise the
-	 * evicted matrix file may remain undeleted).
-	 * 
-	 * In-Status:  EMPTY, EVICTABLE, EVICTED;
-	 * Out-Status: EMPTY.
-	 * @throws CacheException 
-	 */
-	@Override
-	public synchronized void clearData() 
-		throws CacheException
-	{
-		if( LOG.isTraceEnabled() )
-			LOG.trace("Clear data "+_varName);
-		
-		// check if cleanup enabled and possible 
-		if( !isCleanupEnabled() ) 
-			return; // do nothing
-		if( !isAvailableToModify() )
-			throw new CacheStatusException ("MatrixObject (" + this.getDebugName() + ") not available to modify. Status = " + this.getStatusAsString() + ".");
-		
-		// clear existing WB / FS representation (but prevent unnecessary probes)
-		if( !(isEmpty(true)||(_data!=null && isBelowCachingThreshold()) 
-			  ||(_data!=null && !isCachingActive()) )) //additional condition for JMLC
-			freeEvictedBlob();	
-		
-		// clear the in-memory data
-		_data = null;	
-		clearCache();
-		
-		// clear rdd/broadcast back refs
-		if( _rddHandle != null )
-			_rddHandle.setBackReference(null);
-		if( _bcHandle != null )
-			_bcHandle.setBackReference(null);
-		
-		// change object state EMPTY
-		_dirtyFlag = false;
-		setEmpty();
-	}
-	
-	@Override
-	public synchronized void exportData()
-		throws CacheException
-	{
-		exportData( -1 );
-	}
-	
-	/**
-	 * Writes, or flushes, the matrix data to HDFS.
-	 * 
-	 * In-Status:  EMPTY, EVICTABLE, EVICTED, READ;
-	 * Out-Status: EMPTY, EVICTABLE, EVICTED, READ.
-	 * 
-	 * @throws CacheException 
-	 */
-	public synchronized void exportData( int replication )
-		throws CacheException
-	{
-		exportData(_hdfsFileName, null, replication, null);
-		_hdfsFileExists = true;
-	}
-	
 	/**
 	 * 
 	 * @param fName
@@ -998,7 +630,8 @@ public class MatrixObject extends CacheableData<MatrixBlock>
 	 * @return
 	 * @throws IOException
 	 */
-	private MatrixBlock readMatrixFromDataSet(DataSetObject dataset, MutableBoolean writeStatus)
+	@Override
+	protected MatrixBlock readBlobFromDataSet(DataSetObject dataset, MutableBoolean writeStatus)
 		throws IOException
 	{
 		//note: the read of a matrix block from an RDD might trigger
@@ -1027,7 +660,7 @@ public class MatrixObject extends CacheableData<MatrixBlock>
 			int bclen = (int)mc.getColsPerBlock();
 			long nnz = mc.getNonZeros();
 
-			//guarded rdd collect 
+			//guarded rdd collect
 			/*
 			if( ii == InputInfo.BinaryBlockInputInfo && //guarded collect not for binary cell
 				!OptimizerUtils.checkSparkCollectMemoryBudget(rlen, clen, brlen, bclen, nnz, sizePinned.get()) ) {
@@ -1124,6 +757,21 @@ public class MatrixObject extends CacheableData<MatrixBlock>
 		//note: the write of an RDD to HDFS might trigger
 		//lazy evaluation of pending transformations.				
 		long newnnz = SparkExecutionContext.writeRDDtoHDFS(rdd, fname, oinfo);	
+		((MatrixDimensionsMetaData) _metaData).getMatrixCharacteristics().setNonZeros(newnnz);
+	}
+
+	@Override
+	protected void writeBlobFromDataSetToHDFS(DataSetObject dso, String fname, String outputFormat)
+			throws IOException, DMLRuntimeException
+	{
+		//prepare output info
+		MatrixFormatMetaData iimd = (MatrixFormatMetaData) _metaData;
+		OutputInfo oinfo = (outputFormat != null ? OutputInfo.stringToOutputInfo (outputFormat)
+				: InputInfo.getMatchingOutputInfo (iimd.getInputInfo ()));
+
+		//note: the write of an RDD to HDFS might trigger
+		//lazy evaluation of pending transformations.
+		long newnnz = FlinkExecutionContext.writeDataSetToHDFS(dso, fname, oinfo);
 		((MatrixDimensionsMetaData) _metaData).getMatrixCharacteristics().setNonZeros(newnnz);
 	}
 }

@@ -4,12 +4,9 @@ import org.apache.flink.api.common.io.DelimitedInputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.FileInputSplit;
-import org.apache.flink.core.fs.Path;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RowIndexedInputFormat extends DelimitedInputFormat<Tuple2<Integer, String>> {
 

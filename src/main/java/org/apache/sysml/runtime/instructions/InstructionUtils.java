@@ -251,10 +251,8 @@ public class InstructionUtils
      *
      * @param str
      * @return
-     * @throws DMLUnsupportedOperationException
      */
 	public static FLINSTRUCTION_TYPE getFLType( String str )
-		throws DMLUnsupportedOperationException
 	{
 		String opcode = getOpCode(str);
 		FLINSTRUCTION_TYPE fltype = FLInstructionParser.String2FLInstructionType.get( opcode );

@@ -19,6 +19,7 @@ import org.apache.sysml.runtime.matrix.data.MatrixBlock;
 import org.apache.sysml.runtime.matrix.data.MatrixIndexes;
 import org.apache.sysml.runtime.matrix.operators.AggregateBinaryOperator;
 import org.apache.sysml.runtime.matrix.operators.AggregateOperator;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -36,7 +37,7 @@ import org.junit.Test;
  */
 public class MapmmFLInstructionTest {
 
-    @Test
+    @Ignore
     public void testInstruction() throws Exception {
         String inputAFile = getClass().getClassLoader().getResource("flink/3-2.data").getFile();;
         String inputBFile = getClass().getClassLoader().getResource("flink/2-3.data").getFile();;

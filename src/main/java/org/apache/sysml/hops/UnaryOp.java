@@ -493,8 +493,9 @@ public class UnaryOp extends Hop implements MultiThreadedHop
 		}
 
 		//in-memory cum sum (of partial aggregates)
-		if( TEMP.getOutputParameters().getNumRows()!=1 ){
-			Unary unary1 = new Unary( TEMP, HopsOpOp1LopsU.get(_op), DataType.MATRIX, ValueType.DOUBLE, ExecType.CP);
+		if( TEMP.getOutputParameters().getNumRows()!=1 ) {
+			int k = OptimizerUtils.getConstrainedNumThreads( _maxNumThreads );
+			Unary unary1 = new Unary( TEMP, HopsOpOp1LopsU.get(_op), DataType.MATRIX, ValueType.DOUBLE, ExecType.CP, k);
 			unary1.getOutputParameters().setDimensions(TEMP.getOutputParameters().getNumRows(), clen, brlen, bclen, -1);
 			setLineNumbers(unary1);
 			TEMP = unary1;

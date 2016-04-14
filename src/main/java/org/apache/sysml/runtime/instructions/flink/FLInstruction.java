@@ -2,7 +2,6 @@ package org.apache.sysml.runtime.instructions.flink;
 
 import org.apache.sysml.lops.runtime.RunMRJobs;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.instructions.FLInstructionParser;
 import org.apache.sysml.runtime.instructions.Instruction;
@@ -55,7 +54,7 @@ public abstract class FLInstruction extends Instruction {
 
     @Override
     public Instruction preprocessInstruction(ExecutionContext ec)
-        throws DMLRuntimeException, DMLUnsupportedOperationException
+        throws DMLRuntimeException
     {
         //default pre-process behavior (e.g., debug state)
         Instruction tmp = super.preprocessInstruction(ec);
@@ -72,5 +71,5 @@ public abstract class FLInstruction extends Instruction {
     }
 
     @Override
-    public abstract void processInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException;
+    public abstract void processInstruction(ExecutionContext ec) throws DMLRuntimeException;
 }

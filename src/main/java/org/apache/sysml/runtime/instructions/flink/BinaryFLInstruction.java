@@ -5,7 +5,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.sysml.lops.BinaryM.VectorType;
 import org.apache.sysml.parser.Expression;
 import org.apache.sysml.runtime.DMLRuntimeException;
-import org.apache.sysml.runtime.DMLUnsupportedOperationException;
 import org.apache.sysml.runtime.controlprogram.context.ExecutionContext;
 import org.apache.sysml.runtime.controlprogram.context.FlinkExecutionContext;
 import org.apache.sysml.runtime.instructions.InstructionUtils;
@@ -58,7 +57,7 @@ public abstract class BinaryFLInstruction extends ComputationFLInstruction {
         return opcode;
     }
 
-    protected void processMatrixMatrixBinaryInstruction(ExecutionContext ec) throws DMLRuntimeException, DMLUnsupportedOperationException {
+    protected void processMatrixMatrixBinaryInstruction(ExecutionContext ec) throws DMLRuntimeException {
         FlinkExecutionContext fec = (FlinkExecutionContext) ec;
 
         checkMatrixMatrixBinaryCharacteristics(fec);
@@ -126,12 +125,11 @@ public abstract class BinaryFLInstruction extends ComputationFLInstruction {
 	/**
 	 *
 	 * @param ec
-	 * @param type
+	 * @param vtype
 	 * @throws DMLRuntimeException
-	 * @throws DMLUnsupportedOperationException
 	 */
 	protected void processMatrixBVectorBinaryInstruction(ExecutionContext ec, VectorType vtype)
-		throws DMLRuntimeException, DMLUnsupportedOperationException
+		throws DMLRuntimeException
 	{
 		throw new DMLRuntimeException("not supported yet");
 	}
