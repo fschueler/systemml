@@ -682,10 +682,6 @@ public class DMLScript
 			//run execute (w/ exception handling to ensure proper shutdown)
 			ec = ExecutionContextFactory.createContext(rtprog);
 			rtprog.execute( ec );
-			if (ec instanceof FlinkExecutionContext) {
-				((FlinkExecutionContext) ec).execute();
-
-			}
 		}
 		finally //ensure cleanup/shutdown
 		{	

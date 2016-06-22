@@ -238,6 +238,7 @@ public class WriteFLInstruction extends FLInstruction {
 		} catch (IOException ioe) {
 			throw new DMLRuntimeException("Could not write metadata-file for output " + fname, ioe);
 		}
+		flec.execute();
 	}
 
 	/**
