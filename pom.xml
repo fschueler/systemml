@@ -861,6 +861,22 @@
 
 
 	<dependencies>
+
+        <!-- Emma -->
+        <dependency>
+            <groupId>eu.stratosphere</groupId>
+            <artifactId>emma-language</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+		<!-- Emma (test jars) -->
+		<dependency>
+			<groupId>eu.stratosphere</groupId>
+			<artifactId>emma-language</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 	
 		<!-- For GPU backend
 			Use org.mystic:mavenized-jcuda until Alan puts org.jcuda:*
@@ -1126,6 +1142,16 @@
 			<artifactId>scalap</artifactId>
 			<version>${scala.version}</version>
 		<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-compiler</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-reflect</artifactId>
+			<version>${scala.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scalatest</groupId>
