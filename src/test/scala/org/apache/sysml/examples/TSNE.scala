@@ -1,4 +1,4 @@
-package org.apache.sysml.api.examples
+package org.apache.sysml.examples
 
 import org.apache.sysml.api.linalg._
 import org.apache.sysml.api.linalg.api._
