@@ -1,6 +1,5 @@
 package org.apache.sysml.examples
 
-import org.apache.sysml.api.examples.TSNE
 import org.apache.sysml.api.linalg.Matrix
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
