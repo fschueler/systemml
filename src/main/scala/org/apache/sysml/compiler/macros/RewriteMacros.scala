@@ -33,11 +33,9 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
   // PIPELINE
   ////////////////////////////////////////////////////////////////////////////////
 
-  lazy val dmlNormalize = {
-    PatternMatching.destruct
-  } andThen {
-    Source.removeImplicits(API.implicitTypes)
-  }
+  // TODO add Patternmatching.destruct (private in source right now)
+  lazy val dmlNormalize = Source.removeImplicits(API.implicitTypes)
+
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
     fixLambdaTypes,
