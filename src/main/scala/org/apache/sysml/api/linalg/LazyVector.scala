@@ -19,7 +19,7 @@ class LazyVector(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix]
     * @param byRow if true, T is reshaped my row
     * @return new T with the new dimensions and rearranged values
     */
-  override def reshape(rows: Int, cols: Int, byRow: Boolean): LazyVector = ???
+  override def reshape(rows: Int, cols: Int, byRow: Boolean): LazyMatrix = ???
 
   override def copy: LazyVector = ???
 

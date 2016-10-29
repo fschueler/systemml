@@ -28,7 +28,7 @@ trait Lazy {
 
 object Lazy {
 
-  sealed case class Tree()
+  abstract class Tree()
   case class Empty() extends Tree
   case class Scalar[T: Numeric](value: T) extends Tree
   case class BinOp(rator: String, rand1: Tree, rand2: Tree) extends Tree

@@ -4,9 +4,8 @@ import org.apache.sysml.api.linalg.types.data.DataContainer
 
 import scala.collection.immutable.Range.Inclusive
 
-class EagerMatrix extends Matrix[EagerVector, EagerMatrix] with Eager {
-
-  override def impl: DataContainer[_] = null
+class EagerVector extends Matrix[EagerVector, EagerMatrix] {
+  override def impl: DataContainer[_] = ???
 
   override def apply(row: Int, col: Int): Double = ???
 
@@ -20,6 +19,7 @@ class EagerMatrix extends Matrix[EagerVector, EagerMatrix] with Eager {
 
   override def apply(rows: Inclusive, cols: Inclusive): EagerMatrix = ???
 
+  // MODO make sure that the orientation of the vector (row/col) fits the assignment
   override def update(row: Int, col: Int, value: Double): EagerMatrix = ???
 
   override def update(row: Int, col: :::.type, vec: EagerVector): EagerMatrix = ???
@@ -60,21 +60,21 @@ class EagerMatrix extends Matrix[EagerVector, EagerMatrix] with Eager {
 
   override def %*%(that: EagerVector): EagerVector = ???
 
-  override def t: EagerMatrix = ???
+  override def t: Matrix[EagerVector, EagerMatrix] = ???
 
-  override def ^(n: Int): EagerMatrix = ???
+  override def ^(n: Int): Matrix[EagerVector, EagerMatrix] = ???
 
-  override def map(f: (Double) => Double): EagerMatrix = ???
+  override def map(f: (Double) => Double): Matrix[EagerVector, EagerMatrix] = ???
 
   /**
-    * Reshapes the [[EagerMatrix]] into a new format. cols * rows must equal the original number of elements.
+    * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
     *
-    * @param rows  number of rows of the new T
-    * @param cols  number of columns of the new T
-    * @param byRow if true, T is reshaped my row
-    * @return new T with the new dimensions and rearranged values
+    * @param rows  number of rows of the new M
+    * @param cols  number of columns of the new M
+    * @param byRow if true, Mis reshaped my row
+    * @return new Mwith the new dimensions and rearranged values
     */
-  override def reshape(rows: Int, cols: Int, byRow: Boolean): EagerMatrix = ???
+  override def reshape(rows: Int, cols: Int, byRow: Boolean): Matrix[EagerVector, EagerMatrix] = ???
 
-  override def copy: EagerMatrix = ???
+  override def copy: Matrix[EagerVector, EagerMatrix] = ???
 }

@@ -132,11 +132,11 @@ abstract class Matrix[V, M <: Matrix[V, M]] {
   // M operation
   //////////////////////////////////////////
 
-  def t: M
+  def t: Matrix[V, M]
 
-  def ^(n: Int): M
+  def ^(n: Int): Matrix[V, M]
 
-  def map(f: Double => Double): M
+  def map(f: Double => Double): Matrix[V, M]
 
   // MODO: Should this return Either[ V, M] depending on if one dimension is 1?
   /**
@@ -147,9 +147,9 @@ abstract class Matrix[V, M <: Matrix[V, M]] {
     * @param byRow if true, Mis reshaped my row
     * @return new Mwith the new dimensions and rearranged values
     */
-  def reshape(rows: Int, cols: Int, byRow: Boolean = true): M
+  def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix[V, M]
 
-  def copy: M
+  def copy: Matrix[V, M]
 }
 
 object Matrix {
@@ -186,7 +186,7 @@ object Matrix {
   def rand(rows: Int, cols: Int): LazyMatrix = ??? //T.fill(rows, cols)((i, j) => Random.nextDouble())
 
   /** generate Mwith the vector on the diagonal */
-  def diag(vec: Vector): LazyMatrix = ??? //T.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
+  def diag(vec: Matrix[_, _]): LazyMatrix = ??? //T.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
 
 }
 

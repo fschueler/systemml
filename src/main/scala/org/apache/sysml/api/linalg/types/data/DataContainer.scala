@@ -8,9 +8,9 @@ abstract class DataContainer[+T] {
   def values: T
 }
 
-class LocalDataContainer[+T](override val values: T) extends DataContainer
+class LocalDataContainer[A](override val values: A) extends DataContainer[A]
 
-class DistributedDataContainer[+T](override val values: Seq[T]) extends DataContainer
+class DistributedDataContainer[A](override val values: A) extends DataContainer[A]
 
 
 

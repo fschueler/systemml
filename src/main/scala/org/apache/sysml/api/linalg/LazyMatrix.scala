@@ -6,15 +6,15 @@ import org.apache.sysml.api.linalg.types.data.DataContainer
 
 import scala.collection.immutable.Range.Inclusive
 
-private class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix] with Lazy {
+class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix] with Lazy {
 
   override def impl: DataContainer[_] = null
 
   override def apply(row: Int, col: Int): Double = ???
 
-  override def apply(row: Int, col: :::.type): Vector = ???
+  override def apply(row: Int, col: :::.type): LazyVector = ???
 
-  override def apply(row: :::.type, col: Int): Vector = ???
+  override def apply(row: :::.type, col: Int): LazyVector = ???
 
   override def apply(rows: Inclusive, cols: :::.type): LazyMatrix = ???
 
@@ -60,7 +60,7 @@ private class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, Laz
 
   override def %*%(that: LazyMatrix): LazyMatrix = ???
 
-  override def %*%(that: LazyVector): Vector = ???
+  override def %*%(that: LazyVector): LazyVector = ???
 
   override def t: LazyMatrix = ???
 
