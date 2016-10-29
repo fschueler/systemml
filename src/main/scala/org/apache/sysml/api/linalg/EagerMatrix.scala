@@ -1,11 +1,12 @@
 package org.apache.sysml.api.linalg
 import org.apache.sysml.api.linalg.api.:::
+import org.apache.sysml.api.linalg.types.data.DataContainer
 
 import scala.collection.immutable.Range.Inclusive
 
-private class EagerMatrix extends Matrix[EagerMatrix] with Eager {
-  override val rows: Int = _
-  override val cols: Int = _
+private class EagerMatrix extends Matrix[Vector, EagerMatrix] with Eager {
+
+  override def impl: DataContainer[_] = null
 
   override def apply(row: Int, col: Int): Double = ???
 

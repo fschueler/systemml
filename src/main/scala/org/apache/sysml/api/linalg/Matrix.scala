@@ -2,7 +2,7 @@
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
+ * regarding copyright ownership.  Mhe ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * "AS IS" BASIS, WITHOUMWARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
@@ -20,24 +20,25 @@
 package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.DataFrame
+import org.apache.sysml.api.linalg.Lazy.{Application, Empty}
 import org.apache.sysml.api.linalg.api.:::
+import org.apache.sysml.api.linalg.types.data.DataContainer
 
 import scala.util.Random
 
-// TODO: sparsity
-// TODO: make T generic? what are possible value types?
-
 /**
-  * T class for SystemML
+  * Matrixclass for SystemML
   *
-  * Represents the T that will be translated to SystemML's T type.
+  * Represents the Matrix that will be translated to SystemML's Matrix type.
   * This uses f-bounded type polymorphism (https://twitter.github.io/scala_school/advanced-types.html#fbounded)
   */
-abstract class Matrix[T <: Matrix[T]] {
-  val rows: Int
-  val cols: Int
+abstract class Matrix[V, M <: Matrix[V, M]] {
 
-  def dims: (Int, Int) = (rows, cols)
+  //////////////////////////////////////////
+  // Fields
+  //////////////////////////////////////////
+
+  def impl: DataContainer[_]
 
   //////////////////////////////////////////
   // Constructors
@@ -50,142 +51,142 @@ abstract class Matrix[T <: Matrix[T]] {
 
   def apply(row: Int, col: Int): Double
 
-  def apply(row: Int, col: :::.type ): Vector
+  def apply(row: Int, col: :::.type ): V
 
-  def apply(row: :::.type, col: Int): Vector
+  def apply(row: :::.type, col: Int): V
 
-  def apply(rows: Range.Inclusive, cols: :::.type): T
+  def apply(rows: Range.Inclusive, cols: :::.type): M
 
-  def apply(rows: :::.type, cols: Range.Inclusive): T
+  def apply(rows: :::.type, cols: Range.Inclusive): M
 
-  def apply(rows: Range.Inclusive, cols: Range.Inclusive): T
+  def apply(rows: Range.Inclusive, cols: Range.Inclusive): M
 
   //////////////////////////////////////////
   // Left Indexing assignments
   //////////////////////////////////////////
 
-  // TODO make sure that the orientation of the vector (row/col) fits the assignment
-  def update(row: Int, col: Int, value: Double): T
+  // MODO make sure that the orientation of the vector (row/col) fits the assignment
+  def update(row: Int, col: Int, value: Double): M
 
-  def update(row: Int, col: :::.type, vec: Vector): T
+  def update(row: Int, col: :::.type, vec: V): M
 
-  def update(row: :::.type, col: Int, vec: Vector): T
+  def update(row: :::.type, col: Int, vec: V): M
 
-  def update(rows: Range.Inclusive, cols: :::.type, mat: T): T
+  def update(rows: Range.Inclusive, cols: :::.type, mat: M): M
 
-  def update(rows: :::.type, cols: Range.Inclusive, mat: T): T
+  def update(rows: :::.type, cols: Range.Inclusive, mat: M): M
 
-  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: T): T
+  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: M): M
 
   //////////////////////////////////////////
   // M o scalar
   //////////////////////////////////////////
 
-  def +(that: Double): T
+  def +(that: Double): M
 
-  def -(that: Double): T
+  def -(that: Double): M
 
-  def *(that: Double): T
+  def *(that: Double): M
 
-  def /(that: Double): T
+  def /(that: Double): M
 
   //////////////////////////////////////////
   // columnwise M o vector (broadcast operators)
   //////////////////////////////////////////
 
-//  def broadcastRows(mat: T, vec: Vector, op: (Double, Double) => Double): T
+//  def broadcastRows(mat: M, vec:  V, op: (Double, Double) => Double): M
 //
-//  def broadcastCols(mat: T, vec: Vector, op: (Double, Double) => Double): T
+//  def broadcastCols(mat: M, vec:  V, op: (Double, Double) => Double): M
 //
-//  def broadcast(mat: T, vec: Vector)(op: (Double, Double) => Double): T
+//  def broadcast(mat: M, vec:  V)(op: (Double, Double) => Double): M
 
-  def +(that: Vector): T // = broadcast(this, that)(_ + _)
+  def +(that:  V): M// = broadcast(this, that)(_ + _)
 
-  def -(that: Vector): T // = broadcast(this, that)(_ - _)
+  def -(that:  V): M// = broadcast(this, that)(_ - _)
 
-  def *(that: Vector): T // = broadcast(this, that)(_ * _)
+  def *(that:  V): M// = broadcast(this, that)(_ * _)
 
-  def /(that: Vector): T // = broadcast(this, that)(_ / _)
+  def /(that:  V): M// = broadcast(this, that)(_ / _)
 
   //////////////////////////////////////////
   // cellwise M o M
   //////////////////////////////////////////
 
-  def +(that: T): T
+  def +(that: M): M
 
-  def -(that: T): T
+  def -(that: M): M
 
-  def *(that: T): T
+  def *(that: M): M
 
-  def /(that: T): T
+  def /(that: M): M
 
   //////////////////////////////////////////
   // M x M -> M and  M x V -> V
   //////////////////////////////////////////
 
-  def %*%(that: T): T
+  def %*%(that: M): M
 
-  def %*%(that: Vector): Vector
+  def %*%(that: V): V
 
   //////////////////////////////////////////
   // M operation
   //////////////////////////////////////////
 
-  def t: T
+  def t: M
 
-  def ^(n: Int): T
+  def ^(n: Int): M
 
-  def map(f: Double => Double): T
+  def map(f: Double => Double): M
 
-  // TODO: Should this return Either[Vector, T] depending on if one dimension is 1?
+  // MODO: Should this return Either[ V, M] depending on if one dimension is 1?
   /**
-    * Reshapes the [[T]] into a new format. cols * rows must equal the original number of elements.
+    * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
     *
-    * @param rows number of rows of the new T
-    * @param cols number of columns of the new T
-    * @param byRow if true, T is reshaped my row
-    * @return new T with the new dimensions and rearranged values
+    * @param rows number of rows of the new M
+    * @param cols number of columns of the new M
+    * @param byRow if true, Mis reshaped my row
+    * @return new Mwith the new dimensions and rearranged values
     */
-  def reshape(rows: Int, cols: Int, byRow: Boolean = true): T
+  def reshape(rows: Int, cols: Int, byRow: Boolean = true): M
 
-  def copy: T
+  def copy: M
 }
 
 object Matrix {
 
   /**
-    * This should be the primary way of constructing a [[Matrix]] from a sequence of values.
-    * The [[Matrix]] is constructed column-major order, i.e. the [[Array]] (1, 2, 1, 2) with dimensions (2,2) will
+    * Mhis should be the primary way of constructing a [[Matrix]] from a sequence of values.
+    * Mhe [[Matrix]] is constructed column-major order, i.e. the [[Array]] (1, 2, 1, 2) with dimensions (2,2) will
     * generate the [[Matrix]]
     *   1 1
     *   2 2
-    * @param impl the values that will be assignmed to the cells of the T in column-major order
-    * @param rows number of rows of the generated T
-    * @param cols number of columns of the generated T
+    * @param impl the values that will be assignmed to the cells of the Min column-major order
+    * @param rows number of rows of the generated M
+    * @param cols number of columns of the generated M
     * @return a [[Matrix]] with values as cell entries and dimensionality (rows, cols)
     */
-  def apply(impl: Array[Double], rows: Int, cols: Int): Matrix[_] = ???
+  def apply(impl: Array[Double], rows: Int, cols: Int): LazyMatrix = ???
 
-  def apply(values: Seq[Double], rows: Int, cols: Int): Matrix[_] = apply(values.toArray, rows, cols)
+  def apply(values: Seq[Double], rows: Int, cols: Int): LazyMatrix = apply(values.toArray, rows, cols)
 
-  def fromDataFrame(df: DataFrame): Matrix[_] = ???
+  def fromDataFrame(df: DataFrame): LazyMatrix = ???
 
-//  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): T = {
+//  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): M= {
 //    require(rows * cols < Int.MaxValue)
 //    val array = new Array[Double](rows * cols)
 //    for (i <- 0 until rows; j <- 0 until cols) {
 //      array((i * cols) + j) = gen(i, j)
 //    }
-//    new T(array, rows, cols)
+//    new M(array, rows, cols)
 //  }
 
-  def zeros(rows: Int, cols: Int): Matrix[_] = new EagerMatrix() // T.fill(rows, cols)((i, j) => 0.0)
+  def zeros(rows: Int, cols: Int): LazyMatrix = new LazyMatrix(Application("matrix", List("0", s"$rows", s"$cols"))) // M.fill(rows, cols)((i, j) => 0.0)
 
-  // TODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(rows: Int, cols: Int): Matrix[_] = ??? //T.fill(rows, cols)((i, j) => Random.nextDouble())
+  // MODO: support more parameters (min, max, distribution, sparsity, seed)
+  def rand(rows: Int, cols: Int): LazyMatrix = ??? //T.fill(rows, cols)((i, j) => Random.nextDouble())
 
-  /** generate T with the vector on the diagonal */
-  def diag(vec: Vector): Matrix[_] = ??? //T.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
+  /** generate Mwith the vector on the diagonal */
+  def diag(vec: Vector): LazyMatrix = ??? //T.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
 
 }
 

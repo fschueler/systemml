@@ -1,15 +1,18 @@
 package org.apache.sysml.api.linalg.types
 
-import org.apache.sysml.api.linalg.types.eager.EagerMatrix
+import org.apache.spark.SparkContext
+import org.apache.sysml.api.linalg.Matrix
 
-object APITest {
+object APITest extends App {
 
-  def main(args: Array[String]) = {
-    val A = AbstractMatrix.zeros(3, 3)
-    val B = AbstractMatrix.zeros(3, 4)
+  val sc = new SparkContext()
+
+    val A = Matrix.zeros(3, 3)
+    val B = Matrix.rand(3, 3)
+
     val C = A + B
 
-    C
-  }
+    val res = C.eval(sc)
+    res
 
 }

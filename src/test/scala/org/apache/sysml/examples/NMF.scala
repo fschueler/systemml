@@ -7,7 +7,7 @@ object NMF {
 
   def main(args: Array[String]) = {
 
-    val nmf: SystemMLAlgorithm[(Matrix, Matrix)] = parallelize {
+    val nmf = parallelize {
       val tfidf = Array(1.0, 2.0, 3.0, 4.0) // tfidf feature matrix coming from somewhere
       val k = 40
       val m, n = 2 // dimensions of tfidf

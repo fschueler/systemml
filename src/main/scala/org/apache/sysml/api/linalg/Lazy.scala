@@ -11,7 +11,7 @@ trait Lazy {
 
   def toDataFrame: DataFrame
 
-  def eval(sc: SparkContext): Matrix[LazyMatrix] = {
+  def eval(sc: SparkContext): Matrix[LazyVector, LazyMatrix] = {
     val mlctx = new MLContext(sc)
     val script = dml(evalTree)
     val result = mlctx.execute(script)
@@ -32,6 +32,7 @@ object Lazy {
   case class Empty() extends Tree
   case class Scalar[T: Numeric](value: T) extends Tree
   case class BinOp(rator: String, rand1: Tree, rand2: Tree) extends Tree
+  case class Application(func: String, args: List[String]) extends Tree
 
   implicit def toEager(mat: LazyMatrix): EagerMatrix = {
     // evaluate and pass data to a new eagermatrix
