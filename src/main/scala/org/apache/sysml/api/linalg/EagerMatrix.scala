@@ -5,6 +5,9 @@ import org.apache.sysml.api.linalg.types.data.DataContainer
 import scala.collection.immutable.Range.Inclusive
 
 class EagerMatrix extends Matrix[EagerVector, EagerMatrix] with Eager {
+  override def rows = 0
+
+  override def cols = 0
 
   override def impl: DataContainer[_] = null
 

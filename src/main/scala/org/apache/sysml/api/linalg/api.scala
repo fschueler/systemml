@@ -29,63 +29,63 @@ package object api {
 
   object :::
 
-  def read(path: String): Matrix = ???
+  def read(path: String): Matrix[_, _] = ???
 
-  def write(mat: Matrix, path: String, format: Format.FileFormat): Unit = ???
+  def write(mat: Matrix[_, _], path: String, format: Format.FileFormat): Unit = ???
 
-  def sum(mat: Matrix): Double = ???
+  def sum[V, M](mat: Matrix[V, M]): Double = ???
 
-  def sum(vec: Vector): Double = ???
+  def rowSums[A, B](mat: Matrix[A, B]): A = ???
 
-  def rowSums(mat: Matrix): Vector = ???
+  def colSums(mat: Matrix[_, _]): Matrix[_, _] = ???
 
-  def colSums(mat: Matrix): Vector = ???
+  def mean(mat: Matrix[_, _]): Double = ???
 
-  def mean(mat: Matrix): Double = ???
+  def rowMeans(mat: Matrix[_, _]): Matrix[_, _] = ???
 
-  def rowMeans(mat: Matrix): Vector = ???
-
-  def colMeans(mat: Matrix): Vector = ???
+  def colMeans(mat: Matrix[_, _]): Matrix[_, _] = ???
 
   def log(x: Double): Double = ???
 
-  def log(mat: Matrix): Matrix = ???
+  def log(mat: Matrix[_, _]): Matrix[_, _] = ???
 
   def abs(x: Double): Double = ???
 
-  def exp(b: Vector): Vector = ???
+  def exp(b: Matrix[_, _]): Matrix[_, _] = ???
 
-  def rowIndexMax(mat: Matrix): Vector = ???
+  def rowIndexMax(mat: Matrix[_, _]): Matrix[_, _] = ???
 
-  def pmax(mat: Matrix, s: Double): Matrix = ???
+  def pmax(mat: Matrix[_, _], s: Double): Matrix[_, _] = ???
 
-  def min(mat: Matrix): Double = ???
+  def min(mat: Matrix[_, _]): Double = ???
 
-  def max(Mat: Matrix): Double = ???
+  def max(Mat: Matrix[_, _]): Double = ???
 
   ///////////////////////////////////
   // Implicit Matrix and Vector Ops
   ///////////////////////////////////
 
   /** This allows operations with Vectors and Matrices as left arguments such as Double * Matrix */
-  implicit class VectorOps(private val n: Double) extends AnyVal {
-    def +(v: Vector): Vector = v + n
-
-    def -(v: Vector): Vector = v - n
-
-    def *(v: Vector): Vector = v * n
-
-    def /(v: Vector): Vector = v / n
-  }
+//  implicit class VectorOps(private val n: Double) extends AnyVal {
+//    def +(v: Vector): Vector = v + n
+//
+//    def -(v: Vector): Vector = v - n
+//
+//    def *(v: Vector): Vector = v * n
+//
+//    def /(v: Vector): Vector = v / n
+//  }
 
   implicit class MatrixOps(private val n: Double) extends AnyVal{
-    def +(v: Matrix): Matrix = v + n
+    def +[B <: Matrix[_, B]](v: B): B = v + n
 
-    def -(v: Matrix): Matrix = v - n
+    def +[A <: Matrix[A, _]](v: A): A = v + n
 
-    def *(v: Matrix): Matrix = v * n
+    def -[A, B <: Matrix[A, B]](v: Matrix[A, B]): Matrix[A, B] = v - n
 
-    def /(v: Matrix): Matrix = v / n
+    def *[A, B <: Matrix[A, B]](v: Matrix[A, B]): Matrix[A, B] = v * n
+
+    def /[A, B <: Matrix[A, B]](v: Matrix[A, B]): Matrix[A, B] = v / n
   }
 
   object Format {

@@ -5,6 +5,10 @@ import org.apache.sysml.api.linalg.types.data.DataContainer
 import scala.collection.immutable.Range.Inclusive
 
 class EagerVector extends Matrix[EagerVector, EagerMatrix] {
+  override def rows = 0
+
+  override def cols = 0
+
   override def impl: DataContainer[_] = ???
 
   override def apply(row: Int, col: Int): Double = ???

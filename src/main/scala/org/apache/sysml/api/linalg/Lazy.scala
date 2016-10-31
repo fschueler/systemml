@@ -31,8 +31,9 @@ object Lazy {
   abstract class Tree()
   case class Empty() extends Tree
   case class Scalar[T: Numeric](value: T) extends Tree
+  case class UnaryOp(rator: String, rand: Tree) extends Tree
   case class BinOp(rator: String, rand1: Tree, rand2: Tree) extends Tree
-  case class Application(func: String, args: List[String]) extends Tree
+  case class Application(func: String, args: List[Any]) extends Tree
 
   implicit def toEager(mat: LazyMatrix): EagerMatrix = {
     // evaluate and pass data to a new eagermatrix

@@ -6,14 +6,15 @@ import org.apache.sysml.api.linalg.api._
 
 object TSNE {
 
-  def distanceMatrix(X: Matrix): Matrix = {
+  def distanceMatrix[A <: Matrix[A, B], B <: Matrix[A, B]](X: B): Matrix[A, B] = {
     val n = X.rows
     val s = rowSums(X * X)
 
-    (((X * -2.0)  %*% X.t) + s) + s.t
+    val tmp = ((X * -2.0)  %*% X.t)
+    (tmp + s) + s.t
   }
 
-  def x2p(X: Matrix, perplexity: Double): Matrix = {
+  def x2p(X: Matrix[_, _], perplexity: Double): Matrix[_, _] = {
     val tol = 1.0e-5
     val INF = 1.0e20
     val n   = X.rows
@@ -30,7 +31,7 @@ object TSNE {
 
       var itr = 0
       val Di  = D(i, :::)
-      var Pi  = Vector.zeros(Di.length)
+      var Pi  = Vector.zeros(Di.rows)
 
       while ((abs(Hdiff) > tol) && (itr < 50)) {
         Pi = exp(Di * -1 * beta(i))

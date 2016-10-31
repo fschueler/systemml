@@ -8,6 +8,9 @@ import org.apache.sysml.api.linalg.types.data.DataContainer
 import scala.collection.immutable.Range.Inclusive
 
 class LazyVector(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix] with Lazy {
+  override def rows = 0
+
+  override def cols = 0
 
   override def impl: DataContainer[_] = null
 
@@ -49,7 +52,7 @@ class LazyVector(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix]
 
   override def update(rows: Inclusive, cols: Inclusive, mat: LazyMatrix): LazyMatrix = ???
 
-  override def +(that: Double): LazyMatrix = ???
+  override def +[LazyVector, LazyMatrix, U <: Matrix[LazyVector, LazyMatrix]](that: Double): LazyVector = ???
 
   override def -(that: Double): LazyMatrix = ???
 

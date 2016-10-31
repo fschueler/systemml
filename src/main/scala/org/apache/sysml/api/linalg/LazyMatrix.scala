@@ -1,16 +1,19 @@
 package org.apache.sysml.api.linalg
 import org.apache.spark.sql.DataFrame
-import org.apache.sysml.api.linalg.Lazy.{BinOp, Scalar, Tree}
+import org.apache.sysml.api.linalg.Lazy.{Application, BinOp, Scalar, Tree, UnaryOp}
 import org.apache.sysml.api.linalg.api.:::
 import org.apache.sysml.api.linalg.types.data.DataContainer
 
 import scala.collection.immutable.Range.Inclusive
 
 class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix] with Lazy {
+  override def rows = 0
+
+  override def cols = 0
 
   override def impl: DataContainer[_] = null
 
-  override def apply(row: Int, col: Int): Double = ???
+  override def apply(row: Int, col: Int): Double = ??? // TODO should this eval?
 
   override def apply(row: Int, col: :::.type): LazyVector = ???
 
@@ -44,11 +47,11 @@ class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix]
 
   override def +(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
 
-  override def -(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
+  override def -(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("-", this.tree, that.tree))
 
-  override def *(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
+  override def *(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("*", this.tree, that.tree))
 
-  override def /(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
+  override def /(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("/", this.tree, that.tree))
 
   override def +(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
 
@@ -58,13 +61,13 @@ class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix]
 
   override def /(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("/", this.tree, that.tree))
 
-  override def %*%(that: LazyMatrix): LazyMatrix = ???
+  override def %*%(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("%*%", this.tree, that.tree))
 
-  override def %*%(that: LazyVector): LazyVector = ???
+  override def %*%(that: LazyVector): LazyVector = new LazyVector(BinOp("%*%", this.tree, that.tree))
 
-  override def t: LazyMatrix = ???
+  override def t: LazyMatrix = new LazyMatrix(UnaryOp("transpose", this.tree))
 
-  override def ^(n: Int): LazyMatrix = ???
+  override def ^(n: Int): LazyMatrix = new LazyMatrix(UnaryOp("hat", this.tree))
 
   override def map(f: (Double) => Double): LazyMatrix = ???
 

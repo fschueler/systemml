@@ -32,11 +32,13 @@ import scala.util.Random
   * Represents the Matrix that will be translated to SystemML's Matrix type.
   * This uses f-bounded type polymorphism (https://twitter.github.io/scala_school/advanced-types.html#fbounded)
   */
-abstract class Matrix[V, M <: Matrix[V, M]] {
+trait Matrix[V <: Matrix[V, M], M <: Matrix[V, M]] { this: Matrix[V, M] =>
 
   //////////////////////////////////////////
   // Fields
   //////////////////////////////////////////
+  def rows: Int
+  def cols: Int
 
   def impl: DataContainer[_]
 
@@ -82,7 +84,7 @@ abstract class Matrix[V, M <: Matrix[V, M]] {
   // M o scalar
   //////////////////////////////////////////
 
-  def +(that: Double): M
+  def +[A, B, U <: Matrix[A, B]](that: Double): U
 
   def -(that: Double): M
 
@@ -132,7 +134,7 @@ abstract class Matrix[V, M <: Matrix[V, M]] {
   // M operation
   //////////////////////////////////////////
 
-  def t: Matrix[V, M]
+  def t: M
 
   def ^(n: Int): Matrix[V, M]
 
@@ -188,5 +190,16 @@ object Matrix {
   /** generate Mwith the vector on the diagonal */
   def diag(vec: Matrix[_, _]): LazyMatrix = ??? //T.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
 
+}
+
+object Vector {
+
+  def apply(values: Seq[Double]): LazyVector = ???
+
+  def zeros(rows: Int): LazyVector = ???
+
+  def ones(rows: Int): LazyVector = ???
+
+  def rand(rows: Int): LazyVector = ???
 }
 

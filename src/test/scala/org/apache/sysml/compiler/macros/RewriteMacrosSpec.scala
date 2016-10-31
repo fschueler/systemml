@@ -42,7 +42,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
       (m, n)
     }
 
-    val (m: Matrix, n: Double) = alg.run()
+    val (m, n) = alg.run()
   }
 
   "Matrix Multiplication" in {
@@ -79,7 +79,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
   "NMF" in {
 
-    val nmf: SystemMLAlgorithm[(Matrix, Matrix)] = parallelize {
+    val nmf = parallelize {
       val tfidf = Array(1.0, 2.0, 3.0, 4.0) // tfidf feature matrix coming from somewhere
       val k = 40
       val m, n = 2 // dimensions of tfidf
@@ -110,7 +110,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
     val alg = parallelize {
       /* this should take a dataframeand set it as input to the MLContext */
-      val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
+      val matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
 
       val minOut = min(matrix)
       val maxOut = max(matrix)
