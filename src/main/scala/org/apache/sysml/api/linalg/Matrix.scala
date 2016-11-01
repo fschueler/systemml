@@ -22,16 +22,14 @@ package org.apache.sysml.api.linalg
 import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.Lazy.{Application, Empty}
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.linalg.types.data.DataContainer
-
-import scala.util.Random
+import org.apache.sysml.api.linalg.types.TypeClass.{Layout, Local, ZeroBlock}
 
 /**
   * Matrixclass for SystemAL
   *
   * Represents the Matrix that will be translated to SystemAL's Matrix type.
   */
-trait MatrixOps[M, V] {
+abstract class Matrix[A: Layout] {
 
   //////////////////////////////////////////
   // Fields
@@ -39,7 +37,7 @@ trait MatrixOps[M, V] {
   def rows: Int
   def cols: Int
 
-  def impl: DataContainer[_]
+  def impl: A
 
   //////////////////////////////////////////
   // Constructors
@@ -52,44 +50,44 @@ trait MatrixOps[M, V] {
 
   def apply(row: Int, col: Int): Double
 
-  def apply(row: Int, col: :::.type ): V
+  def apply(row: Int, col: :::.type ): Vector[A]
 
-  def apply(row: :::.type, col: Int): V
+  def apply(row: :::.type, col: Int): Vector[A]
 
-  def apply(rows: Range.Inclusive, cols: :::.type): M
+  def apply(rows: Range.Inclusive, cols: :::.type): Matrix[A]
 
-  def apply(rows: :::.type, cols: Range.Inclusive): M
+  def apply(rows: :::.type, cols: Range.Inclusive): Matrix[A]
 
-  def apply(rows: Range.Inclusive, cols: Range.Inclusive): M
+  def apply(rows: Range.Inclusive, cols: Range.Inclusive): Matrix[A]
 
   //////////////////////////////////////////
   // Left Indexing assignments
   //////////////////////////////////////////
 
   // TODO make sure that the orientation of the vector (row/col) fits the assignment
-  def update(row: Int, col: Int, value: Double): M
+  def update(row: Int, col: Int, value: Double): Matrix[A]
 
-  def update(row: Int, col: :::.type, vec: V): M
+  def update(row: Int, col: :::.type, vec: Vector[A]): Matrix[A]
 
-  def update(row: :::.type, col: Int, vec: V): M
+  def update(row: :::.type, col: Int, vec: Vector[A]): Matrix[A]
 
-  def update(rows: Range.Inclusive, cols: :::.type, mat: M): M
+  def update(rows: Range.Inclusive, cols: :::.type, mat: Matrix[A]): Matrix[A]
 
-  def update(rows: :::.type, cols: Range.Inclusive, mat: M): M
+  def update(rows: :::.type, cols: Range.Inclusive, mat: Matrix[A]): Matrix[A]
 
-  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: M): M
+  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: Matrix[A]): Matrix[A]
 
   //////////////////////////////////////////
   // A o scalar
   //////////////////////////////////////////
 
-  def +(that: Double): M
+  def +(that: Double): Matrix[A]
 
-  def -(that: Double): M
+  def -(that: Double): Matrix[A]
 
-  def *(that: Double): M
+  def *(that: Double): Matrix[A]
 
-  def /(that: Double): M
+  def /(that: Double): Matrix[A]
 
   //////////////////////////////////////////
   // columnwise M o vector (broadcast operators)
@@ -101,62 +99,56 @@ trait MatrixOps[M, V] {
 //
 //  def broadcast(mat: A, vec:  A)(op: (Double, Double) => Double): A
 
-  def +(that:  V): M// = broadcast(this, that)(_ + _)
+  def +(that:  Vector[A]): Matrix[A]// = broadcast(this, that)(_ + _)
 
-  def -(that:  V): M// = broadcast(this, that)(_ - _)
+  def -(that:  Vector[A]): Matrix[A]// = broadcast(this, that)(_ - _)
 
-  def *(that:  V): M// = broadcast(this, that)(_ * _)
+  def *(that:  Vector[A]): Matrix[A]// = broadcast(this, that)(_ * _)
 
-  def /(that:  V): M// = broadcast(this, that)(_ / _)
+  def /(that:  Vector[A]): Matrix[A]// = broadcast(this, that)(_ / _)
 
   //////////////////////////////////////////
   // cellwise A o A
   //////////////////////////////////////////
 
-  def +(that: M): M
+  def +(that: Matrix[A]): Matrix[A]
 
-  def -(that: M): M
+  def -(that: Matrix[A]): Matrix[A]
 
-  def *(that: M): M
+  def *(that: Matrix[A]): Matrix[A]
 
-  def /(that: M): M
+  def /(that: Matrix[A]): Matrix[A]
 
   //////////////////////////////////////////
   // A x A -> A and  A x A -> A
   //////////////////////////////////////////
 
-  def %*%(that: M): M
+  def %*%(that: Matrix[A]): Matrix[A]
 
-  def %*%(that: V): V
+  def %*%(that: Vector[A]): Vector[A]
 
   //////////////////////////////////////////
   // A operation
   //////////////////////////////////////////
 
-  def t: M
+  def t: Matrix[A]
 
-  def ^(n: Int): M
+  def ^(n: Int): Matrix[A]
 
   /**
-    * Reshapes the [[MatrixOps]] into a new format. cols * rows must equal the original number of elements.
+    * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
     *
     * @param rows number of rows of the new A
     * @param cols number of columns of the new A
     * @param byRow if true, Ais reshaped my row
     * @return new Awith the new dimensions and rearranged values
     */
-  def reshape(rows: Int, cols: Int, byRow: Boolean = true): M
+  def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix[A]
 
-  def copy: M
+  def copy: Matrix[A]
 }
 
-object MatrixOps {
-
-  implicit object LazyMatrixOps extends MatrixOps[LazyVector, LazyMatrix] {
-    def +(mat: LazyMatrix, vec: LazyVector): LazyMatrix = ???
-  }
-
-  def apply[V:Vector, M:MatrixOps]: MatrixOps[V, M] = implicitly
+object Matrix {
 
   /**
     * Ahis should be the primary way of constructing a [[Matrix]] from a sequence of values.
@@ -169,11 +161,11 @@ object MatrixOps {
     * @param cols number of columns of the generated A
     * @return a [[Matrix]] with values as cell entries and dimensionality (rows, cols)
     */
-  def apply(impl: Array[Double], rows: Int, cols: Int): LazyMatrix = ???
+  //def apply(impl: Array[Double], rows: Int, cols: Int): LazyMatrix = ???
 
-  def apply(values: Seq[Double], rows: Int, cols: Int): LazyMatrix = apply(values.toArray, rows, cols)
+  //def apply(values: Seq[Double], rows: Int, cols: Int): LazyMatrix = apply(values.toArray, rows, cols)
 
-  def fromDataFrame(df: DataFrame): LazyMatrix = ???
+  //def fromDataFrame(df: DataFrame): LazyMatrix = ???
 
 //  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): A= {
 //    require(rows * cols < Int.AaxAalue)
@@ -184,10 +176,12 @@ object MatrixOps {
 //    new A(array, rows, cols)
 //  }
 
-  def zeros(rows: Int, cols: Int): LazyMatrix = new LazyMatrix(Application("matrix", List("0", s"$rows", s"$cols"))) // A.fill(rows, cols)((i, j) => 0.0)
+  def zeros[A: Layout](rows: Int, cols: Int): Matrix[A] = {
+    new LazyMatrix(Local(ZeroBlock()))
+  } 
 
   // AODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(rows: Int, cols: Int): LazyMatrix = ??? //T.fill(rows, cols)((i, j) => Random.nextDouble())
+  //def rand(rows: Int, cols: Int): LazyMatrix = ??? //T.fill(rows, cols)((i, j) => Random.nextDouble())
 
   /** generate Awith the vector on the diagonal */
 
