@@ -6,82 +6,15 @@ import org.apache.sysml.api.linalg.types.data.DataContainer
 
 import scala.collection.immutable.Range.Inclusive
 
-class LazyMatrix(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix] with Lazy {
-  override def rows = 0
+case class LazyMatrix(val tree: Tree) extends Lazy {
+  def rows = 0
+  def cols = 0
+  def impl: DataContainer[_] = null
 
-  override def cols = 0
+  override def toDataFrame: DataFrame = ???
+}
 
-  override def impl: DataContainer[_] = null
-
-  override def apply(row: Int, col: Int): Double = ??? // TODO should this eval?
-
-  override def apply(row: Int, col: :::.type): LazyVector = ???
-
-  override def apply(row: :::.type, col: Int): LazyVector = ???
-
-  override def apply(rows: Inclusive, cols: :::.type): LazyMatrix = ???
-
-  override def apply(rows: :::.type, cols: Inclusive): LazyMatrix = ???
-
-  override def apply(rows: Inclusive, cols: Inclusive): LazyMatrix = ???
-
-  override def update(row: Int, col: Int, value: Double): LazyMatrix = ???
-
-  override def update(row: Int, col: :::.type, vec: LazyVector): LazyMatrix = ???
-
-  override def update(row: :::.type, col: Int, vec: LazyVector): LazyMatrix = ???
-
-  override def update(rows: Inclusive, cols: :::.type, mat: LazyMatrix): LazyMatrix = ???
-
-  override def update(rows: :::.type, cols: Inclusive, mat: LazyMatrix): LazyMatrix = ???
-
-  override def update(rows: Inclusive, cols: Inclusive, mat: LazyMatrix): LazyMatrix = ???
-
-  override def +(that: Double): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, Scalar(that)))
-
-  override def -(that: Double): LazyMatrix = new LazyMatrix(BinOp("-", this.tree, Scalar(that)))
-
-  override def *(that: Double): LazyMatrix = new LazyMatrix(BinOp("*", this.tree, Scalar(that)))
-
-  override def /(that: Double): LazyMatrix = new LazyMatrix(BinOp("/", this.tree, Scalar(that)))
-
-  override def +(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
-
-  override def -(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("-", this.tree, that.tree))
-
-  override def *(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("*", this.tree, that.tree))
-
-  override def /(that: LazyVector): LazyMatrix = new LazyMatrix(BinOp("/", this.tree, that.tree))
-
-  override def +(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("+", this.tree, that.tree))
-
-  override def -(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("-", this.tree, that.tree))
-
-  override def *(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("*", this.tree, that.tree))
-
-  override def /(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("/", this.tree, that.tree))
-
-  override def %*%(that: LazyMatrix): LazyMatrix = new LazyMatrix(BinOp("%*%", this.tree, that.tree))
-
-  override def %*%(that: LazyVector): LazyVector = new LazyVector(BinOp("%*%", this.tree, that.tree))
-
-  override def t: LazyMatrix = new LazyMatrix(UnaryOp("transpose", this.tree))
-
-  override def ^(n: Int): LazyMatrix = new LazyMatrix(UnaryOp("hat", this.tree))
-
-  override def map(f: (Double) => Double): LazyMatrix = ???
-
-  /**
-    * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
-    *
-    * @param rows  number of rows of the new matrix
-    * @param cols  number of columns of the new matrix
-    * @param byRow if true, LazyMatrix is reshaped my row
-    * @return new LazyMatrix with the new dimensions and rearranged values
-    */
-  override def reshape(rows: Int, cols: Int, byRow: Boolean): LazyMatrix = ???
-
-  override def copy: LazyMatrix = ???
+case class LazyVector(val tree: Tree) extends Lazy {
 
   override def toDataFrame: DataFrame = ???
 }

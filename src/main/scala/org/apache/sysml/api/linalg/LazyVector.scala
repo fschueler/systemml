@@ -52,7 +52,7 @@ class LazyVector(override val tree: Tree) extends Matrix[LazyVector, LazyMatrix]
 
   override def update(rows: Inclusive, cols: Inclusive, mat: LazyMatrix): LazyMatrix = ???
 
-  override def +[LazyVector, LazyMatrix, U <: Matrix[LazyVector, LazyMatrix]](that: Double): LazyVector = ???
+  override def +(that: Double): LazyVector = ???
 
   override def -(that: Double): LazyMatrix = ???
 
