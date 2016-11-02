@@ -7,10 +7,12 @@ import TypeClass._
 
 object APITest extends App {
 
-    val A = Matrix(Array(1.0, 1.0, 1.0))
+    val A = Matrix.rand(2, 2)
 
-    val C = A + A
+    val B = new Matrix(Local(DenseBlock(Array(1.0, 1.0, 1.0, 1.0))), 2, 2)
 
-    C
+    val r = A + B
+
+    println(r)
 
 }

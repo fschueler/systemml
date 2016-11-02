@@ -2,7 +2,7 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.sysml.api.linalg.types.TypeClass.Layout
+import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Layout, Local}
 import org.apache.sysml.api.mlcontext.MLContext
 import org.apache.sysml.compiler.macros.RewriteMacros
 

@@ -22,14 +22,16 @@ package org.apache.sysml.api.linalg
 import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.Lazy.{Application, Empty, Scalar}
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.linalg.types.TypeClass.{DenseBlock, Layout, LazyEval, Local, Spark, ZeroBlock}
+import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Layout, LazyEval, Local, Spark, ZeroBlock}
+
+import scala.util.Random
 
 /**
   * Matrixclass for SystemAL
   *
   * Represents the Matrix that will be translated to SystemAL's Matrix type.
   */
-class Matrix[A: Layout](val impl: A) {
+class Matrix[A: Layout](val impl: A, rows: Int, cols: Int) {
 
   import org.apache.sysml.api.linalg.types.TypeClass._
 
@@ -111,7 +113,7 @@ class Matrix[A: Layout](val impl: A) {
   //////////////////////////////////////////
 
   def +(that: Matrix[A]): Matrix[A] = {
-    new Matrix(this.impl + that.impl)
+    new Matrix(this.impl + that.impl, this.rows, this.cols)
   }
 
   def -(that: Matrix[A]): Matrix[A] = ???
@@ -147,13 +149,17 @@ class Matrix[A: Layout](val impl: A) {
   def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix[A] = ???
 
   def copy: Matrix[A] = ???
+
+  override def toString(): String = {
+    impl.toString()
+  }
 }
 
 object Matrix {
 
   /**
     * Ahis should be the primary way of constructing a [[Matrix]] from a sequence of values.
-    * Ahe [[Matrix]] is constructed column-major order, i.e. the [[Array]] (1, 2, 1, 2) with dimensions (2,2) will
+    * Ahe [[Matrix]] is constructed column-major order, i.e. tMatrixhe [[Array]] (1, 2, 1, 2) with dimensions (2,2) will
     * generate the [[Matrix]]
     *   1 1
     *   2 2
@@ -178,15 +184,15 @@ object Matrix {
 //  }
 
   def zeros(rows: Int, cols: Int) = {
-    new Matrix(LazyEval(Application("matrix", List(Scalar(0), Scalar(rows), Scalar(cols)))))
+    new Matrix(LazyEval(Application("matrix", List(Scalar(0), Scalar(rows), Scalar(cols)))), rows, cols)
   }
 
-  def apply(values: Array[Double]) = {
-    new Matrix(Spark(DenseBlock(values)))
+  def apply(values: Array[Double], rows: Int, cols: Int) = {
+    new Matrix(Local(DenseBlock(values)), rows, cols)
   }
 
   // AODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(rows: Int, cols: Int) = ??? //T.fill(rows, cols)((i, j) => Random.nextDouble())
+  def rand(rows: Int, cols: Int) = apply(Array.fill[Double](rows*cols)(Random.nextDouble()), rows, cols)
 
   /** generate Awith the vector on the diagonal */
 

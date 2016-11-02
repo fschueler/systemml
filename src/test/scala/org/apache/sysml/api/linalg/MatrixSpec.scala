@@ -1,57 +1,51 @@
-//package org.apache.sysml.api.linalg
-//
-//import org.apache.sysml.api.linalg.api._
-//import org.apache.sysml.api.{BaseAPISpec, linalg}
-//import org.junit.runner.RunWith
-//import org.scalatest.junit.JUnitRunner
-//
-///**
-//  * Specification for the Matrix abstraction and supported operations
-//  *
-//  */
-//@RunWith(classOf[JUnitRunner])
-//class MatrixSpec extends BaseAPISpec {
-//
-//  /**
-//    * Data Types in SystemML include frame, matrix, and scalar
-//    * Value Types include double, integer, string, and boolean
-//    *
-//    * Matrices are only of type double. This is the specification for matrix construction similar to the `matrix()`
-//    * builtin function in SystemML
-//    * */
-//  "A Matrix" - {
-//
-//    ///////////////////////////
-//    // Constructors
-//    ///////////////////////////
-//
-//    "can be constructed" - {
-//
-//      "with zeros" is pending
-////      {
-////        val B = Matrix.zeros(10, 10)
-////
-////        assert(B.impl === new DenseMatrix[Double](10, 10, Array.fill[Double](10*10)(0.0)))
-////      }
-//
-//      "with rand" is pending
-////      {
-////        val A = Matrix.rand(10, 10)
-////      }
-//
-//      "from reshaping an existing matrix" is pending
-////      in {
-////        val A = Matrix.zeros(10, 10)
-////        val B = A.reshape(100, 1)
-////      }
-//
-//      "from a sequence or an array" in {
-//        val A = Matrix(Seq(4.0, 3.0, 2.0, 5.0, 7.0, 8.0), 3, 2)
-//        val B = Matrix(Array(4.0, 3.0, 2.0, 5.0, 7.0, 8.0), 3, 2)
-//
-//        assert(A.impl === B.impl)
+package org.apache.sysml.api.linalg
+
+import org.apache.sysml.api.linalg.api._
+import org.apache.sysml.api.{BaseAPISpec, linalg}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+/**
+  * Specification for the Matrix abstraction and supported operations
+  *
+  */
+@RunWith(classOf[JUnitRunner])
+class MatrixSpec extends BaseAPISpec {
+
+  /**
+    * Data Types in SystemML include frame, matrix, and scalar
+    * Value Types include double, integer, string, and boolean
+    *
+    * Matrices are only of type double. This is the specification for matrix construction similar to the `matrix()`
+    * builtin function in SystemML
+    * */
+  "A Matrix" - {
+
+    ///////////////////////////
+    // Constructors
+    ///////////////////////////
+
+    "can be constructed" - {
+
+      "with zeros" in {
+        val B = Matrix.zeros(10, 10)
+      }
+
+      "with rand" in {
+        val A = Matrix.rand(10, 10)
+      }
+
+      "from reshaping an existing matrix" is pending
+//      in {
+//        val A = Matrix.zeros(10, 10)
+//        val B = A.reshape(100, 1)
 //      }
-//    }
+
+      "from an array" in {
+        val B = Matrix(Array(4.0, 3.0, 2.0, 5.0, 7.0, 8.0), 3, 2)
+
+      }
+    }
 //
 //    ///////////////////////////
 //    // Accessors `apply()`
@@ -559,5 +553,5 @@
 //        assert(s === 0.0)
 //      }
 //    }
-//  }
-//}
+  }
+}

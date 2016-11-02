@@ -17,6 +17,8 @@ object TypeClass {
     * Represents the actual physical single node representation of the data
     */
 
+  // TODO have a superclass for blocks so that we can return less specific blocks
+
   trait Block[A] {
     def +(x: A, y: A): A
   }
@@ -25,12 +27,16 @@ object TypeClass {
     def +(y: A) = ev.+(a, y)
   }
 
-  case class DenseBlock(values: Array[Double])
+  case class DenseBlock(values: Array[Double]) {
+    override def toString: String = values.mkString(" ")
+  }
   object DenseBlock {
     implicit val denseBlock = new Block[DenseBlock] {
       override def +(x: DenseBlock, y: DenseBlock): DenseBlock = {
         DenseBlock(x.values.zip(y.values).map(x => x._1 + x._2))
       }
+
+      def +(x: DenseBlock, y: SparseBlock): DenseBlock = DenseBlock(Array())
     }
   }
 
@@ -69,9 +75,11 @@ object TypeClass {
     def +(y: A) = ev1.+(a, y)
   }
 
-  case class Local[A: Block](impl: A)
+  case class Local[A: Block](impl: A) {
+    override def toString: String = "Local Matrix: \n" + impl.toString
+  }
   object Local {
-    implicit def LocalLayout[A: Block] = new Layout[Local[A]] {
+    implicit def localLayout[A: Block] = new Layout[Local[A]] {
       override def +(x: Local[A], y: Local[A]): Local[A] = {
         Local(x.impl + y.impl)
       }
