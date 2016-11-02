@@ -11,7 +11,7 @@ trait Lazy {
 
   def toDataFrame: DataFrame
 
-  def eval[A: Layout](sc: SparkContext): Matrix[A] = {
+  def eval[A: Layout](sc: SparkContext) = {
     val mlctx = new MLContext(sc)
     val script = dml(evalTree)
     val result = mlctx.execute(script)

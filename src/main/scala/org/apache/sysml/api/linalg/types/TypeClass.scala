@@ -1,8 +1,11 @@
 package org.apache.sysml.api.linalg.types
 
-import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.rdd.{PairRDDFunctions, RDD}
+import org.apache.spark.SparkContext._
 import org.apache.sysml.api.linalg.Lazy.{BinOp, Tree}
-import org.apache.sysml.api.linalg.types.TypeClass.DenseBlock
+
+import scala.reflect.ClassTag
 
 object TypeClass {
 
@@ -24,7 +27,7 @@ object TypeClass {
 
   case class DenseBlock(values: Array[Double])
   object DenseBlock {
-    implicit val DenseBlock = new Block[DenseBlock] {
+    implicit val denseBlock = new Block[DenseBlock] {
       override def +(x: DenseBlock, y: DenseBlock): DenseBlock = {
         DenseBlock(x.values.zip(y.values).map(x => x._1 + x._2))
       }
@@ -33,7 +36,7 @@ object TypeClass {
 
   case class SparseBlock(values: Map[(Int, Int), Double])
   object SparseBlock {
-    implicit val SparseBlock = new Block[SparseBlock] {
+    implicit val sparseBlock = new Block[SparseBlock] {
       override def +(x: SparseBlock, y: SparseBlock) = {
         val result = for (key <- x.values.keys ++ y.values.keys) yield
           key -> (x.values.getOrElse(key, 0.0) + y.values.getOrElse(key, 0.0))
@@ -44,7 +47,7 @@ object TypeClass {
 
   case class ZeroBlock()
   object ZeroBlock {
-      implicit val ZeroBlock = new Block[ZeroBlock] {
+      implicit val zeroBlock = new Block[ZeroBlock] {
         override def +(x: ZeroBlock, y: ZeroBlock): ZeroBlock = new ZeroBlock()
       }
    }
@@ -58,6 +61,7 @@ object TypeClass {
     */
 
   trait Layout[A] {
+    // add two layouts of the same type
     def +(x: A, y: A): A
   }
 
@@ -76,15 +80,22 @@ object TypeClass {
 
   case class Spark[A: Block](impl: RDD[((Int, Int), A)])
   object Spark {
-    implicit def SparkLayout[A: Block] = new Layout[Spark[A]] {
+    private val sc = new SparkContext(new SparkConf().setMaster("local[2]").setAppName("TypeclassTest"))
+
+    implicit def SparkLayout[A: Block : ClassTag]: Layout[Spark[A]] = new Layout[Spark[A]] {
+
       override def +(x: Spark[A], y: Spark[A]): Spark[A] = {
-        Spark(x.impl.join(y.impl).map(x => (x._1, x._2._1 + x._2._2)))
+        def joined = x.impl.join(y.impl)
+        val mapped = joined.map { case (k, (v, w)) => (k, v + v)}
+        Spark(mapped)
       }
 
       def +(x: Spark[A], y: Local[A]) = {
         // distribute y, and call +(Spark, Spark)
       }
     }
+
+    def apply(block: DenseBlock): Spark[DenseBlock] = Spark(sc.parallelize(Seq(((1, 1), block))))
   }
 
   case class LazyEval(impl: Tree)

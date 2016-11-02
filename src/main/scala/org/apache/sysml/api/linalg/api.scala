@@ -2,6 +2,7 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.sysml.api.linalg.types.TypeClass.Layout
 import org.apache.sysml.api.mlcontext.MLContext
 import org.apache.sysml.compiler.macros.RewriteMacros
 
@@ -29,37 +30,37 @@ package object api {
 
   object :::
 
-  def read(path: String): Matrix[_, _] = ???
+  def read[A: Layout](path: String): Matrix[A] = ???
 
-  def write(mat: Matrix[_, _], path: String, format: Format.FileFormat): Unit = ???
+  def write[A: Layout](mat: Matrix[A], path: String, format: Format.FileFormat): Unit = ???
 
-  def sum[V, M](mat: Matrix[V, M]): Double = ???
+  def sum[A: Layout](mat: Matrix[A]): Double = ???
 
-  def rowSums[A, B](mat: Matrix[A, B]): A = ???
+  def rowSums[A: Layout](mat: Matrix[A]): A = ???
 
-  def colSums(mat: Matrix[_, _]): Matrix[_, _] = ???
+  def colSums[A: Layout](mat: Matrix[A]): Matrix[A] = ???
 
-  def mean(mat: Matrix[_, _]): Double = ???
+  def mean[A: Layout](mat: Matrix[A]): Double = ???
 
-  def rowMeans(mat: Matrix[_, _]): Matrix[_, _] = ???
+  def rowMeans[A: Layout](mat: Matrix[A]): Matrix[A] = ???
 
-  def colMeans(mat: Matrix[_, _]): Matrix[_, _] = ???
+  def colMeans[A: Layout](mat: Matrix[A]): Matrix[A] = ???
 
-  def log(x: Double): Double = ???
+  def log[A: Layout](x: Double): Double = ???
 
-  def log(mat: Matrix[_, _]): Matrix[_, _] = ???
+  def log[A: Layout](mat: Matrix[A]): Matrix[A] = ???
 
   def abs(x: Double): Double = ???
 
-  def exp(b: Matrix[_, _]): Matrix[_, _] = ???
+  def exp[A: Layout](b: Matrix[A]): Matrix[A] = ???
 
-  def rowIndexMax(mat: Matrix[_, _]): Matrix[_, _] = ???
+  def rowIndexMax[A: Layout](mat: Matrix[A]): Matrix[A] = ???
 
-  def pmax(mat: Matrix[_, _], s: Double): Matrix[_, _] = ???
+  def pmax[A: Layout](mat: Matrix[A], s: Double): Matrix[A] = ???
 
-  def min(mat: Matrix[_, _]): Double = ???
+  def min[A: Layout](mat: Matrix[A]): Double = ???
 
-  def max(Mat: Matrix[_, _]): Double = ???
+  def max[A: Layout](Mat: Matrix[A]): Double = ???
 
   ///////////////////////////////////
   // Implicit Matrix and Vector Ops
@@ -77,15 +78,13 @@ package object api {
 //  }
 
   implicit class MatrixOps(private val n: Double) extends AnyVal{
-    def +[B <: Matrix[_, B]](v: B): B = v + n
+    def +[A: Layout](v: Matrix[A]): Matrix[A] = v + n
 
-    def +[A <: Matrix[A, _]](v: A): A = v + n
+    def -[A: Layout](v: Matrix[A]): Matrix[A] = v - n
 
-    def -[A, B <: Matrix[A, B]](v: Matrix[A, B]): Matrix[A, B] = v - n
+    def *[A: Layout](v: Matrix[A]): Matrix[A] = v * n
 
-    def *[A, B <: Matrix[A, B]](v: Matrix[A, B]): Matrix[A, B] = v * n
-
-    def /[A, B <: Matrix[A, B]](v: Matrix[A, B]): Matrix[A, B] = v / n
+    def /[A: Layout](v: Matrix[A]): Matrix[A] = v / n
   }
 
   object Format {

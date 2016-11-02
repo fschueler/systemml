@@ -2,7 +2,6 @@ package org.apache.sysml.api.linalg
 
 import org.apache.sysml.api.linalg.types.TypeClass.Layout
 
-abstract class Vector[A: Layout] extends Matrix[A] {
-  override def cols = 1
+abstract class Vector[A: Layout] /* extends Matrix[A] */ {
 
 }
