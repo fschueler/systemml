@@ -1,66 +1,67 @@
-///*
-// * Licensed to the Apache Software Foundation (ASF) under one
-// * or more contributor license agreements.  See the NOTICE file
-// * distributed with this work for additional information
-// * regarding copyright ownership.  The ASF licenses this file
-// * to you under the Apache License, Version 2.0 (the
-// * "License"); you may not use this file except in compliance
-// * with the License.  You may obtain a copy of the License at
-// *
-// *   http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing,
-// * software distributed under the License is distributed on an
-// * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// * KIND, either express or implied.  See the License for the
-// * specific language governing permissions and limitations
-// * under the License.
-// */
-//
-//package org.apache.sysml.compiler
-//
-//import org.apache.spark.sql.Row
-//import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-//import org.apache.sysml.api.linalg.Matrix
-//import org.apache.sysml.api.linalg.api._
-//import org.emmalanguage.compiler.{BaseCompilerSpec, RuntimeCompiler}
-//import org.junit.runner.RunWith
-//import org.scalatest.junit.JUnitRunner
-//
-//import scala.util.Random
-//
-///** A spec for SystemML Algorithms. */
-//@RunWith(classOf[JUnitRunner])
-//class DMLSpec extends BaseCompilerSpec {
-//
-//  val dmlCompiler = new DMLRuntimeCompiler()
-//  import dmlCompiler._
-//
-//  import Source.{Lang => src}
-//
-//  val dmlidPipeline: u.Expr[Any] => u.Tree = {
-//    (_: u.Expr[Any]).tree
-//  } andThen {
-//    dmlCompiler.dmlPipeline(typeCheck = true)()
-//  }
-//
-//  "Atomics:" - {
-//
-//    "Literals" in {
-//      val acts = dmlidPipeline(u.reify(
-//        42, 42L, 3.14, 3.14F, .1e6, 'c', "string", ()
-//      )) collect {
-//        case act@src.Lit(_) => dmlCompiler.toDML(act)
-//      }
-//
-//      val exps = Seq(
-//        "42", "42", "3.14", "3.14", "100000.0", "\"c\"", "\"string\""
-//      )
-//
-//      (acts zip exps) foreach { case (act, exp) =>
-//        act shouldEqual exp
-//      }
-//    }
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.apache.sysml.compiler
+
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+import org.apache.sysml.api.linalg.Distributions.Uniform
+import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.api._
+import org.emmalanguage.compiler.{BaseCompilerSpec, RuntimeCompiler}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+import scala.util.Random
+
+/** A spec for SystemML Algorithms. */
+@RunWith(classOf[JUnitRunner])
+class DMLSpec extends BaseCompilerSpec {
+
+  val dmlCompiler = new DMLRuntimeCompiler()
+  import dmlCompiler._
+
+  import Source.{Lang => src}
+
+  val dmlidPipeline: u.Expr[Any] => u.Tree = {
+    (_: u.Expr[Any]).tree
+  } andThen {
+    dmlCompiler.dmlPipeline(typeCheck = true)()
+  }
+
+  "Atomics:" - {
+
+    "Literals" in {
+      val acts = dmlidPipeline(u.reify(
+        42, 42L, 3.14, 3.14F, .1e6, 'c', "string", ()
+      )) collect {
+        case act@src.Lit(_) => dmlCompiler.toDML(act)
+      }
+
+      val exps = Seq(
+        "42", "42", "3.14", "3.14", "100000.0", "\"c\"", "\"string\""
+      )
+
+      (acts zip exps) foreach { case (act, exp) =>
+        act shouldEqual exp
+      }
+    }
 //
 //    "References" - {
 //
@@ -124,35 +125,35 @@
 //    }
 //
 //    "This" is pending
-//  }
+  }
 //
-//  "Matrix construction" - {
-//
-//    "from rand" in {
-//      val act = toDML(dmlidPipeline(u.reify {
-//        val x$01 = Matrix.rand(3, 3)
-//      }))
-//
-//      val exp =
-//        """
-//          |x$01 = rand(rows=3, cols=3)
-//        """.stripMargin.trim
-//
-//      act shouldEqual exp
-//    }
-//
-//    "from zeros" in {
-//      val act = toDML(dmlidPipeline(u.reify {
-//        val x$01 = Matrix.zeros(3, 3)
-//      }))
-//
-//      val exp =
-//        """
-//          |x$01 = matrix(0, rows=3, cols=3)
-//        """.stripMargin.trim
-//
-//      act shouldEqual exp
-//    }
+  "Matrix construction" - {
+
+    "from rand" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val x$01 = Matrix.rand(3, 3, Uniform(0.0, 1.0), 0.2)
+      }))
+
+      val exp =
+        """
+          |x$01 = rand(rows=3, cols=3, min=0.0, max=1.0, pdf="uniform", sparsity=0.2)
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "from zeros" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val x$01 = Matrix.zeros(3, 3)
+      }))
+
+      val exp =
+        """
+          |x$01 = matrix(0, rows=3, cols=3)
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
 //
 //    "from sequence" in {
 //      val act = toDML(dmlidPipeline(u.reify {
@@ -182,7 +183,7 @@
 //
 //      act shouldEqual exp
 //    }
-//  }
+  }
 //
 //  "Definitions" - {
 //
@@ -433,4 +434,4 @@
 //      }
 //    }
 //  }
-//}
+}

@@ -10,6 +10,8 @@ import scala.language.experimental.macros
 
 package object api {
 
+  import org.apache.sysml.api.linalg.types.TypeClass._
+
   private val conf = new SparkConf()
     .setMaster("local[2]")
     .setAppName("SystemML Spark App")

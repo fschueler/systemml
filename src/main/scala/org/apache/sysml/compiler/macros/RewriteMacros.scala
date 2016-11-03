@@ -38,7 +38,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
-    fixLambdaTypes,
+    fixSymbolTypes,
     //stubTypeTrees,
     unQualifyStatics,
     normalizeStatements,
@@ -123,6 +123,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     val alg = q"""
       import org.apache.sysml.api.linalg.api.SystemMLAlgorithm
       import org.apache.sysml.api.linalg.api._
+      import org.apache.sysml.api.linalg.Lazy._
 
       import org.apache.sysml.api.mlcontext.{Matrix => _, _}
       import org.apache.sysml.api.mlcontext.ScriptFactory._
@@ -137,7 +138,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         val res = ml.execute(script)
         val out = $result
 
-        $out
+        new Matrix(LazyEval(Empty()), 2, 2)
       }
     }"""
 

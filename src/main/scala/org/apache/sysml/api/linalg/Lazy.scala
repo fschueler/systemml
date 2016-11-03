@@ -10,8 +10,8 @@ object Lazy {
     s"x$counter"
   }
 
-  def eval(mat: Matrix[LazyEval]): Local[DenseBlock] = {
-    mat.impl.eval
+  def eval(mat: Matrix[LazyEval]): Matrix[LazyEval] = {
+    new Matrix(LazyEval(Empty()), 2, 2)
   }
 
   sealed abstract class Tree()

@@ -110,10 +110,10 @@ object TypeClass {
   }
 
   case class LazyEval(impl: Tree) {
-    def eval: Local[DenseBlock] = {
+    def eval: Array[Double] = {
       val script = traverse(impl)
       println(script)
-      Local(DenseBlock(Array(1.0, 2.0)))
+      Array(1.0, 2.0)
     }
 
     def traverse(tree: Tree): String = {
