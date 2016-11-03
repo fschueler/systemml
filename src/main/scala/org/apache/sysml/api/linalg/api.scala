@@ -2,7 +2,7 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Layout, Local}
+import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, LazyEval, Local, Strategy}
 import org.apache.sysml.api.mlcontext.MLContext
 import org.apache.sysml.compiler.macros.RewriteMacros
 
@@ -30,37 +30,37 @@ package object api {
 
   object :::
 
-  def read[A: Layout](path: String): Matrix[A] = ???
+  def read[A: Strategy](path: String): Matrix[A] = ???
 
-  def write[A: Layout](mat: Matrix[A], path: String, format: Format.FileFormat): Unit = ???
+  def write[A: Strategy](mat: Matrix[A], path: String, format: Format.FileFormat): Unit = ???
 
-  def sum[A: Layout](mat: Matrix[A]): Double = ???
+  def sum[A: Strategy](mat: Matrix[A]): Double = ???
 
-  def rowSums[A: Layout](mat: Matrix[A]): A = ???
+  def rowSums[A: Strategy](mat: Matrix[A]): A = ???
 
-  def colSums[A: Layout](mat: Matrix[A]): Matrix[A] = ???
+  def colSums[A: Strategy](mat: Matrix[A]): Matrix[A] = ???
 
-  def mean[A: Layout](mat: Matrix[A]): Double = ???
+  def mean[A: Strategy](mat: Matrix[A]): Double = ???
 
-  def rowMeans[A: Layout](mat: Matrix[A]): Matrix[A] = ???
+  def rowMeans[A: Strategy](mat: Matrix[A]): Matrix[A] = ???
 
-  def colMeans[A: Layout](mat: Matrix[A]): Matrix[A] = ???
+  def colMeans[A: Strategy](mat: Matrix[A]): Matrix[A] = ???
 
-  def log[A: Layout](x: Double): Double = ???
+  def log[A: Strategy](x: Double): Double = ???
 
-  def log[A: Layout](mat: Matrix[A]): Matrix[A] = ???
+  def log[A: Strategy](mat: Matrix[A]): Matrix[A] = ???
 
   def abs(x: Double): Double = ???
 
-  def exp[A: Layout](b: Matrix[A]): Matrix[A] = ???
+  def exp[A: Strategy](b: Matrix[A]): Matrix[A] = ???
 
-  def rowIndexMax[A: Layout](mat: Matrix[A]): Matrix[A] = ???
+  def rowIndexMax[A: Strategy](mat: Matrix[A]): Matrix[A] = ???
 
-  def pmax[A: Layout](mat: Matrix[A], s: Double): Matrix[A] = ???
+  def pmax[A: Strategy](mat: Matrix[A], s: Double): Matrix[A] = ???
 
-  def min[A: Layout](mat: Matrix[A]): Double = ???
+  def min[A: Strategy](mat: Matrix[A]): Double = ???
 
-  def max[A: Layout](Mat: Matrix[A]): Double = ???
+  def max[A: Strategy](Mat: Matrix[A]): Double = ???
 
   ///////////////////////////////////
   // Implicit Matrix and Vector Ops
@@ -78,13 +78,13 @@ package object api {
 //  }
 
   implicit class MatrixOps(private val n: Double) extends AnyVal{
-    def +[A: Layout](v: Matrix[A]): Matrix[A] = v + n
+    def +[A: Strategy](v: Matrix[A]): Matrix[A] = v + n
 
-    def -[A: Layout](v: Matrix[A]): Matrix[A] = v - n
+    def -[A: Strategy](v: Matrix[A]): Matrix[A] = v - n
 
-    def *[A: Layout](v: Matrix[A]): Matrix[A] = v * n
+    def *[A: Strategy](v: Matrix[A]): Matrix[A] = v * n
 
-    def /[A: Layout](v: Matrix[A]): Matrix[A] = v / n
+    def /[A: Strategy](v: Matrix[A]): Matrix[A] = v / n
   }
 
   object Format {

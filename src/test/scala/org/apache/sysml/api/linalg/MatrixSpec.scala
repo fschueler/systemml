@@ -1,5 +1,6 @@
 package org.apache.sysml.api.linalg
 
+import org.apache.sysml.api.linalg.Distributions.Uniform
 import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.{BaseAPISpec, linalg}
 import org.junit.runner.RunWith
@@ -32,7 +33,7 @@ class MatrixSpec extends BaseAPISpec {
       }
 
       "with rand" in {
-        val A = Matrix.rand(10, 10)
+        val A = Matrix.rand(10, 10, Uniform(0.0, 1.0), 0.2)
       }
 
       "from reshaping an existing matrix" is pending
@@ -183,27 +184,27 @@ class MatrixSpec extends BaseAPISpec {
 //    // Addition Operator
 //    ///////////////////////////
 //
-//    "can be added with" - {
-//
-//      "a double" in {
-//        val A = Matrix.rand(10, 10)
-//        val s = 2.0
-//        val R = A + s
-//
-//        assert(R.impl === A.map(_ + s))
-//      }
-//
-//      "a vector per column with matching length" in {
-//        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-//        val b = Vector(Seq(1.0, 2.0))
+    "can be added with" - {
+
+      "a double" in {
+        val A = Matrix.rand(10, 10, Uniform(0.0, 1.0), 0.7)
+        val s = 2.0
+        val R = A + s
+
+      }
+
+      "a vector per column with matching length" is pending
+//      {
+//        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
+//        val b = Vector(Array(1.0, 2.0))
 //        val R = A + b
 //
-//        val expected = Matrix(Seq(2.0, 4.0, 4.0, 6.0), 2, 2)
+//        val expected = Matrix(Array(2.0, 4.0, 4.0, 6.0), 2, 2)
 //
-//        assert(R.impl === expected.impl)
 //      }
-//
-//      "a vector per row with matching length" in {
+
+      "a vector per row with matching length" is pending
+//      in {
 //        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
 //        val b = Vector(Seq(1.0, 2.0))
 //        val R = A + b.t
@@ -212,17 +213,17 @@ class MatrixSpec extends BaseAPISpec {
 //
 //        assert(R.impl === expected.impl)
 //      }
-//
-//      "a matrix of matching dimensions" in {
-//        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-//        val B = Matrix(Seq(2.0, 1.0, 4.0, 3.0), 2, 2)
-//        val R = A + B
-//
-//        val expected = Matrix(Seq(3.0, 3.0, 7.0, 7.0), 2, 2)
-//
-//        assert(R.impl === expected.impl)
-//      }
-//    }
+
+      "a matrix of matching dimensions" in {
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val B = Matrix(Array(2.0, 1.0, 4.0, 3.0), 2, 2)
+        val R = A + B
+
+        val expected = Matrix(Array(3.0, 3.0, 7.0, 7.0), 2, 2)
+
+        assert(R === expected)
+      }
+    }
 //
 //    "can not be added with" - {
 //

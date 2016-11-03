@@ -20,9 +20,10 @@
 package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.DataFrame
-import org.apache.sysml.api.linalg.Lazy.{Application, Empty, Scalar}
+import org.apache.sysml.api.linalg.Distributions.Distribution
+import org.apache.sysml.api.linalg.Lazy._
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Layout, LazyEval, Local, Spark, ZeroBlock}
+import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Strategy, LazyEval, Local, Spark, ZeroBlock}
 
 import scala.util.Random
 
@@ -31,7 +32,7 @@ import scala.util.Random
   *
   * Represents the Matrix that will be translated to SystemAL's Matrix type.
   */
-class Matrix[A: Layout](val impl: A, rows: Int, cols: Int) {
+class Matrix[A: Strategy](val impl: A, rows: Int, cols: Int) {
 
   import org.apache.sysml.api.linalg.types.TypeClass._
 
@@ -82,7 +83,7 @@ class Matrix[A: Layout](val impl: A, rows: Int, cols: Int) {
   // A o scalar
   //////////////////////////////////////////
 
-  def +(that: Double): Matrix[A] = ???
+  def +(that: Double): Matrix[A] = new Matrix(this.impl + that, this.rows, this.cols)
 
   def -(that: Double): Matrix[A] = ???
 
@@ -188,13 +189,33 @@ object Matrix {
   }
 
   def apply(values: Array[Double], rows: Int, cols: Int) = {
-    new Matrix(Local(DenseBlock(values)), rows, cols)
+    new Matrix(LazyEval(Application("matrix", List(Application("seq", List(TSeq(values))), Scalar(rows), Scalar(cols)))), rows, cols)
   }
 
   // AODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(rows: Int, cols: Int) = apply(Array.fill[Double](rows*cols)(Random.nextDouble()), rows, cols)
+  def rand(rows: Int, cols: Int, dist: Distribution, sparsity: Double) = {
+    new Matrix(LazyEval(Application("rand", List(Scalar(rows), Scalar(cols), Literal(dist), Scalar(sparsity)))), rows, cols)
+  }
 
   /** generate Awith the vector on the diagonal */
 
+}
+
+object Distributions {
+  trait Distribution {
+    def sample: Double
+  }
+
+  case class Normal() extends Distribution {
+    override def sample: Double = ???
+  }
+
+  case class Poisson(lambda: Double) extends Distribution {
+    override def sample: Double = ???
+  }
+
+  case class Uniform(a: Double, b: Double) extends Distribution {
+    override def sample: Double = ???
+  }
 }
 

@@ -1,18 +1,22 @@
 package org.apache.sysml.api.linalg.types
 
 import org.apache.spark.SparkContext
-import org.apache.sysml.api.linalg.Matrix
-
+import org.apache.sysml.api.linalg.{Lazy, Matrix}
+import org.apache.sysml.api.linalg.api._
 import TypeClass._
+import org.apache.sysml.api.linalg.Distributions._
 
 object APITest extends App {
 
-    val A = Matrix.rand(2, 2)
+    val A = Matrix.rand(2, 2, Normal(), 0.2)
 
-    val B = new Matrix(Local(DenseBlock(Array(1.0, 1.0, 1.0, 1.0))), 2, 2)
+    val B = Matrix.rand(2, 2, Uniform(0.0, 1.0), 0.7)
 
-    val r = A + B
+    var r = A + B
 
-    println(r)
+    for (i <- 1 to 3) {
+        r = r + 5.0
+    }
 
+    Lazy.eval(r)
 }
