@@ -5,6 +5,7 @@ import org.apache.spark.rdd.{PairRDDFunctions, RDD}
 import org.apache.spark.SparkContext._
 import org.apache.sysml.api.linalg.Distributions._
 import org.apache.sysml.api.linalg.Lazy._
+import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
 
 import scala.reflect.ClassTag
 
@@ -78,35 +79,18 @@ object TypeClass {
     def +(y: Double) = ev1.+(a, y)
   }
 
-  case class Local[A: Block](impl: A) {
-    override def toString: String = "Local Matrix: \n" + impl.toString
-  }
-  object Local {
-    implicit def localLayout[A: Block] = new Strategy[Local[A]] {
-      override def +(x: Local[A], y: Local[A]): Local[A] = {
-        Local(x.impl + y.impl)
+  case class EagerEval(impl: MatrixObject)
+
+  object EagerEval {
+    implicit val eagerEval = new Strategy[EagerEval] {
+      override def +(x: EagerEval, y: EagerEval): EagerEval = {
+        
       }
 
-      override def +(x: Local[A], y: Double): Local[A] = ???
-    }
-  }
+      override def +(x: EagerEval, y: Double): EagerEval = {
 
-  case class Spark[A: Block](impl: RDD[((Int, Int), A)])
-  object Spark {
-    private val sc = new SparkContext(new SparkConf().setMaster("local[2]").setAppName("TypeclassTest"))
-
-    implicit def SparkLayout[A: Block : ClassTag]: Strategy[Spark[A]] = new Strategy[Spark[A]] {
-
-      override def +(x: Spark[A], y: Spark[A]): Spark[A] = {
-        def joined = x.impl.join(y.impl)
-        val mapped = joined.map { case (k, (v, w)) => (k, v + v)}
-        Spark(mapped)
       }
-
-      override def +(x: Spark[A], y: Double): Spark[A] = ???
     }
-
-    def apply(block: DenseBlock): Spark[DenseBlock] = Spark(sc.parallelize(Seq(((1, 1), block))))
   }
 
   case class LazyEval(impl: Tree) {
@@ -148,6 +132,37 @@ object TypeClass {
       override def +(x: LazyEval, y: Double): LazyEval = LazyEval(BinOp("+", x.impl, Scalar(y)))
 
     }
+  }
+
+  case class Local[A: Block](impl: A) {
+    override def toString: String = "Local Matrix: \n" + impl.toString
+  }
+  object Local {
+    implicit def localLayout[A: Block] = new Strategy[Local[A]] {
+      override def +(x: Local[A], y: Local[A]): Local[A] = {
+        Local(x.impl + y.impl)
+      }
+
+      override def +(x: Local[A], y: Double): Local[A] = ???
+    }
+  }
+
+  case class Spark[A: Block](impl: RDD[((Int, Int), A)])
+  object Spark {
+    private val sc = new SparkContext(new SparkConf().setMaster("local[2]").setAppName("TypeclassTest"))
+
+    implicit def SparkLayout[A: Block : ClassTag]: Strategy[Spark[A]] = new Strategy[Spark[A]] {
+
+      override def +(x: Spark[A], y: Spark[A]): Spark[A] = {
+        def joined = x.impl.join(y.impl)
+        val mapped = joined.map { case (k, (v, w)) => (k, v + v)}
+        Spark(mapped)
+      }
+
+      override def +(x: Spark[A], y: Double): Spark[A] = ???
+    }
+
+    def apply(block: DenseBlock): Spark[DenseBlock] = Spark(sc.parallelize(Seq(((1, 1), block))))
   }
 }
 
