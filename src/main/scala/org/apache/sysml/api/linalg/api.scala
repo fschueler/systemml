@@ -36,7 +36,7 @@ package object api {
 
   def write[A: Strategy](mat: Matrix[A], path: String, format: Format.FileFormat): Unit = ???
 
-  def sum[A: Strategy](mat: Matrix[A]): Double = ???
+  def sum[A: Strategy](mat: Matrix[A]): Matrix[A] = ???
 
   def rowSums[A: Strategy](mat: Matrix[A]): A = ???
 
@@ -79,15 +79,15 @@ package object api {
 //    def /(v: Vector): Vector = v / n
 //  }
 
-  implicit class MatrixOps(private val n: Double) extends AnyVal{
-    def +[A: Strategy](v: Matrix[A]): Matrix[A] = v + n
-
-    def -[A: Strategy](v: Matrix[A]): Matrix[A] = v - n
-
-    def *[A: Strategy](v: Matrix[A]): Matrix[A] = v * n
-
-    def /[A: Strategy](v: Matrix[A]): Matrix[A] = v / n
-  }
+//  implicit class MatrixOps(private val n: Double) extends AnyVal{
+//    def +[A: Strategy](v: Matrix[A]): Matrix[A] = v + n
+//
+//    def -[A: Strategy](v: Matrix[A]): Matrix[A] = v - n
+//
+//    def *[A: Strategy](v: Matrix[A]): Matrix[A] = v * n
+//
+//    def /[A: Strategy](v: Matrix[A]): Matrix[A] = v / n
+//  }
 
   object Format {
     sealed trait FileFormat

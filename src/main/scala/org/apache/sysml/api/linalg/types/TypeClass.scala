@@ -1,15 +1,9 @@
 package org.apache.sysml.api.linalg.types
 
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.rdd.{PairRDDFunctions, RDD}
-import org.apache.spark.SparkContext._
 import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.linalg.Lazy._
 import org.apache.sysml.api.linalg.{Lazy, Matrix}
-import org.apache.sysml.runtime.controlprogram.ProgramBlock
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
-
-import scala.reflect.ClassTag
 
 object TypeClass {
 
@@ -74,6 +68,8 @@ object TypeClass {
     // add two layouts of the same type
     def +(x: A, y: A): A
     def +(x: A, y: Double): A
+
+    def sum(x: A): EagerEval
   }
 
   implicit class StrategyOps[A](a: A)(implicit ev1: Strategy[A]) {
@@ -89,12 +85,14 @@ object TypeClass {
       override def +(x: EagerEval, y: EagerEval): EagerEval = ???
 
       override def +(x: EagerEval, y: Double): EagerEval = ???
+
+      override def sum(x: EagerEval): EagerEval = ???
     }
   }
 
   case class LazyEval(impl: Tree) extends Lazy {
 
-    def collect(): Matrix[EagerEval] = eval(impl)
+    def collect(): EagerEval = eval(impl)
 
     override def toString: String = impl.toString
   }
@@ -104,6 +102,11 @@ object TypeClass {
       override def +(x: LazyEval, y: LazyEval): LazyEval = LazyEval(BinOp("+", x.impl, y.impl))
 
       override def +(x: LazyEval, y: Double): LazyEval = LazyEval(BinOp("+", x.impl, Scalar(y)))
+
+      override def sum(x: LazyEval): EagerEval = {
+        val op = LazyEval(Application("sum", List(x.impl)))
+        op.collect()
+      }
     }
   }
 

@@ -35,22 +35,22 @@ import scala.util.Random
 class RewriteMacrosSpec extends FreeSpec with Matchers {
   import org.apache.sysml.api.linalg.types.TypeClass._
 
-  "Simple Matrix addition" in {
-    val alg = parallelize {
-      val A = Matrix.zeros(3, 3)
-      val s = 5.0
-      val B = A + s
-      B
-    }
-
-    val res = alg.run()
-    res
-  }
-
+//  "Simple Matrix addition" in {
+//    val alg = parallelize {
+//      val A = Matrix.zeros(3, 3)
+//      val s = 5.0
+//      val B = A + s
+//      B
+//    }
+//
+//    val res = alg.run()
+//    res
+//  }
+//
 //  "Matrix output" in {
 //
 //    val alg = parallelize {
-//      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
+//      val m = Matrix(Array(11.0, 22.0, 33.0, 44.0), 2, 2)
 //      val n = sum(m)
 //      (m, n)
 //    }

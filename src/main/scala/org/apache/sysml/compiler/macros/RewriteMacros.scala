@@ -108,7 +108,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     val outParams = outNames.map(_.symbol.name.toString)
 
     // assemble the type of the return expression we want from MLContext
-    val outTypes  = outType.typeArgs match {
+    val outTypes: List[u.Type]  = outType.typeArgs match {
       case Nil => List(outType)
       case ls => ls
     }
@@ -137,8 +137,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         val script = dml($dmlString).in(Seq(..${inParams})).out(..${outParams})
         val res = ml.execute(script)
         val out = $result
-
-        new Matrix(LazyEval(Empty()), 2, 2)
       }
     }"""
 
