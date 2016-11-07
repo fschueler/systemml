@@ -3,8 +3,10 @@ package org.apache.sysml.api.linalg.types
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.{PairRDDFunctions, RDD}
 import org.apache.spark.SparkContext._
-import org.apache.sysml.api.linalg.Distributions._
+import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.linalg.Lazy._
+import org.apache.sysml.api.linalg.{Lazy, Matrix}
+import org.apache.sysml.runtime.controlprogram.ProgramBlock
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
 
 import scala.reflect.ClassTag
@@ -83,46 +85,18 @@ object TypeClass {
 
   object EagerEval {
     implicit val eagerEval = new Strategy[EagerEval] {
-      override def +(x: EagerEval, y: EagerEval): EagerEval = {
-        
-      }
 
-      override def +(x: EagerEval, y: Double): EagerEval = {
+      override def +(x: EagerEval, y: EagerEval): EagerEval = ???
 
-      }
+      override def +(x: EagerEval, y: Double): EagerEval = ???
     }
   }
 
-  case class LazyEval(impl: Tree) {
-    def eval: Array[Double] = {
-      val script = traverse(impl)
-      println(script)
-      Array(1.0, 2.0)
-    }
+  case class LazyEval(impl: Tree) extends Lazy {
 
-    def traverse(tree: Tree): String = {
-      tree match {
-        // constructor for random matrix
-        case Application(fname, args) if fname == "rand" => args match {
-          case Scalar(rows) :: Scalar(cols) :: Literal(dist) :: Scalar(spars) :: Nil => dist match {
-            case Uniform(a, b) =>
-              s"""rand(rows=${rows}, cols=${cols}, min=$a, max=$b, pdf="uniform", sparsity=$spars)"""
-            case Normal() =>
-              s"""rand(rows=$rows, cols=$cols, pdf="normal", sparsity=$spars)"""
-            case Poisson(lambda) =>
-              s"""rand(rows=$rows, cols=$cols, pdf="poisson", lambda=$lambda, sparsity=$spars)"""
-          }
-        }
+    def collect(): Matrix[EagerEval] = eval(impl)
 
-        case Scalar(value) => value.toString
-
-        case BinOp(rator, rand1, rand2) => s"""(${traverse(rand1)} $rator ${traverse(rand2)})"""
-
-        case VarDef(lhs, rhs) => s"""$lhs = ${traverse(rhs)}"""
-      }
-    }
-
-    override def toString: String = traverse(impl)
+    override def toString: String = impl.toString
   }
 
   object LazyEval {
@@ -130,39 +104,40 @@ object TypeClass {
       override def +(x: LazyEval, y: LazyEval): LazyEval = LazyEval(BinOp("+", x.impl, y.impl))
 
       override def +(x: LazyEval, y: Double): LazyEval = LazyEval(BinOp("+", x.impl, Scalar(y)))
-
     }
   }
 
-  case class Local[A: Block](impl: A) {
-    override def toString: String = "Local Matrix: \n" + impl.toString
-  }
-  object Local {
-    implicit def localLayout[A: Block] = new Strategy[Local[A]] {
-      override def +(x: Local[A], y: Local[A]): Local[A] = {
-        Local(x.impl + y.impl)
-      }
-
-      override def +(x: Local[A], y: Double): Local[A] = ???
-    }
-  }
-
-  case class Spark[A: Block](impl: RDD[((Int, Int), A)])
-  object Spark {
-    private val sc = new SparkContext(new SparkConf().setMaster("local[2]").setAppName("TypeclassTest"))
-
-    implicit def SparkLayout[A: Block : ClassTag]: Strategy[Spark[A]] = new Strategy[Spark[A]] {
-
-      override def +(x: Spark[A], y: Spark[A]): Spark[A] = {
-        def joined = x.impl.join(y.impl)
-        val mapped = joined.map { case (k, (v, w)) => (k, v + v)}
-        Spark(mapped)
-      }
-
-      override def +(x: Spark[A], y: Double): Spark[A] = ???
-    }
-
-    def apply(block: DenseBlock): Spark[DenseBlock] = Spark(sc.parallelize(Seq(((1, 1), block))))
-  }
+//  case class Local[A: Block](impl: A) {
+//    override def toString: String = "Local Matrix: \n" + impl.toString
+//  }
+//  object Local {
+//    implicit def localLayout[A: Block] = new Strategy[Local[A]] {
+//      override def +(x: Local[A], y: Local[A]): Local[A] = {
+//        Local(x.impl + y.impl)
+//      }
+//
+//      override def +(x: Local[A], y: Double): Local[A] = ???
+//
+//      override def collect(): EagerEval
+//    }
+//  }
+//
+//  case class Spark[A: Block](impl: RDD[((Int, Int), A)])
+//  object Spark {
+//    private val sc = new SparkContext(new SparkConf().setMaster("local[2]").setAppName("TypeclassTest"))
+//
+//    implicit def SparkLayout[A: Block : ClassTag]: Strategy[Spark[A]] = new Strategy[Spark[A]] {
+//
+//      override def +(x: Spark[A], y: Spark[A]): Spark[A] = {
+//        def joined = x.impl.join(y.impl)
+//        val mapped = joined.map { case (k, (v, w)) => (k, v + v)}
+//        Spark(mapped)
+//      }
+//
+//      override def +(x: Spark[A], y: Double): Spark[A] = ???
+//    }
+//
+//    def apply(block: DenseBlock): Spark[DenseBlock] = Spark(sc.parallelize(Seq(((1, 1), block))))
+//  }
 }
 

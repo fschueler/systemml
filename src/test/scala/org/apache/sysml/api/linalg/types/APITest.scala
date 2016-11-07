@@ -1,9 +1,7 @@
 package org.apache.sysml.api.linalg.types
 
-import org.apache.spark.SparkContext
 import org.apache.sysml.api.linalg.{Lazy, Matrix}
 import org.apache.sysml.api.linalg.api._
-import TypeClass._
 import org.apache.sysml.api.linalg.Distributions._
 
 object APITest extends App {
@@ -18,5 +16,5 @@ object APITest extends App {
         r = r + 5.0
     }
 
-    Lazy.eval(r)
+    println(r.collect())
 }

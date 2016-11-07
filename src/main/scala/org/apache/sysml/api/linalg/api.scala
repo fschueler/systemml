@@ -2,7 +2,7 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, LazyEval, Local, Strategy}
+import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, LazyEval, Strategy}
 import org.apache.sysml.api.mlcontext.MLContext
 import org.apache.sysml.compiler.macros.RewriteMacros
 

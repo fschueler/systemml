@@ -23,7 +23,7 @@ import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.Distributions.Distribution
 import org.apache.sysml.api.linalg.Lazy._
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Strategy, LazyEval, Local, Spark, ZeroBlock}
+import org.apache.sysml.api.linalg.types.TypeClass.{Block, DenseBlock, Strategy, LazyEval}
 
 import scala.util.Random
 
@@ -150,6 +150,11 @@ class Matrix[A: Strategy](val impl: A, rows: Int, cols: Int) {
   def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix[A] = ???
 
   def copy: Matrix[A] = ???
+
+  def collect(): Matrix[EagerEval] = impl match {
+    case ev: LazyEval => ev.collect()
+    case ev: EagerEval => new Matrix(ev, rows, cols)
+  }
 
   override def toString(): String = {
     impl.toString()
