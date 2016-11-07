@@ -12,9 +12,5 @@ object APITest extends App {
 
     var r = A + B
 
-    for (i <- 1 to 3) {
-        r = r + 5.0
-    }
-
     println(r.collect())
 }
