@@ -645,7 +645,7 @@ public class LibMatrixDatagen
 			int blockrows = (rbi == nrb-1 ? (rows-rbi*rpb) : rpb);
 			int rowoffset = rbi*rpb;
 
-			// loop through column-block indices
+			// loop through column-block indicesMatrixData
 			for(int cbj = cl; cbj < cu; cbj++, blockID++) {
 				int blockcols = (cbj == ncb-1 ? (cols-cbj*cpb) : cpb);
 				int coloffset = cbj*cpb;

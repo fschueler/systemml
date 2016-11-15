@@ -8,44 +8,44 @@ import org.apache.sysml.api.linalg.api.:::
   * @tparam V
   * @tparam M
   */
-trait MatrixOps[V, M <: MatrixOps[V, M]] {
+trait MatrixOps[V <: MatrixOps[V, M], M <: MatrixOps[V, M]] {
   // TODO should this be Long?
   def rows: Int
   def cols: Int
 
   def size: (Int, Int) = (rows, cols)
 
-  //////////////////////////////////////////
-  // Accessors
-  //////////////////////////////////////////
-
-  def apply(row: Int, col: Int): Double
-
-  def apply(row: Int, col: :::.type ): V
-
-  def apply(row: :::.type, col: Int): V
-
-  def apply(rows: Range.Inclusive, cols: :::.type): M
-
-  def apply(rows: :::.type, cols: Range.Inclusive): M
-
-  def apply(rows: Range.Inclusive, cols: Range.Inclusive): M
-
-  //////////////////////////////////////////
-  // Left Indexing assignments
-  //////////////////////////////////////////
-
-  def update(row: Int, col: Int, value: Double): M
-
-  def update(row: Int, col: :::.type, vec: V): M
-
-  def update(row: :::.type, col: Int, vec: V): M
-
-  def update(rows: Range.Inclusive, cols: :::.type, mat: M): M
-
-  def update(rows: :::.type, cols: Range.Inclusive, mat: M): M
-
-  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: M): M
+//  //////////////////////////////////////////
+//  // Right indexing
+//  //////////////////////////////////////////
+//
+//  def apply(row: Int, col: Int): Double
+//
+//  def apply(row: Int, col: :::.type ): V
+//
+//  def apply(row: :::.type, col: Int): V
+//
+//  def apply(rows: Range.Inclusive, cols: :::.type): M
+//
+//  def apply(rows: :::.type, cols: Range.Inclusive): M
+//
+//  def apply(rows: Range.Inclusive, cols: Range.Inclusive): M
+//
+//  //////////////////////////////////////////
+//  // Left Indexing assignments
+//  //////////////////////////////////////////
+//
+//  def update(row: Int, col: Int, value: Double): M
+//
+//  def update(row: Int, col: :::.type, vec: V): M
+//
+//  def update(row: :::.type, col: Int, vec: V): M
+//
+//  def update(rows: Range.Inclusive, cols: :::.type, mat: M): M
+//
+//  def update(rows: :::.type, cols: Range.Inclusive, mat: M): M
+//
+//  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: M): M
 
   //////////////////////////////////////////
   // A o scalar
@@ -53,35 +53,35 @@ trait MatrixOps[V, M <: MatrixOps[V, M]] {
 
   def +(that: Double): M
 
-  def -(that: Double): M
+//  def -(that: Double): M
+//
+//  def *(that: Double): M
+//
+//  def /(that: Double): M
 
-  def *(that: Double): M
-
-  def /(that: Double): M
-
-  //////////////////////////////////////////
-  // columnwise M o vector (broadcast operators)
-  //////////////////////////////////////////
-
-  def +(that:  V): M
-
-  def -(that:  V): M
-
-  def *(that:  V): M
-
-  def /(that:  V): M
-
-  //////////////////////////////////////////
-  // cellwise A o A
-  //////////////////////////////////////////
+//  //////////////////////////////////////////
+//  // columnwise M o vector (broadcast operators)
+//  //////////////////////////////////////////
+//
+//  def +(that:  V): M
+//
+//  def -(that:  V): M
+//
+//  def *(that:  V): M
+//
+//  def /(that:  V): M
+//
+//  //////////////////////////////////////////
+//  // cellwise A o A
+//  //////////////////////////////////////////
 
   def +(that: M): M
 
-  def -(that: M): M
-
-  def *(that: M): M
-
-  def /(that: M): M
+//  def -(that: M): M
+//
+//  def *(that: M): M
+//
+//  def /(that: M): M
 
   //////////////////////////////////////////
   // A x A -> A and  A x A -> A
@@ -89,7 +89,7 @@ trait MatrixOps[V, M <: MatrixOps[V, M]] {
 
   def %*%(that: M): M
 
-  def %*%(that: V): V
+  //def %*%(that: V): V
 
   //////////////////////////////////////////
   // A operation

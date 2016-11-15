@@ -309,7 +309,7 @@ public class MLMatrix extends DataFrame {
 	}
 	
 	public MLMatrix $div(MLMatrix that) throws IOException, DMLException {
-		return matrixBinaryOp(that, "/");
+		return matrixBinaryOp(that, "/");==
 	}
 	
 	public MLMatrix divide(MLMatrix that) throws IOException, DMLException {

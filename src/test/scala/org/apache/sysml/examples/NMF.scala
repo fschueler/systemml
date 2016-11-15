@@ -1,5 +1,6 @@
 //package org.apache.sysml.examples
 //
+//import org.apache.sysml.api.linalg.Distributions.Normal
 //import org.apache.sysml.api.linalg._
 //import org.apache.sysml.api.linalg.api.{SystemMLAlgorithm, _}
 //
@@ -14,8 +15,8 @@
 //      val maxIters = 200
 //
 //      val V = Matrix(tfidf, m, n) // initialize matrices
-//      var W = Matrix.rand(m, k)
-//      var H = Matrix.rand(k, n)
+//      var W = Matrix.rand(m, k, Normal(), 0.75)
+//      var H = Matrix.rand(k, n, Normal(), 0.75)
 //
 //      for (i <- 0 to maxIters) { //main loop
 //        H = H * (W.t %*% V) / (W.t %*% (W %*% H))

@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import org.apache.commons.math3.random.Well1024a;
 import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.sysml.api.DMLException;
 import org.apache.sysml.api.DMLScript;
 import org.apache.sysml.conf.ConfigurationManager;
 import org.apache.sysml.hops.Hop.OpOp2;
@@ -139,6 +140,15 @@ public class MatrixBlock extends MatrixValue implements CacheBlock, Externalizab
 	
 	public MatrixBlock(int rl, int cl, boolean sp) {
 		this(rl, cl, sp, -1);
+	}
+
+	public MatrixBlock(double[] denseBlock, int rl, int cl) {
+		this(rl, cl, false, -1);
+		try {
+			init(denseBlock, rl, cl);
+		} catch (DMLException e) {
+			throw new IllegalArgumentException("Could not create matrix Block!");
+		}
 	}
 	
 	public MatrixBlock(int rl, int cl, long estnnz) {

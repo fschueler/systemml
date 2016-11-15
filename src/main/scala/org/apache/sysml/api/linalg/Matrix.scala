@@ -32,7 +32,7 @@ import scala.util.Random
   *
   * Represents the Matrix that will be translated to SystemAL's Matrix type.
   */
-class Matrix[A: Strategy](val impl: A, override val rows: Long, override val cols: Long) extends MatrixOps[Vector[A], Matrix[A]] {
+class Matrix[A: Strategy](val impl: A, override val rows: Int, override val cols: Int) extends MatrixOps[Vector[A], Matrix[A]] {
 
   import org.apache.sysml.api.linalg.types.TypeClass._
 
@@ -50,34 +50,34 @@ class Matrix[A: Strategy](val impl: A, override val rows: Long, override val col
   // Accessors
   //////////////////////////////////////////
 
-  override def apply(row: Int, col: Int): Double = ???
-
-  override def apply(row: Int, col: :::.type ): Vector[A] = ???
-
-  override def apply(row: :::.type, col: Int): Vector[A] = ???
-
-  override def apply(rows: Range.Inclusive, cols: :::.type): Matrix[A] = ???
-
-  override def apply(rows: :::.type, cols: Range.Inclusive): Matrix[A] = ???
-
-  override def apply(rows: Range.Inclusive, cols: Range.Inclusive): Matrix[A] = ???
+//  override def apply(row: Int, col: Int): Double = ???
+//
+//  override def apply(row: Int, col: :::.type ): Vector[A] = ???
+//
+//  override def apply(row: :::.type, col: Int): Vector[A] = ???
+//
+//  override def apply(rows: Range.Inclusive, cols: :::.type): Matrix[A] = ???
+//
+//  override def apply(rows: :::.type, cols: Range.Inclusive): Matrix[A] = ???
+//
+//  override def apply(rows: Range.Inclusive, cols: Range.Inclusive): Matrix[A] = ???
 
   //////////////////////////////////////////
   // Left Indexing assignments
   //////////////////////////////////////////
 
   // TODO make sure that the orientation of the vector (row/col) fits the assignment
-  override def update(row: Int, col: Int, value: Double): Matrix[A] = ???
-
-  override def update(row: Int, col: :::.type, vec: Vector[A]): Matrix[A] = ???
-
-  override def update(row: :::.type, col: Int, vec: Vector[A]): Matrix[A] = ???
-
-  override def update(rows: Range.Inclusive, cols: :::.type, mat: Matrix[A]): Matrix[A] = ???
-
-  override def update(rows: :::.type, cols: Range.Inclusive, mat: Matrix[A]): Matrix[A] = ???
-
-  override def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: Matrix[A]): Matrix[A] = ???
+//  override def update(row: Int, col: Int, value: Double): Matrix[A] = ???
+//
+//  override def update(row: Int, col: :::.type, vec: Vector[A]): Matrix[A] = ???
+//
+//  override def update(row: :::.type, col: Int, vec: Vector[A]): Matrix[A] = ???
+//
+//  override def update(rows: Range.Inclusive, cols: :::.type, mat: Matrix[A]): Matrix[A] = ???
+//
+//  override def update(rows: :::.type, cols: Range.Inclusive, mat: Matrix[A]): Matrix[A] = ???
+//
+//  override def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: Matrix[A]): Matrix[A] = ???
 
   //////////////////////////////////////////
   // A o scalar
@@ -85,11 +85,11 @@ class Matrix[A: Strategy](val impl: A, override val rows: Long, override val col
 
   override def +(that: Double): Matrix[A] = new Matrix(this.impl + that, this.rows, this.cols)
 
-  override def -(that: Double): Matrix[A] = ???
-
-  override def *(that: Double): Matrix[A] = ???
-
-  override def /(that: Double): Matrix[A] = ???
+//  override def -(that: Double): Matrix[A] = ???
+//
+//  override def *(that: Double): Matrix[A] = ???
+//
+//  override def /(that: Double): Matrix[A] = ???
 
   //////////////////////////////////////////
   // columnwise M o vector (broadcast operators)
@@ -101,13 +101,13 @@ class Matrix[A: Strategy](val impl: A, override val rows: Long, override val col
 //
 //  def broadcast(mat: A, vec:  A)(op: (Double, Double) => Double): A
 
-  override def +(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ + _)
-
-  override def -(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ - _)
-
-  override def *(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ * _)
-
-  override def /(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ / _)
+//  override def +(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ + _)
+//
+//  override def -(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ - _)
+//
+//  override def *(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ * _)
+//
+//  override def /(that:  Vector[A]): Matrix[A] = ??? // = broadcast(this, that)(_ / _)
 
   //////////////////////////////////////////
   // cellwise A o A
@@ -117,11 +117,11 @@ class Matrix[A: Strategy](val impl: A, override val rows: Long, override val col
     new Matrix(this.impl + that.impl, this.rows, this.cols)
   }
 
-  override def -(that: Matrix[A]): Matrix[A] = ???
-
-  override def *(that: Matrix[A]): Matrix[A] = ???
-
-  override def /(that: Matrix[A]): Matrix[A] = ???
+//  override def -(that: Matrix[A]): Matrix[A] = ???
+//
+//  override def *(that: Matrix[A]): Matrix[A] = ???
+//
+//  override def /(that: Matrix[A]): Matrix[A] = ???
 
   //////////////////////////////////////////
   // A x A -> A and  A x A -> A
@@ -129,7 +129,7 @@ class Matrix[A: Strategy](val impl: A, override val rows: Long, override val col
 
   override def %*%(that: Matrix[A]): Matrix[A] = ???
 
-  override def %*%(that: Vector[A]): Vector[A] = ???
+//  override def %*%(that: Vector[A]): Vector[A] = ???
 
   //////////////////////////////////////////
   // A operation
@@ -197,7 +197,6 @@ object Matrix {
     new Matrix(LazyEval(Application("matrix", List(Application("seq", List(TSeq(values))), Scalar(rows), Scalar(cols)))), rows, cols)
   }
 
-  // AODO: support more parameters (min, max, distribution, sparsity, seed)
   def rand(rows: Int, cols: Int, dist: Distribution, sparsity: Double) = {
     new Matrix(LazyEval(Application("rand", List(Scalar(rows), Scalar(cols), Literal(dist), Scalar(sparsity)))), rows, cols)
   }
@@ -212,7 +211,8 @@ object Distributions {
   }
 
   case class Normal() extends Distribution {
-    override def sample: Double = ???
+    val rng = new Random(123L)
+    override def sample: Double = rng.nextGaussian()
   }
 
   case class Poisson(lambda: Double) extends Distribution {
