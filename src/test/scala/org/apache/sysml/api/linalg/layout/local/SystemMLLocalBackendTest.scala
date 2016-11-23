@@ -16,24 +16,6 @@ class SystemMLLocalBackendTest extends BaseAPISpec {
     "Multiplication" - {
       val m, n = 1000
 
-      "small" in {
-        val A = DenseMatrix(Array(Array(1.0, 2.0, 1.0),
-          Array(2.0, 1.0, 2.0),
-          Array(2.0, 3.0, 1.0)))
-
-        val B = DenseMatrix(Array(Array(1.0, 2.0, 3.0),
-          Array(3.0, 2.0, 1.0),
-          Array(2.0, 2.0, 2.0)))
-
-        val C = A %*% B
-
-        val exp = DenseMatrix(Array(Array(9.0, 8.0, 7.0),
-          Array(9.0, 10.0, 11.0),
-          Array(13.0, 12.0, 11.0)))
-
-        C shouldBe exp
-      }
-
       "Compare Breeze and SystemML" in {
         println("Using " + BLAS.getInstance().getClass().getName())
 
@@ -43,35 +25,35 @@ class SystemMLLocalBackendTest extends BaseAPISpec {
         var C_breeze = breeze.linalg.DenseMatrix.rand[Double](n, m, Rand.gaussian)
 
 
-        // copy the data from breeze matrices to new arrays
-        val data_a = Array.fill(m*n)(0.0)
-        A_breeze.toArray.copyToArray(data_a)
-        val data_b = Array.fill(m*n)(0.0)
-        B_breeze.toArray.copyToArray(data_b)
+        // copy the data from breeze matrices to new arrays for systemml
+        val data_a = Array.fill(m * n)(0.0)
+        val data_b = Array.fill(m * n)(0.0)
         val data_c = Array.fill(m * m)(0.0)
+
+        A_breeze.toArray.copyToArray(data_a)
+        B_breeze.toArray.copyToArray(data_b)
         C_breeze.toArray.copyToArray(data_c)
 
-        // initialize systemml matrix blocks (calls init internally and sets sparsity to -1)
+        // initialize systemml matrix blocks
         val A_sysml = new MatrixBlock(m, n, false, 0L); A_sysml.init(data_a, m, n)
-        val B_sysml = new MatrixBlock(n, m, false, 0L); B_sysml.init(data_b, m, n)
-        val C_sysml = new MatrixBlock(m, m, false, 0L); C_sysml.init(data_c, m, n)
+        val B_sysml = new MatrixBlock(n, m, false, 0L); B_sysml.init(data_b, n, m)
+        val C_sysml = new MatrixBlock(m, m, false, 0L); C_sysml.init(data_c, m, m)
 
-        val runs = 20
+        val runs = 1
 
         val startBreeze = System.currentTimeMillis()
         for (i <- 1 to runs) {
           C_breeze = A_breeze * B_breeze
         }
         val endBreeze = System.currentTimeMillis()
-        C_breeze
+
 
         val startSystemML = System.currentTimeMillis()
         for (i <- 1 to runs) {
-          LibMatrixMult.matrixMult(A_sysml, B_sysml, C_sysml, false)
+          LibMatrixMult.matrixMult(A_sysml, B_sysml, C_sysml, 8)
         }
         val endSystemML = System.currentTimeMillis()
-        C_sysml
-
+        
         println(
           s"""
              |Breeze:   ${(endBreeze - startBreeze) / runs.toDouble} ms
