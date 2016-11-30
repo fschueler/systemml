@@ -131,6 +131,7 @@ public class ReorgCPInstruction extends UnaryCPInstruction
 		MatrixBlock soresBlock = (MatrixBlock) (matBlock.reorgOperations(r_op, new MatrixBlock(), 0, 0, 0));
         
 		//release inputs/outputs
+		soresBlock.recomputeNonZeros();
 		ec.releaseMatrixInput(input1.getName());
 		ec.setMatrixOutput(output.getName(), soresBlock);
 	}
