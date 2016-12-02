@@ -54,7 +54,7 @@ package object api {
 
   def abs(x: Double): Double = ???
 
-  def exp(b: Vector): Vector = ???
+  def exp(b: Matrix): Matrix = ???
 
   def rowIndexMax(mat: Matrix): Vector = ???
 
