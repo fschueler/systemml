@@ -24,7 +24,7 @@ object TSNE {
     val D   = distanceMatrix(X)
 
     var P     = Matrix.zeros(n, n)
-    var beta  = Vector.ones(n)
+    var beta  = Matrix.ones(n, 1)
     val logU  = log(perplexity)
 
     for (i <- 0 until n) {
@@ -34,32 +34,32 @@ object TSNE {
 
       var itr = 0
       val Di  = D(i, :::)
-      var Pi  = Vector.zeros(Di.length)
+      var Pi  = Matrix.zeros(Di.rows, 1)
 
       while ((abs(Hdiff) > tol) && (itr < 50)) {
-        Pi = exp(Di * -1 * beta(i))
+        Pi = exp(Di * -1 * beta(i, 1))
 
-        Pi(i) = 0.0
+        Pi(i, 1) = 0.0
 
         val sumPi = sum(Pi)
 
-        val H = log(sumPi) + beta(i) * sum(Di * Pi) / sumPi
+        val H = log(sumPi) + beta(i, 1) * sum(Di * Pi) / sumPi
         Pi = Pi / sumPi
         Hdiff = H - logU
 
         if (Hdiff > 0.0) {
-          betamin = beta(i) * 2.0
+          betamin = beta(i, 1) * 2.0
           if (betamax == INF) {
-            beta(i) = beta(i) * 2
+            beta(i, 1) = beta(i, 1) * 2
           } else {
-            beta(i) = beta(i) / 2.0
+            beta(i, 1) = beta(i, 1) / 2.0
           }
         } else {
-          betamax = beta(i)
+          betamax = beta(i, 1)
           if (betamin ==  0.0) {
-            beta(i) = beta(i) / 2.0
+            beta(i, 1) = beta(i, 1) / 2.0
           } else {
-            beta(i) = beta(i) / 2.0
+            beta(i, 1) = beta(i, 1) / 2.0
           }
         }
         itr = itr + 1
@@ -115,7 +115,8 @@ object TSNE {
 }
 
 object EvalMacro {
-  def eval[T <: Product](e: T): T = macro EvalMacroImpl.impl[T]
+  //def eval[T <: Product](e: T): T = macro EvalMacroImpl.impl[T]
+  def eval[T <: Product](e: T): T = ???
 }
 
 object EvalMacroImpl {
