@@ -38,7 +38,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
-    fixLambdaTypes,
+    //fixLambdaTypes,
     //stubTypeTrees,
     unQualifyStatics,
     normalizeStatements,

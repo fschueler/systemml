@@ -474,6 +474,7 @@ public class MLResults {
 	public Matrix getMatrix(String outputName) {
 		MatrixObject mo = getMatrixObject(outputName);
 		return new Matrix(mo, sparkExecutionContext);
+		//return new org.apache.sysml.api.linalg.Matrix(new Matrix(mo, sparkExecutionContext));
 	}
 
 	/**

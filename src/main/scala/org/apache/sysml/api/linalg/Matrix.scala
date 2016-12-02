@@ -21,6 +21,7 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.api.:::
+import org.apache.sysml.api.mlcontext.{Matrix => MLMatrix}
 
 import scala.util.Random
 
@@ -36,12 +37,18 @@ import scala.util.Random
   * @param rows number of rows of the matrix
   * @param cols number of columns of the matrix
   */
-class Matrix private(val impl: Array[Double], val rows: Int, val cols: Int) {
+class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
+
+  private var mlctxMat: MLMatrix = _
 
   //////////////////////////////////////////
   // Constructors
   //////////////////////////////////////////
 
+  def this(mlmat: MLMatrix) = {
+    this(Array.empty[Double], 0, 0)
+    mlctxMat = mlmat
+  }
 
   //////////////////////////////////////////
   // Accessors
