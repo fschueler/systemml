@@ -3,6 +3,7 @@ package org.apache.sysml.api.linalg
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.sysml.api.mlcontext.MLContext
+import org.apache.sysml.api.mlcontext.{Matrix => MLMatrix}
 import org.apache.sysml.compiler.macros.RewriteMacros
 
 import scala.language.experimental.macros

@@ -363,15 +363,8 @@ trait DML extends Common {
           }
 
           def block(stats: S[D], expr: D): D = offset => {
-            val
-            statsString = stats.map{x => val res =
-
-              x(offset); res.
-              trim.
-              replaceAll("\n", "")}.mkString("\n")
-            val exprString  = expr(
-
-              offset)
+            val statsString = stats.map{x => val res = x(offset); res.trim.replaceAll("\n", "")}.mkString("\n")
+            val exprString  = expr(offset)
 
             val resString =
               s"""
@@ -387,25 +380,14 @@ trait DML extends Common {
             *constructs a for loop by deconstructing foreach together with the range and the lambda */
           def forLoop(target: D, targs: S[u.Type]
                       , args: S[D]): D = offset => {
-            val range =
-              target(offset)
-            val lambda =
+            val range = target(offset)
+            val lambda = args.map(x => x(offset)).head
 
-              args.map(x => x
-              (offset
-              )).head
+            val parts = lambda.split(" => ")
 
-            val
-            parts = lambda.split(" => ")
-            val idx = parts(
+            val idx = parts(0).drop(1).dropRight(1) // remove braces
 
-              0
-            ).
-
-              drop(1).dropRight(1) // remove braces
-            val
-            body =
-            parts(1).stripMargin.trim
+            val body = parts(1).stripMargin.trim
 
             val loop =
               s"""
