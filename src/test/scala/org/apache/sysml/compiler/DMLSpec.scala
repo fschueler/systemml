@@ -96,7 +96,6 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           s"""
              |a = 5
-             |x1 = a
            """.stripMargin.trim
 
         act shouldEqual exp
@@ -113,7 +112,6 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           s"""
              |a = 5
-             |x1 = a
              |b = 6
            """.stripMargin.trim
 
