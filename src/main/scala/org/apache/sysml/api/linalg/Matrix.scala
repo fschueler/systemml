@@ -56,9 +56,9 @@ class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
 
   def apply(row: Int, col: Int): Double = ???
 
-  def apply(row: Int, col: :::.type ): Vector = ???
+  def apply(row: Int, col: :::.type ): Matrix = ???
 
-  def apply(row: :::.type, col: Int): Vector = ???
+  def apply(row: :::.type, col: Int): Matrix = ???
 
   def apply(rows: Range.Inclusive, cols: :::.type): Matrix = ???
 
@@ -73,9 +73,9 @@ class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
   // TODO make sure that the orientation of the vector (row/col) fits the assignment
   def update(row: Int, col: Int, value: Double): Matrix = ???
 
-  def update(row: Int, col: :::.type, vec: Vector): Matrix = ???
+  def update(row: Int, col: :::.type, vec: Matrix): Matrix = ???
 
-  def update(row: :::.type, col: Int, vec: Vector): Matrix = ???
+  def update(row: :::.type, col: Int, vec: Matrix): Matrix = ???
 
   def update(rows: Range.Inclusive, cols: :::.type, mat: Matrix): Matrix = ???
 
@@ -186,6 +186,7 @@ object Matrix {
 //  }
 
   def zeros(rows: Int, cols: Int): Matrix = ??? // Matrix.fill(rows, cols)((i, j) => 0.0)
+  def ones(rows: Int, cols: Int): Matrix = ???
 
   // TODO: support more parameters (min, max, distribution, sparsity, seed)
   def rand(rows: Int, cols: Int): Matrix = ??? //Matrix.fill(rows, cols)((i, j) => Random.nextDouble())
