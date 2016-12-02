@@ -85,7 +85,7 @@ object TSNE {
     var dY  = Matrix.zeros(n, d)
     var C   = Matrix.zeros(maxIter / 10, 1)
 
-    val ZERODIAG = Matrix.diag(Vector.fill(n)(i => -1)) + 1.0
+    val ZERODIAG = Matrix.diag(-1.0) + 1.0
 
     for (itr <- 0 until maxIter) {
       val D     = distanceMatrix(Y)

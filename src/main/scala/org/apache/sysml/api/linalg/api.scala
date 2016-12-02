@@ -36,17 +36,16 @@ package object api {
 
   def sum(mat: Matrix): Double = ???
 
-  def sum(vec: Vector): Double = ???
 
-  def rowSums(mat: Matrix): Vector = ???
+  def rowSums(mat: Matrix): Matrix = ???
 
-  def colSums(mat: Matrix): Vector = ???
+  def colSums(mat: Matrix): Matrix = ???
 
   def mean(mat: Matrix): Double = ???
 
-  def rowMeans(mat: Matrix): Vector = ???
+  def rowMeans(mat: Matrix): Matrix = ???
 
-  def colMeans(mat: Matrix): Vector = ???
+  def colMeans(mat: Matrix): Matrix = ???
 
   def log(x: Double): Double = ???
 
@@ -56,7 +55,7 @@ package object api {
 
   def exp(b: Matrix): Matrix = ???
 
-  def rowIndexMax(mat: Matrix): Vector = ???
+  def rowIndexMax(mat: Matrix): Matrix = ???
 
   def pmax(mat: Matrix, s: Double): Matrix = ???
 
@@ -65,21 +64,11 @@ package object api {
   def max(Mat: Matrix): Double = ???
 
   ///////////////////////////////////
-  // Implicit Matrix and Vector Ops
+  // Implicit Matrix and Matrix Ops
   ///////////////////////////////////
 
-  /** This allows operations with Vectors and Matrices as left arguments such as Double * Matrix */
-  implicit class VectorOps(private val n: Double) extends AnyVal {
-    def +(v: Vector): Vector = v + n
-
-    def -(v: Vector): Vector = v - n
-
-    def *(v: Vector): Vector = v * n
-
-    def /(v: Vector): Vector = v / n
-  }
-
-  implicit class MatrixOps(private val n: Double) extends AnyVal{
+  /** This allows operations with Matrixs and Matrices as left arguments such as Double * Matrix */
+  implicit class MatrixOps(private val n: Double) extends AnyVal {
     def +(v: Matrix): Matrix = v + n
 
     def -(v: Matrix): Matrix = v - n
