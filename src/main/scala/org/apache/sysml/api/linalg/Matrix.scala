@@ -21,7 +21,8 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.mlcontext.{Matrix => MLMatrix}
+import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContextConversionUtil}
+import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
 
 import scala.util.Random
 
@@ -37,18 +38,15 @@ import scala.util.Random
   * @param rows number of rows of the matrix
   * @param cols number of columns of the matrix
   */
-class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
-
-  private var mlctxMat: MLMatrix = _
+class Matrix protected(val impl: Array[Double],
+                       val rows: Int,
+                       val cols: Int,
+                       var isTransposed: Boolean = false,
+                       val matob: MatrixObject = null) {
 
   //////////////////////////////////////////
   // Constructors
   //////////////////////////////////////////
-
-  def this(mlmat: MLMatrix) = {
-    this(Array.empty[Double], 0, 0)
-    mlctxMat = mlmat
-  }
 
   //////////////////////////////////////////
   // Accessors
@@ -56,7 +54,7 @@ class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
 
   def apply(row: Int, col: Int): Double = ???
 
-  def apply(row: Int, col: :::.type ): Matrix = ???
+  def apply(row: Int, col: :::.type): Matrix = ???
 
   def apply(row: :::.type, col: Int): Matrix = ???
 
@@ -99,19 +97,19 @@ class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
   // columnwise M o vector (broadcast operators)
   //////////////////////////////////////////
 
-  private def broadcastRows(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = ???
-
-  private def broadcastCols(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = ???
-
-  private def broadcast(mat: Matrix, vec: Vector)(op: (Double, Double) => Double) = ???
-
-  def +(that: Vector): Matrix = broadcast(this, that)(_ + _)
-
-  def -(that: Vector): Matrix = broadcast(this, that)(_ - _)
-
-  def *(that: Vector): Matrix = broadcast(this, that)(_ * _)
-
-  def /(that: Vector): Matrix = broadcast(this, that)(_ / _)
+//  private def broadcastRows(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = ???
+//
+//  private def broadcastCols(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = ???
+//
+//  private def broadcast(mat: Matrix, vec: Vector)(op: (Double, Double) => Double) = ???
+//
+//  def +(that: Vector): Matrix = broadcast(this, that)(_ + _)
+//
+//  def -(that: Vector): Matrix = broadcast(this, that)(_ - _)
+//
+//  def *(that: Vector): Matrix = broadcast(this, that)(_ * _)
+//
+//  def /(that: Vector): Matrix = broadcast(this, that)(_ / _)
 
   //////////////////////////////////////////
   // cellwise M o M
@@ -131,13 +129,16 @@ class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
 
   def %*%(that: Matrix): Matrix = ???
 
-  def %*%(that: Vector): Vector = ???
+//  def %*%(that: Vector): Vector = ???
 
   //////////////////////////////////////////
   // M operation
   //////////////////////////////////////////
 
-  def t: Matrix = ???
+  def t: Matrix = {
+    isTransposed = ! isTransposed
+    this
+  }
 
   def ^(n: Int): Matrix = ???
 
@@ -155,6 +156,14 @@ class Matrix protected(val impl: Array[Double], val rows: Int, val cols: Int) {
   def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix = ???
 
   def copy: Matrix = ???
+
+  //////////////////////////////////////////
+  // Convenience Transformations
+  //////////////////////////////////////////
+
+  def toMatrixObject(): MatrixObject = matob
+  def toBinaryBlockMatrix(): BinaryBlockMatrix = ???
+  def toDF(): DataFrame = ???
 }
 
 object Matrix {
@@ -192,7 +201,22 @@ object Matrix {
   def rand(rows: Int, cols: Int): Matrix = ??? //Matrix.fill(rows, cols)((i, j) => Random.nextDouble())
 
   /** generate matrix with the vector on the diagonal */
-  def diag(vec: Vector): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
+  def diag(value: Double): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
 
+}
+
+object Vector {
+  /**
+    * Create a Matrix with one column
+    * @param values
+    * @return
+    */
+  def apply(values: Array[Double]): Matrix = {
+    Matrix(values, values.length, 1)
+  }
+
+  def rand(length: Int): Matrix = {
+    Matrix.rand(length, 1)
+  }
 }
 
