@@ -3,8 +3,12 @@ package org.apache.sysml.examples
 import org.apache.sysml.api.linalg._
 import org.apache.sysml.api.linalg.api._
 
+import scala.reflect.macros.blackbox.Context
+import scala.language.experimental.macros
 
 object TSNE {
+
+  import EvalMacro._
 
   def distanceMatrix(X: Matrix): Matrix = {
     val n = X.rows
@@ -71,7 +75,7 @@ object TSNE {
            perplexity   : Int,
            lr           : Double,
            momentum     : Double,
-           maxIter      : Int): (Matrix, Vector) = {
+           maxIter      : Int): (Matrix, Matrix) = {
 
     // parameters
     val d   = reducedDims
@@ -79,7 +83,7 @@ object TSNE {
     var P   = x2p(X, perplexity) * 4.0
     var Y   = Matrix.rand(n, d)
     var dY  = Matrix.zeros(n, d)
-    var C   = Vector.zeros(maxIter / 10)
+    var C   = Matrix.zeros(maxIter / 10, 1)
 
     val ZERODIAG = Matrix.diag(Vector.fill(n)(i => -1)) + 1.0
 
@@ -100,12 +104,22 @@ object TSNE {
         val q: Matrix = pmax(Q, 1e-12)
         val t: Matrix = p / q
 
-        C(itr / 10) = sum(P * log(t))
+        C(itr / 10, 1) = sum(P * log(t))
       }
       if (itr == 100) {
         P = P / 4
       }
     }
-    (Y, C)
+    eval(Y, C)
+  }
+}
+
+object EvalMacro {
+  def eval[T <: Product](e: T): T = macro EvalMacroImpl.impl[T]
+}
+
+object EvalMacroImpl {
+  def impl[T: c.WeakTypeTag](c: Context)(e: c.Expr[T]): c.Expr[T] = {
+    e
   }
 }
