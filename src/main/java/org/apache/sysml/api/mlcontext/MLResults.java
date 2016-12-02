@@ -38,6 +38,8 @@ import org.apache.sysml.runtime.instructions.cp.ScalarObject;
 import org.apache.sysml.runtime.instructions.cp.StringObject;
 import org.apache.sysml.runtime.instructions.spark.utils.RDDConverterUtils;
 
+import org.apache.sysml.api.linalg.Matrix;
+
 import scala.Tuple1;
 import scala.Tuple10;
 import scala.Tuple11;
@@ -473,8 +475,8 @@ public class MLResults {
 	 */
 	public Matrix getMatrix(String outputName) {
 		MatrixObject mo = getMatrixObject(outputName);
-		return new Matrix(mo, sparkExecutionContext);
-		//return new org.apache.sysml.api.linalg.Matrix(new Matrix(mo, sparkExecutionContext));
+		//return new Matrix(mo, sparkExecutionContext);
+		return new Matrix(null, (int) mo.getNumRows(), (int) mo.getNumColumns(), false, mo);
 	}
 
 	/**
