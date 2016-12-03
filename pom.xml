@@ -222,6 +222,15 @@
 			  <groupId>net.alchim31.maven</groupId>
 			  <artifactId>scala-maven-plugin</artifactId>
 			  <version>3.2.2</version>
+				<configuration>
+				<!--<compilerPlugins>-->
+					<!--<compilerPlugin>-->
+						<!--<groupId>org.scalamacros</groupId>-->
+						<!--<artifactId>paradise_2.11.0</artifactId>-->
+						<!--<version>2.1.0</version>-->
+					<!--</compilerPlugin>-->
+				<!--</compilerPlugins>-->
+				</configuration>
 			  <executions>
 				<execution>
 				  <id>eclipse-add-source</id>
@@ -1014,16 +1023,16 @@
 
         <!-- Emma -->
         <dependency>
-            <groupId>eu.stratosphere</groupId>
+            <groupId>org.emmalanguage</groupId>
             <artifactId>emma-language</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
 
 		<!-- Emma (test jars) -->
 		<dependency>
-			<groupId>eu.stratosphere</groupId>
+			<groupId>org.emmalanguage</groupId>
 			<artifactId>emma-language</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>0.2-SNAPSHOT</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
