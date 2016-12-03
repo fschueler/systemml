@@ -38,17 +38,20 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
-    //fixLambdaTypes,
+    Source.removeImplicits(API.implicitTypes),
+    fixSymbolTypes,
     //stubTypeTrees,
     unQualifyStatics,
     normalizeStatements,
+    // Source.normalize,
     dmlNormalize
   )
 
   /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */
   override lazy val postProcess: Seq[u.Tree => u.Tree] = Seq(
+    api.Owner.atEncl,
     qualifyStatics,
-    api.Owner.at(get.enclosingOwner)
+    restoreTypeTrees
   )
 
   def dmlPipeline(typeCheck: Boolean = false, withPre: Boolean = true, withPost: Boolean = true)
@@ -56,12 +59,15 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
     val bld = Seq.newBuilder[u.Tree => u.Tree]
     //@formatter:off
-    if (typeCheck) bld += { api.Type.check(_) }
+    if (typeCheck) bld += { this.typeCheck(_) }
     if (withPre)   bld ++= preProcess
     bld ++= transformations
     if (withPost)  bld ++= postProcess
     //@formatter:on
-    scala.Function.chain(bld.result())
+    val steps = bld.result()
+
+    if (!printAllTrees) scala.Function.chain(steps)
+    else scala.Function.chain(List(print) ++ steps.flatMap(List(_, print)))
   }
 
   /** Ordering symbols by their name. */

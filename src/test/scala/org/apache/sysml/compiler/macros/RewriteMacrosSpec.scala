@@ -124,4 +124,18 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
 
   }
+
+  "Function definition" in {
+
+    val alg = parallelize {
+      def add(x: Int, y: Int): Int = x + y
+
+      val d = add(1, 1)
+      val e = add(d, d)
+      (d, e)
+    }
+
+    val res: (Int, Int) = alg.run()
+    println(res)
+  }
 }
