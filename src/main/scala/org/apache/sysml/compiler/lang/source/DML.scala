@@ -133,7 +133,7 @@ trait DML extends Common {
             case u.TermName(fname) => s"$fname(${args.mkString(", ")})"
 
             case _ =>
-              abort(s"Unsopported builtin call: ${get.pos(sym)}", get.pos(sym))
+              abort(s"Unsopported builtin call: $sym", sym.pos)
           }
         }
 
@@ -198,7 +198,7 @@ trait DML extends Common {
             printSym(target)
 
           // Definitions
-          def valDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset => {
+          def valDef(lhs: u.TermSymbol, rhs: D): D = offset => {
             currLhs = lhs
             val rhsString = rhs(offset)
             /* if we have a reference to a dataframe (rhs == null),
@@ -209,7 +209,7 @@ trait DML extends Common {
               ""
           }
 
-          def parDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset => {
+          def parDef(lhs: u.TermSymbol, rhs: D): D = offset => {
             val l = lhs.name.decodedName
             val r = rhs(offset)
 
@@ -220,7 +220,20 @@ trait DML extends Common {
             }
           }
 
-          def defDef(sym: u.MethodSymbol, flags: u.FlagSet, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = ???
+          def defDef(sym: u.MethodSymbol, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = offset => {
+            if (tparams.length > 0) {
+              abort(s"Type parameters are not supported: ${tparams}")
+            }
+            val b = body(offset)
+
+            val fn = s"""
+             |function ${sym.name.decodedName} (inputs)(outputs) {
+             |  $b
+             |}
+             """.stripMargin.trim
+
+            fn
+          }
 
           // Other
 

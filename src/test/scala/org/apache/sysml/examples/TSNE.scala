@@ -3,12 +3,7 @@ package org.apache.sysml.examples
 import org.apache.sysml.api.linalg._
 import org.apache.sysml.api.linalg.api._
 
-import scala.reflect.macros.blackbox.Context
-import scala.language.experimental.macros
-
 object TSNE {
-
-  import EvalMacro._
 
   def distanceMatrix(X: Matrix): Matrix = {
     val n = X.rows
@@ -110,17 +105,6 @@ object TSNE {
         P = P / 4
       }
     }
-    eval(Y, C)
-  }
-}
-
-object EvalMacro {
-  //def eval[T <: Product](e: T): T = macro EvalMacroImpl.impl[T]
-  def eval[T <: Product](e: T): T = ???
-}
-
-object EvalMacroImpl {
-  def impl[T: c.WeakTypeTag](c: Context)(e: c.Expr[T]): c.Expr[T] = {
-    e
+    (Y, C)
   }
 }
