@@ -211,10 +211,11 @@ trait DML extends Common {
 
           def parDef(lhs: u.TermSymbol, rhs: D): D = offset => {
             val l = lhs.name.decodedName
+            val tpe = lhs.typeSignature
             val r = rhs(offset)
 
             if (r.isEmpty) {
-              l.toString
+              s"$tpe $l"
             } else {
               s"$l = $r"
             }
@@ -224,12 +225,15 @@ trait DML extends Common {
             if (tparams.length > 0) {
               abort(s"Type parameters are not supported: ${tparams}")
             }
+
+            val name = sym.name.decodedName
+            val inputs = paramss.flatten.map(_(offset).map(_.toLower)).mkString(", ")
+
             val b = body(offset)
+            val resultType = sym.typeSignature.finalResultType.toString.toLowerCase()
 
             val fn = s"""
-             |function ${sym.name.decodedName} (inputs)(outputs) {
-             |  $b
-             |}
+             |function $name($inputs)($resultType x99){x99 = $b}
              """.stripMargin.trim
 
             fn
@@ -350,8 +354,15 @@ trait DML extends Common {
                 s"case (Some(tgt), _)"
               }
 
-              case (None, _) =>
-                s"case (None, _)"
+                // matches functions that are not defined in a module or class (udfs)
+              case (None, _) => {
+                val name = method.name.decodedName
+                val argString = args.mkString(", ")
+                s"$name($argString)"
+              }
+
+              case _ =>
+                abort(s"Unsupported function call! Calling the method $method is not supported!")
             }
           }
 
