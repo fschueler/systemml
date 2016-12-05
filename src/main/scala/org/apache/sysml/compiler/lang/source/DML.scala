@@ -233,7 +233,7 @@ trait DML extends Common {
             val resultType = sym.typeSignature.finalResultType.toString.toLowerCase()
 
             val fn = s"""
-             |function $name($inputs)($resultType x99){x99 = $b}
+             |$name = function($inputs) return ($resultType x99){x99 = $b}
              """.stripMargin.trim
 
             fn

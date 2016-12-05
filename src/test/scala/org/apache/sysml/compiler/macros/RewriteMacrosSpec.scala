@@ -125,15 +125,15 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
   }
 
-  "Function definition" in {
+  "UDF support" in {
 
     val alg = parallelize {
-      def add(x: Double, y: Double): Double = {
+      def myAdd(x: Double, y: Double): Double = {
         x + y
       }
 
-      val d = add(1.0, 1.0)
-      val e = add(d, d)
+      val d = myAdd(1.0, 1.0)
+      val e = myAdd(d, d)
       (d, e)
     }
 

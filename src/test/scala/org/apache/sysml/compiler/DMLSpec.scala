@@ -443,7 +443,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |function myAdd(double x, double y)(double x99){x99 = (x + y)}
+          |myAdd = function(double x, double y) return (double x99){x99 = (x + y)}
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -460,7 +460,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |function myAdd(double x, double y)(double x99){x99 = (x + y)}
+          |myAdd = function(double x, double y) return (double x99){x99 = (x + y)}
           |res = myAdd(1.0, 2.0)
         """.stripMargin.trim
 
