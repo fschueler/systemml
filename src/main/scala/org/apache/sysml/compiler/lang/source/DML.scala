@@ -378,9 +378,9 @@ trait DML extends Common {
           def branch(cond: D, thn: D, els: D): D = offset => {
             s"""
               |if (${cond(offset)}) {
-              | ${thn(offset)}
+              |${thn(offset)}
               |} else {
-              |  ${els(offset)}
+              |${els(offset)}
               |}
             """.
               stripMargin.trim
@@ -402,20 +402,20 @@ trait DML extends Common {
 
           /**
             *constructs a for loop by deconstructing foreach together with the range and the lambda */
-          def forLoop(target: D, targs: S[u.Type]
-                      , args: S[D]): D = offset => {
+          def forLoop(target: D, targs: S[u.Type], args: S[D]): D = offset => {
             val range = target(offset)
             val lambda = args.map(x => x(offset)).head
 
             val parts = lambda.split(" => ")
 
             val idx = parts(0).drop(1).dropRight(1) // remove braces
+            val Array(tpe, name) = idx.split(" ")   // split type and name
 
             val body = parts(1).stripMargin.trim
 
             val loop =
               s"""
-              |for ($idx in $range) {
+              |for ($name in $range) {
               |$body
               |}
             """.stripMargin.trim
