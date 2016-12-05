@@ -30,7 +30,7 @@ class DMLRuntimeCompiler extends RuntimeCompiler with DML {
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
     Source.removeImplicits(API.implicitTypes),
     fixSymbolTypes,
-    stubTypeTrees,
+    //stubTypeTrees,
     unQualifyStatics,
     normalizeStatements,
     // Source.normalize,
