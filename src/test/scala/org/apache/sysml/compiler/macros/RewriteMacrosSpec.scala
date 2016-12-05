@@ -128,14 +128,16 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
   "Function definition" in {
 
     val alg = parallelize {
-      def add(x: Int, y: Int): Int = x + y
+      def add(x: Double, y: Double): Double = {
+        x + y
+      }
 
-      val d = add(1, 1)
+      val d = add(1.0, 1.0)
       val e = add(d, d)
       (d, e)
     }
 
-    val res: (Int, Int) = alg.run()
+    val res: (Double, Double) = alg.run()
     println(res)
   }
 }
