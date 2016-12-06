@@ -16,11 +16,13 @@
 
 package org.apache.sysml.compiler.lang.source
 
+import org.apache.sysml.api.linalg.Matrix
 import org.emmalanguage.compiler.Common
 import org.emmalanguage.compiler.lang.core.Core
 import org.emmalanguage.compiler.lang.source.Source
 
 import scala.collection.mutable
+import scala.util.Random
 
 trait DML extends Common {
   this: Source =>
@@ -163,6 +165,18 @@ trait DML extends Common {
           }
         }
 
+
+        /**
+          * Convert Scala types to SystemML types
+          * @param arg the type argument
+          * @return DML type as string
+          */
+        def convertTypes(arg: u.Type): String = arg match {
+          case tpe if tpe =:= u.typeOf[Double] => s"double"
+          case tpe if tpe =:= u.typeOf[Matrix] => s"matrix[double]"
+          case tpe => abort(s"Unsupported return type $tpe. Supported types are: Matrix, Double")
+        }
+
         val escape = (str: String) => str
           .replace("\b", "\\b")
           .replace("\n", "\\n")
@@ -215,7 +229,7 @@ trait DML extends Common {
             val r = rhs(offset)
 
             if (r.isEmpty) {
-              s"$tpe $l"
+              s"$l"
             } else {
               s"$l = $r"
             }
@@ -227,13 +241,21 @@ trait DML extends Common {
             }
 
             val name = sym.name.decodedName
-            val inputs = paramss.flatten.map(_(offset).map(_.toLower)).mkString(", ")
-
             val b = body(offset)
-            val resultType = sym.typeSignature.finalResultType.toString.toLowerCase()
+            val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), resulttype)}
+
+            val inputTypes = inT.map(convertTypes(_))
+            val inputNames = paramss.flatten.map(_(offset))
+
+            val rng = new Random()
+            // TODO enable multiple return values
+            val outputType = convertTypes(outT)
+
+            val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
+            val outputs = s"$outputType x99"
 
             val fn = s"""
-             |$name = function($inputs) return ($resultType x99){x99 = $b}
+             |$name = function($inputs) return ($outputs){x99 = $b}
              """.stripMargin.trim
 
             fn
@@ -409,13 +431,12 @@ trait DML extends Common {
             val parts = lambda.split(" => ")
 
             val idx = parts(0).drop(1).dropRight(1) // remove braces
-            val Array(tpe, name) = idx.split(" ")   // split type and name
 
             val body = parts(1).stripMargin.trim
 
             val loop =
               s"""
-              |for ($name in $range) {
+              |for ($idx in $range) {
               |$body
               |}
             """.stripMargin.trim
