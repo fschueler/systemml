@@ -409,13 +409,30 @@ trait DML extends Common {
           }
 
           def block(stats: S[D], expr: D): D = offset => {
-            val statsString = stats.map{x => val res = x(offset); res.trim.replaceAll("\n", "")}.mkString("\n")
+            val statsString = stats.flatMap{x =>
+              val res = x(offset)
+              if (bindingRefs.keySet.contains(res)) {
+                None // if the statement is a single varref/valref, remove it
+              } else {
+                Some(res.trim.replaceAll("\n", ""))
+              }
+            }.mkString("\n")
+
             val exprString  = expr(offset)
+
+            // if the expression is a valref or varref, we leave it out because SystemML doesn't allow single expressions as statements
+            val returnExpr = if (bindingRefs.keySet.contains(exprString)) {
+              ""
+            } else {
+              exprString
+            }
+
+            // filter out statements that are alrefs or varrefs
 
             val resString =
               s"""
                  |$statsString
-                 |$exprString
+                 |$returnExpr
             """.
                 stripMargin.trim
 
