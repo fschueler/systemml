@@ -481,5 +481,23 @@ class DMLSpec extends BaseCompilerSpec {
 
       act shouldEqual exp
     }
+
+    "definition with multiple statements" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        def myFun(A: Matrix, B: Matrix): Double = {
+          val x = A %*% A
+          sum(x)
+        }
+      }))
+
+      val exp =
+        """
+          |myFun = function(matrix[double] A, matrix[double] B) return (double x99){x = A %*% A
+          |x99 = sum(x)
+          |}
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
   }
 }
