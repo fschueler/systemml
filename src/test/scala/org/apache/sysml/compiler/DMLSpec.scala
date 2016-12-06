@@ -466,5 +466,20 @@ class DMLSpec extends BaseCompilerSpec {
 
       act shouldEqual exp
     }
+
+    "definition with matrix type" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        def myAdd(A: Matrix, B: Matrix): Matrix = {
+          A + B
+        }
+      }))
+
+      val exp =
+        """
+          |myAdd = function(matrix[double] A, matrix[double] B) return (matrix[double] x99){x99 = (A + B)}
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
   }
 }
