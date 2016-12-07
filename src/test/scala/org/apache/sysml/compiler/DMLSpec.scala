@@ -403,6 +403,29 @@ class DMLSpec extends BaseCompilerSpec {
       }
     }
 
+    "While-loop" - {
+      "with simple predicate" in {
+        val act = toDML(dmlidPipeline(u.reify {
+          var x = 5
+
+          while (x > 0) {
+            x = x - 1
+          }
+        }))
+
+        val exp =
+          """
+            |x = 5
+            |while(x > 0) {
+            |x = x - 1
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
+    }
+
     "If-then-else" - {
 
       "with simple predicate" in {
@@ -429,6 +452,36 @@ class DMLSpec extends BaseCompilerSpec {
 
         act shouldEqual exp
       }
+
+      "with multiple statements in branch body" in {
+        val act = toDML(dmlidPipeline(u.reify {
+          var x = 5
+
+          if (x == 5) {
+            x = x + 1
+          } else {
+            val y = 5
+            x = y
+          }
+
+          println("x is" + x)
+        }))
+
+        val exp =
+          """
+            |x = 5
+            |if ((x == 5)) {
+            |x = x + 1
+            |} else {
+            |y = 5
+            |x = y
+            |}
+            |print("x is" + x)
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
     }
   }
 
@@ -443,7 +496,9 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myAdd = function(double x, double y) return (double x99){x99 = (x + y)}
+          |myAdd = function(double x, double y) return (double x99){
+          |x99 = (x + y)
+          |}
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -460,7 +515,9 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myAdd = function(double x, double y) return (double x99){x99 = (x + y)}
+          |myAdd = function(double x, double y) return (double x99){
+          |x99 = (x + y)
+          |}
           |res = myAdd(1.0, 2.0)
         """.stripMargin.trim
 
@@ -476,7 +533,9 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myAdd = function(matrix[double] A, matrix[double] B) return (matrix[double] x99){x99 = (A + B)}
+          |myAdd = function(matrix[double] A, matrix[double] B) return (matrix[double] x99){
+          |x99 = (A + B)
+          |}
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -492,9 +551,58 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myFun = function(matrix[double] A, matrix[double] B) return (double x99){x = A %*% A
+          |myFun = function(matrix[double] A, matrix[double] B) return (double x99){
+          |x = (A %*% A)
           |x99 = sum(x)
           |}
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "definition with multiple return values" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        def myFun(A: Matrix, B: Matrix): (Double, Matrix) = {
+          val B = Matrix.rand(3, 3)
+          val x = A %*% B
+          val s = sum(x)
+          (s, B)
+        }
+      }))
+
+      val exp =
+        """
+          |myFun = function(matrix[double] A, matrix[double] B) return (double s, matrix[double] B){
+          |B = rand(rows=3, cols=3)
+          |x = (A %*% B)
+          |s = sum(x)
+          |}
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "call with multiple return values" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        def myFun(A: Matrix, B: Matrix): (Double, Matrix) = {
+          val B = Matrix.rand(3, 3)
+          val x = A %*% B
+          val s = sum(x)
+          (s, B)
+        }
+
+        val (s, b) = myFun(Matrix.zeros(3, 3), Matrix.rand(3, 3))
+      }))
+
+      val exp =
+        """
+          |myFun = function(matrix[double] A, matrix[double] B) return (double s, matrix[double] B){
+          |B = rand(rows=3, cols=3)
+          |x = (A %*% B)
+          |s = sum(x)
+          |}
+          |
+          |[s, b] = myFun(matrix(0, rows=3, cols=3), rand(rows=3, cols=3))
         """.stripMargin.trim
 
       act shouldEqual exp
