@@ -171,9 +171,13 @@ trait DML extends Common {
           * @param arg the type argument
           * @return DML type as string
           */
-        def convertTypes(arg: u.Type): String = arg match {
-          case tpe if tpe =:= u.typeOf[Double] => s"double"
-          case tpe if tpe =:= u.typeOf[Matrix] => s"matrix[double]"
+        def convertTypes(arg: u.Type): List[String] = arg match {
+          case tpe if tpe =:= u.typeOf[Double] => List("double")
+          case tpe if tpe =:= u.typeOf[Matrix] => List("matrix[double]")
+          case tpe if tpe <:< u.typeOf[Product] => {
+            val params = tpe.finalResultType.typeArgs
+            params.flatMap(convertTypes(_))
+          }
           case tpe => abort(s"Unsupported return type $tpe. Supported types are: Matrix, Double")
         }
 
@@ -241,21 +245,29 @@ trait DML extends Common {
             }
 
             val name = sym.name.decodedName
-            val b = body(offset)
+            val block = body(offset)
+            val statements = block.split("\n").dropRight(1).mkString("\n")
+            val expression = block.split("\n").takeRight(1).head
+
             val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), resulttype)}
 
-            val inputTypes = inT.map(convertTypes(_))
+            // transform scala types to systemml types
+            val inputTypes = inT.flatMap(convertTypes(_))
             val inputNames = paramss.flatten.map(_(offset))
 
             val rng = new Random()
             // TODO enable multiple return values
             val outputType = convertTypes(outT)
+            val outputNames = List.fill(outputType.length)("_$x" + rng.nextString(3))
 
             val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
             val outputs = s"$outputType x99"
 
             val fn = s"""
-             |$name = function($inputs) return ($outputs){x99 = $b}
+             |$name = function($inputs) return ($outputs){
+             |$statements
+             |x99 = $expression
+             |}
              """.stripMargin.trim
 
             fn
@@ -427,8 +439,6 @@ trait DML extends Common {
               exprString
             }
 
-            // filter out statements that are alrefs or varrefs
-
             val resString =
               s"""
                  |$statsString
@@ -437,6 +447,14 @@ trait DML extends Common {
                 stripMargin.trim
 
             resString
+          }
+
+          def whileLoop(cond: D, body: D) = offset => {
+            s"""
+               |while(${cond(offset)}) {
+               |${body(offset)}
+               |}
+             """.stripMargin
           }
 
           /**
