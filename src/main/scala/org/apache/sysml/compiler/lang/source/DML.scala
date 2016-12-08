@@ -139,6 +139,8 @@ trait DML extends Common {
               s"write(${args(0)}, ${args(1)}, $format)"
             }
 
+            case u.TermName(fname) if fname == "MatrixOps" => args.head.toString
+
             case u.TermName(fname) => s"$fname(${args.mkString(", ")})"
 
             case _ =>
@@ -335,13 +337,11 @@ trait DML extends Common {
                   }
                 }
 
-                // binary operators
+                  // binary operators
                 else {
                   method.name.decodedName match {
                     case u.TermName("to") | u.TermName("until") => s"${tgt(offset)}:${arg(offset)}"
-                    //                  case u.TermName("foreach") => {
-                    //                    constructForLoop(tgt, method, arg, offset)
-                    //                  }
+                    case u.TermName("%") => s"($module %% ${args(0)})" // modulo in dml is %%
                     case _ => s"($module ${method.name.decodedName} ${args(0)})"
                   }
                 }
@@ -392,7 +392,7 @@ trait DML extends Common {
 
                 if (bindingRefs.contains(module)) {
                   // apply on matrix objects (right indexing)
-                  val Array(r, c, v) = argString.split(" ")
+                  val Array(r, c, v) = argString.split(" ", 3) // split into 3 pieces
                   if (c == ":::")
                     s"$module[$r,] = $v"
                   else if (r == ":::")
@@ -433,6 +433,7 @@ trait DML extends Common {
               case (Some(tgt), Nil) => {
                 method.name.decodedName match {
                   case u.TermName(tn) if matrixFuncs.contains(tn) => s"$tn(${tgt(offset)})"
+                    // TODO memoize udfs and check if a udf is called here
                   case _ =>
                     "case (Some(tgt), Nil)"
                 }
