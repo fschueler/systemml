@@ -140,4 +140,22 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     val res: (Double, Double) = alg.run()
     println(res)
   }
+
+  "While Loop" in {
+
+    val alg = parallelize {
+      var x = 5
+      var y = 100
+
+      while (x > 0) {
+        x = x - 1
+        y = y / 2
+      }
+
+      (x, y)
+    }
+
+    val res = alg.run()
+    println(res)
+  }
 }
