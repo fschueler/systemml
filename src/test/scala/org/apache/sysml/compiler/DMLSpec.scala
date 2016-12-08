@@ -547,9 +547,30 @@ class DMLSpec extends BaseCompilerSpec {
       }
     }
 
-    "If-then-else" - {
+    "If-then" - {
 
       "with simple predicate" in {
+        val act = toDML(dmlidPipeline(u.reify {
+          val x = 5
+
+          if (x == 5) {
+            println("x is 5!")
+          }
+        }))
+
+        val exp =
+          """
+            |x = 5
+            |if ((x == 5)) {
+            |print("x is 5!")
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+      "-else with simple predicate" in {
         val act = toDML(dmlidPipeline(u.reify {
           val x = 5
 
@@ -574,7 +595,7 @@ class DMLSpec extends BaseCompilerSpec {
         act shouldEqual exp
       }
 
-      "with multiple statements in branch body" in {
+      "-else with multiple statements in branch body" in {
         val act = toDML(dmlidPipeline(u.reify {
           var x = 5
 
