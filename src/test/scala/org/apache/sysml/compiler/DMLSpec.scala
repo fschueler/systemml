@@ -21,7 +21,7 @@ package org.apache.sysml.compiler
 
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.{Matrix, Vector}
 import org.apache.sysml.api.linalg.api._
 import org.emmalanguage.compiler.{BaseCompilerSpec, RuntimeCompiler}
 import org.junit.runner.RunWith
@@ -124,9 +124,9 @@ class DMLSpec extends BaseCompilerSpec {
     "This" is pending
   }
 
-  "Matrix construction" - {
+  "Matrix" - {
 
-    "from rand" in {
+    "construction from rand" in {
       val act = toDML(dmlidPipeline(u.reify {
         val x$01 = Matrix.rand(3, 3)
       }))
@@ -139,7 +139,7 @@ class DMLSpec extends BaseCompilerSpec {
       act shouldEqual exp
     }
 
-    "from zeros" in {
+    "construction from zeros" in {
       val act = toDML(dmlidPipeline(u.reify {
         val x$01 = Matrix.zeros(3, 3)
       }))
@@ -152,7 +152,7 @@ class DMLSpec extends BaseCompilerSpec {
       act shouldEqual exp
     }
 
-    "from sequence" in {
+    "construction from sequence" in {
       val act = toDML(dmlidPipeline(u.reify {
         val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
       }))
@@ -165,7 +165,7 @@ class DMLSpec extends BaseCompilerSpec {
       act shouldEqual exp
     }
 
-    "from DataFrame" in {
+    "construction from DataFrame" in {
       val numRows = 10000
       val numCols = 1000
       val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
@@ -177,6 +177,102 @@ class DMLSpec extends BaseCompilerSpec {
       }))
 
       val exp = "" // the transformation code should be removed and the dataframe passed as input in MLContext
+
+      act shouldEqual exp
+    }
+
+    "right indexing columnwise" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val y = x$01(1, :::)
+      }))
+
+      val exp =
+        """
+          |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |y = x$01[1,]
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "right indexing rowwise" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val y = x$01(:::, 1)
+      }))
+
+      val exp =
+        """
+          |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |y = x$01[,1]
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "right indexing elementwise" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val y = x$01(1, 1)
+      }))
+
+      val exp =
+        """
+          |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |y = x$01[1,1]
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "left indexing columnwise" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val b = Vector.rand(2)
+        A(:::, 1) = b
+      }))
+
+      val exp =
+        """
+          |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |b = rand(rows=2, cols=1)
+          |A[,1] = b
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "left indexing rowwise" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val b = Vector.rand(2)
+        A(1, :::) = b.t
+      }))
+
+      val exp =
+        """
+          |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |b = rand(rows=2, cols=1)
+          |A[1,] = t(b)
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "left indexing elementwise" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val b = 5.0
+        A(1, 1) = b
+      }))
+
+      val exp =
+        """
+          |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |b = 5.0
+          |A[1,1] = b
+        """.stripMargin.trim
 
       act shouldEqual exp
     }
@@ -416,8 +512,33 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           """
             |x = 5
-            |while(x > 0) {
+            |while((x > 0)) {
             |x = x - 1
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+      "with multiple statements" in {
+        val act = toDML(dmlidPipeline(u.reify {
+          var x = 5
+          var y = 2
+
+          while (x > 0) {
+            x = x - 1
+            y = y / 2
+          }
+        }))
+
+        val exp =
+          """
+            |x = 5
+            |y = 2
+            |while((x > 0)) {
+            |x = x - 1
+            |y = y / 2
             |}
           """.
             stripMargin.trim

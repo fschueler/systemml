@@ -55,6 +55,8 @@ trait DML extends Common {
 
         val matrixOps = Set("%*%")
 
+        val matrixFuncs = Set("t", "nrow", "ncol")
+
         val constructors = Set("zeros", "rand")
 
         val builtins = Set("read", "write", "min", "max", "mean", "sum")
@@ -85,16 +87,21 @@ trait DML extends Common {
         val isApply = (sym: u.MethodSymbol) =>
           sym.name == u.TermName("apply")
 
+        val isUpdate = (sym: u.MethodSymbol) =>
+          sym.name == u.TermName("update")
+
         val printMethod = (pre: String, sym: u.MethodSymbol, suf: String) =>
           if (isApply(sym)) ""
           else pre + printSym(sym) + suf
 
-        val printConstructor = (sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
+        val printConstructor = (sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int, isVector: Boolean) => {
           val args = argss flatMap (args => args map (arg => arg(offset)))
 
           sym.name match {
-            case u.TermName("rand") => s"rand(rows=${args(0)}, cols=${args(1)})"
-            case u.TermName("zeros") => s"matrix(0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"rand(rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("zeros") => if (isVector) s"matrix(0, rows=${args(0)}, cols=1)" else s"matrix(0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("ones")  => if (isVector) s"matrix(1, rows=${args(0)}, cols=1)" else s"matrix(1, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
             case u.TermName("apply") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
 
             case u.TermName("fromDataFrame") => {
@@ -249,19 +256,23 @@ trait DML extends Common {
             val statements = block.split("\n").dropRight(1).mkString("\n")
             val expression = block.split("\n").takeRight(1).head
 
-            val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), resulttype)}
+            val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), List(resulttype))}
 
             // transform scala types to systemml types
             val inputTypes = inT.flatMap(convertTypes(_))
             val inputNames = paramss.flatten.map(_(offset))
 
-            val rng = new Random()
+            val outputType = outT.flatMap(convertTypes(_))
+            if (outputType.length > 1) {
+              abort(s"Currently we only support function definitions with a single return value but we found ${outputType.length} values of type $outT")
+            }
+
             // TODO enable multiple return values
-            val outputType = convertTypes(outT)
-            val outputNames = List.fill(outputType.length)("_$x" + rng.nextString(3))
+            // val rng = new Random()
+            // val outputNames = List.fill(outputType.length)("_$x" + rng.nextString(3))
 
             val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
-            val outputs = s"$outputType x99"
+            val outputs = s"${outputType.head} x99"
 
             val fn = s"""
              |$name = function($inputs) return ($outputs){
@@ -306,7 +317,11 @@ trait DML extends Common {
 
                 // matrix constructors with one argument (fromDataFrame)
                 else if (module == "Matrix") {
-                  printConstructor(method, argss, offset)
+                  printConstructor(method, argss, offset, false)
+                }
+
+                else if (module == "Vector") {
+                  printConstructor(method, argss, offset, true)
                 }
 
                 // methods from scala.predef with one argument (println(...) etc.)
@@ -323,7 +338,7 @@ trait DML extends Common {
                 // binary operators
                 else {
                   method.name.decodedName match {
-                    case u.TermName("to") => s"${tgt(offset)}:${arg(offset)}"
+                    case u.TermName("to") | u.TermName("until") => s"${tgt(offset)}:${arg(offset)}"
                     //                  case u.TermName("foreach") => {
                     //                    constructForLoop(tgt, method, arg, offset)
                     //                  }
@@ -343,8 +358,11 @@ trait DML extends Common {
                 }
 
                 else if (module == "Matrix") {
-                  // matrix constructors
-                  printConstructor(method, argss, offset)
+                  printConstructor(method, argss, offset, false)
+                }
+
+                else if (module == "Vector") {
+                  printConstructor(method, argss, offset, true)
                 }
 
                 else if (module == "package") {
@@ -352,7 +370,39 @@ trait DML extends Common {
                   "builtin"
                 }
 
-                else "case (Some(tgt), (x :: xs) :: Nil) if isApply(method)"
+                else if (bindingRefs.contains(module)) {
+                  // apply on matrix objects (right indexing)
+                  val Array(r, c) = argString.split(" ")
+                  if (c == ":::")
+                    s"$module[$r,]"
+                  else if (r == ":::")
+                    s"$module[,$c]"
+                  else
+                    s"$module[$r,$c]"
+                }
+
+                else
+                  "case (Some(tgt), (x :: xs) :: Nil) if isApply(method)"
+              }
+
+              // matches apply methods with multiple arguments
+              case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method) => {
+                val module = tgt(offset)
+                val argString = args.mkString(" ")
+
+                if (bindingRefs.contains(module)) {
+                  // apply on matrix objects (right indexing)
+                  val Array(r, c, v) = argString.split(" ")
+                  if (c == ":::")
+                    s"$module[$r,] = $v"
+                  else if (r == ":::")
+                    s"$module[,$c] = $v"
+                  else
+                    s"$module[$r,$c] = $v"
+                }
+
+                else
+                  "case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method)"
               }
 
               // matches methods with multiple arguments (e.g. zeros(3, 3), write)
@@ -362,8 +412,11 @@ trait DML extends Common {
                 val argString = args.mkString(" ")
 
                 if (module == "Matrix") {
-                  // matrix constructors
-                  printConstructor(method, argss, offset)
+                  printConstructor(method, argss, offset, false)
+                }
+
+                else if (module == "Vector") {
+                  printConstructor(method, argss, offset, true)
                 }
 
                 else if (module == "package") {
@@ -379,8 +432,9 @@ trait DML extends Common {
               // matches functions without arguments (.t (transpose))
               case (Some(tgt), Nil) => {
                 method.name.decodedName match {
-                  case u.TermName("t") => s"t(${tgt(offset)})"
-                  case _ => "case (Some(tgt), Nil)"
+                  case u.TermName(tn) if matrixFuncs.contains(tn) => s"$tn(${tgt(offset)})"
+                  case _ =>
+                    "case (Some(tgt), Nil)"
                 }
               }
 
@@ -454,7 +508,7 @@ trait DML extends Common {
                |while(${cond(offset)}) {
                |${body(offset)}
                |}
-             """.stripMargin
+             """.stripMargin.trim
           }
 
           /**
