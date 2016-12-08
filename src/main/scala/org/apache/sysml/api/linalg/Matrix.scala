@@ -35,12 +35,12 @@ import scala.util.Random
   * Represents the matrix that will be translated to SystemML's matrix type.
   *
   * @param impl the underlying breeze matrix to support numerical computations in Scala
-  * @param rows number of rows of the matrix
-  * @param cols number of columns of the matrix
+  * @param nrow number of rows of the matrix
+  * @param ncol number of columns of the matrix
   */
 class Matrix protected(val impl: Array[Double],
-                       val rows: Int,
-                       val cols: Int,
+                       val nrow: Int,
+                       val ncol: Int,
                        var isTransposed: Boolean = false,
                        val matob: MatrixObject = null) {
 
@@ -201,7 +201,7 @@ object Matrix {
   def rand(rows: Int, cols: Int): Matrix = ??? //Matrix.fill(rows, cols)((i, j) => Random.nextDouble())
 
   /** generate matrix with the vector on the diagonal */
-  def diag(value: Double): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
+  def diag(value: Double, length: Int): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
 
 }
 

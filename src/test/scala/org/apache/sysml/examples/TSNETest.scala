@@ -16,6 +16,6 @@ class TSNETest extends FreeSpec with Matchers {
     val momentum    = 0.9
     val iter        = 1000
 
-    TSNE.tsne(X, reducedDims, perplexity, lr, momentum, iter)
+    //TSNE.tsne(X, reducedDims, perplexity, lr, momentum, iter)
   }
 }
