@@ -276,6 +276,23 @@ class DMLSpec extends BaseCompilerSpec {
 
       act shouldEqual exp
     }
+
+    "left indexing elementwise with complex indexing" in {
+      val act = toDML(dmlidPipeline(u.reify {
+        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val b = 5.0
+        A(2 / 1, 1) = b
+      }))
+
+      val exp =
+        """
+          |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+          |b = 5.0
+          |A[2 / 1,1] = b
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
   }
 
   "Definitions" - {
