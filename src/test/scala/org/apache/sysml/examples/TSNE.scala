@@ -32,8 +32,9 @@ object TSNE extends App {
         val Di = D(i, :::)
         var Pi = Matrix.zeros(Di.nrow, 1)
 
-        while ((abs(Hdiff) > tol) && (itr < 50)) {
-          Pi = exp(Di * -1 * beta(i, 1))
+        // while ((abs(Hdiff) > tol) && (itr < 50)) { // AND predicates are not possible in DML
+        while (abs(Hdiff) > tol) {
+          Pi = exp(Di * -1.0 * beta(i, 1))
 
           Pi(i, 1) = 0.0
 
@@ -46,7 +47,7 @@ object TSNE extends App {
           if (Hdiff > 0.0) {
             betamin = beta(i, 1) * 2.0
             if (betamax == INF) {
-              beta(i, 1) = beta(i, 1) * 2
+              beta(i, 1) = beta(i, 1) * 2.0
             } else {
               beta(i, 1) = beta(i, 1) / 2.0
             }
@@ -80,7 +81,8 @@ object TSNE extends App {
     // algorithm
     val d = reducedDims
     val n = X.nrow
-    var P = x2p(X, perplexity) * 4.0
+    val inter = x2p(X, perplexity)
+    var P = inter * 4.0
     var Y = Matrix.rand(n, d)
     var dY = Matrix.zeros(n, d)
     var C = Matrix.zeros(maxIter / 10, 1)
@@ -104,10 +106,11 @@ object TSNE extends App {
         val q: Matrix = pmax(Q, 1e-12)
         val t: Matrix = p / q
 
-        C(itr / 10, 1) = sum(P * log(t))
+        val r = itr / 10
+        C(r, 1) = sum(P * log(t))
       }
       if (itr == 100) {
-        P = P / 4
+        P = P / 4.0
       }
     }
     (Y, C)
