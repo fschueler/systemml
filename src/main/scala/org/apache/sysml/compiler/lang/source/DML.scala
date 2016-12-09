@@ -101,7 +101,7 @@ trait DML extends Common {
           val args = argss flatMap (args => args map (arg => arg(offset)))
 
           sym.name match {
-            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"rand(rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)}, min=0, max=1, pdf="uniform", sparsity=0.2)"""
             case u.TermName("zeros") => if (isVector) s"matrix(0, rows=${args(0)}, cols=1)" else s"matrix(0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("ones")  => if (isVector) s"matrix(1, rows=${args(0)}, cols=1)" else s"matrix(1, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
@@ -393,6 +393,7 @@ trait DML extends Common {
 
                 else if (bindingRefs.contains(module)) {
                   // apply on matrix objects (right indexing)
+                  // NOTE: Scala is 0-based indexing, DML is 1-based
                   val Array(r, c) = argString.split(" ")
                   if (c == ":::")
                     s"$module[$r,]"
@@ -409,11 +410,13 @@ trait DML extends Common {
               // matches apply methods with multiple arguments
               case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method) => {
                 val module = tgt(offset)
-                val argString = args.mkString(" ")
 
                 if (bindingRefs.contains(module)) {
-                  // apply on matrix objects (right indexing)
-                  val Array(r, c, v) = argString.split(" ", 3) // split into 3 pieces
+                  // update on matrix objects (left indexing): A[r, c] = v === A.update(r, c, v)
+                  val r = args(0) // rows
+                  val c = args(1) // columns
+                  val v = args(2) // value to update with
+
                   if (c == ":::")
                     s"$module[$r,] = $v"
                   else if (r == ":::")
@@ -421,7 +424,6 @@ trait DML extends Common {
                   else
                     s"$module[$r,$c] = $v"
                 }
-
                 else
                   "case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method)"
               }
@@ -455,8 +457,7 @@ trait DML extends Common {
                 method.name.decodedName match {
                   case u.TermName(tn) if matrixFuncs.contains(tn) || udfRegistry.contains(method) => s"$tn(${tgt(offset)})"
                   case u.TermName(tn) if tn == "toDouble" => {
-                    val t = tgt(offset) // this is a scala implicit conversion from Int to Double
-                    t
+                    tgt(offset) // this is a scala implicit conversion from Int to Double
                   }
                   case _ =>
                     "case (Some(tgt), Nil)"

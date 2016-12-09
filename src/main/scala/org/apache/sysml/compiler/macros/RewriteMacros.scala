@@ -111,6 +111,9 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     // generate the actual DML code
     val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))
 
+    // prepend line numbers
+    val formatted = dmlString.split("\n").zipWithIndex.map(tup => s"${tup._2}| \t ${tup._1}").mkString("\n")
+
     // assemble the input and output parameters to MLContext
     val inParams  = sources.toList
     val outParams = outNames.map(_.symbol.name.toString)
@@ -142,7 +145,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         println("=" * 80)
         println((" " * 26) + "RUNNING GENERATED DML SCRIPT")
         println("=" * 80)
-        println(${dmlString})
+        println(${formatted})
         println("=" * 80)
 
         val ml = implicitly[MLContext]
