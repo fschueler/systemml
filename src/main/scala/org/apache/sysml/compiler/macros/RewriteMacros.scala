@@ -139,7 +139,12 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
       import _root_.scala.reflect._
 
       def run(): ${u.weakTypeOf[T]} = {
-        println("Running script:\n" + ${dmlString})
+        println("=" * 80)
+        println((" " * 26) + "RUNNING GENERATED DML SCRIPT")
+        println("=" * 80)
+        println(${dmlString})
+        println("=" * 80)
+
         val ml = implicitly[MLContext]
         val script = dml($dmlString).in(Seq(..${inParams})).out(..${outParams})
         val res = ml.execute(script)
