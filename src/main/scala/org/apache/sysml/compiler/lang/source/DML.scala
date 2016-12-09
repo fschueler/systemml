@@ -46,6 +46,9 @@ trait DML extends Common {
       // map of all binding references to get the symbol for dataframes that are passed from outside the macro
       val bindingRefs: mutable.Map[String, u.TermSymbol] = mutable.Map.empty
 
+      // all registered udfs
+      val udfRegistry: mutable.Set[u.MethodSymbol] = mutable.Set.empty
+
       // the last seen lhs of a valdef
       var currLhs: u.TermSymbol = _
 
@@ -199,6 +202,16 @@ trait DML extends Common {
           .replace("\"", "\\\"")
           .replace("\\", "\\\\")
 
+        // format a block to have 2 whitespace indentaion
+        val indent = (str: String) => {
+          val lines = str.split("\n")
+
+          if (lines.length > 1)
+            lines.map(x => s"  $x").mkString("\n")
+          else
+            s"  $str"
+        }
+
         val alg = new Source.Algebra[D] {
 
           def empty: D = offset => ""
@@ -253,9 +266,11 @@ trait DML extends Common {
               abort(s"Type parameters are not supported: ${tparams}")
             }
 
+            udfRegistry.add(sym)
+
             val name = sym.name.decodedName
             val block = body(offset)
-            val statements = block.split("\n").dropRight(1).mkString("\n")
+            val statements = indent(block.split("\n").dropRight(1).mkString("\n")) // drop last line
             val expression = block.split("\n").takeRight(1).head
 
             val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), List(resulttype))}
@@ -276,14 +291,20 @@ trait DML extends Common {
             val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
             val outputs = s"${outputType.head} x99"
 
-            val fn = s"""
-             |$name = function($inputs) return ($outputs){
-             |$statements
-             |x99 = $expression
-             |}
+            if (statements != "  ") {
+              s"""
+                 |$name = function($inputs) return ($outputs) {
+                 |$statements
+                 |  x99 = $expression
+                 |}
              """.stripMargin.trim
-
-            fn
+            } else {
+              s"""
+                 |$name = function($inputs) return ($outputs) {
+                 |  x99 = $expression
+                 |}
+             """.stripMargin.trim
+            }
           }
 
           // Other
@@ -337,7 +358,7 @@ trait DML extends Common {
                   }
                 }
 
-                  // binary operators
+                // binary operators
                 else {
                   method.name.decodedName match {
                     case u.TermName("to") | u.TermName("until") => s"${tgt(offset)}:${arg(offset)}"
@@ -432,8 +453,11 @@ trait DML extends Common {
               // matches functions without arguments (.t (transpose))
               case (Some(tgt), Nil) => {
                 method.name.decodedName match {
-                  case u.TermName(tn) if matrixFuncs.contains(tn) => s"$tn(${tgt(offset)})"
-                    // TODO memoize udfs and check if a udf is called here
+                  case u.TermName(tn) if matrixFuncs.contains(tn) || udfRegistry.contains(method) => s"$tn(${tgt(offset)})"
+                  case u.TermName(tn) if tn == "toDouble" => {
+                    val t = tgt(offset) // this is a scala implicit conversion from Int to Double
+                    t
+                  }
                   case _ =>
                     "case (Some(tgt), Nil)"
                 }
@@ -443,7 +467,7 @@ trait DML extends Common {
                 s"case (Some(tgt), _)"
               }
 
-                // matches functions that are not defined in a module or class (udfs)
+              // matches functions that are not defined in a module or class (udfs)
               case (None, _) => {
                 val name = method.name.decodedName
                 val argString = args.mkString(", ")
@@ -465,14 +489,24 @@ trait DML extends Common {
           }
 
           def branch(cond: D, thn: D, els: D): D = offset => {
-            s"""
-              |if (${cond(offset)}) {
-              |${thn(offset)}
-              |} else {
-              |${els(offset)}
-              |}
-            """.
-              stripMargin.trim
+            val thenBlock = indent(thn(offset))
+            val elseBlock = indent(els(offset))
+
+            if (elseBlock != "  ") {
+              s"""
+                 |if (${cond(offset)}) {
+                 |$thenBlock
+                 |} else {
+                 |$elseBlock
+                 |}
+            """.stripMargin.trim
+            } else {
+              s"""
+                 |if (${cond(offset)}) {
+                 |$thenBlock
+                 |}
+            """.stripMargin.trim
+            }
           }
 
           def block(stats: S[D], expr: D): D = offset => {
@@ -481,9 +515,9 @@ trait DML extends Common {
               if (bindingRefs.keySet.contains(res)) {
                 None // if the statement is a single varref/valref, remove it
               } else {
-                Some(res.trim.replaceAll("\n", ""))
+                Some(res)
               }
-            }.mkString("\n")
+            }.filter(x => x.trim.length > 0).mkString("\n")
 
             val exprString  = expr(offset)
 
@@ -494,20 +528,18 @@ trait DML extends Common {
               exprString
             }
 
-            val resString =
-              s"""
-                 |$statsString
-                 |$returnExpr
-            """.
-                stripMargin.trim
-
-            resString
+            s"""
+               |$statsString
+               |$returnExpr
+            """.stripMargin.trim
           }
 
           def whileLoop(cond: D, body: D) = offset => {
+            val formatted = indent(body(offset))
+
             s"""
                |while(${cond(offset)}) {
-               |${body(offset)}
+               |$formatted
                |}
              """.stripMargin.trim
           }
@@ -522,22 +554,18 @@ trait DML extends Common {
 
             val idx = parts(0).drop(1).dropRight(1) // remove braces
 
-            val body = parts(1).stripMargin.trim
+            // format the body with 2 spaces of indentation
+            val body = indent(parts(1))
 
-            val loop =
-              s"""
-              |for ($idx in $range) {
-              |$body
-              |}
+            s"""
+               |for ($idx in $range) {
+               |$body
+               |}
             """.stripMargin.trim
-
-            loop
           }
 
           def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {
-            s"""
-               |${lhs.name.decodedName} = ${rhs(offset)}
-           """.stripMargin
+            s"${lhs.name.decodedName} = ${rhs(offset)}"
           }
         }
         Source.fold(alg)(tree)(0)

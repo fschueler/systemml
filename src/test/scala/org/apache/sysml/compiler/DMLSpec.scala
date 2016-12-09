@@ -423,7 +423,7 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           """
             |for (i in 1:20) {
-            |print(i)
+            |  print(i)
             |}
           """.
             stripMargin.trim
@@ -444,7 +444,7 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |A = 5
             |for (i in 1:20) {
-            |A = A + 1
+            |  A = A + 1
             |}
           """.
             stripMargin.trim
@@ -462,9 +462,9 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           """
             |for (i in 1:10) {
-            |for (j in 90:99) {
-            |print((i + j))
-            |}
+            |  for (j in 90:99) {
+            |    print((i + j))
+            |  }
             |}
           """.
             stripMargin.trim
@@ -487,10 +487,10 @@ class DMLSpec extends BaseCompilerSpec {
             |a = 5
             |b = 6
             |for (i in 1:10) {
-            |for (j in 90:99) {
-            |a = (a + i)
-            |b = (b + j)
-            |}
+            |  for (j in 90:99) {
+            |    a = (a + i)
+            |    b = (b + j)
+            |  }
             |}
           """.
             stripMargin.trim
@@ -513,7 +513,7 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |x = 5
             |while((x > 0)) {
-            |x = x - 1
+            |  x = (x - 1)
             |}
           """.
             stripMargin.trim
@@ -537,8 +537,8 @@ class DMLSpec extends BaseCompilerSpec {
             |x = 5
             |y = 2
             |while((x > 0)) {
-            |x = x - 1
-            |y = y / 2
+            |  x = (x - 1)
+            |  y = (y / 2)
             |}
           """.
             stripMargin.trim
@@ -562,7 +562,7 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |x = 5
             |if ((x == 5)) {
-            |print("x is 5!")
+            |  print("x is 5!")
             |}
           """.
             stripMargin.trim
@@ -585,9 +585,9 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |x = 5
             |if ((x == 5)) {
-            |print("x is 5!")
+            |  print("x is 5!")
             |} else {
-            |print("x is not 5!")
+            |  print("x is not 5!")
             |}
           """.
             stripMargin.trim
@@ -613,12 +613,12 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |x = 5
             |if ((x == 5)) {
-            |x = x + 1
+            |  x = (x + 1)
             |} else {
-            |y = 5
-            |x = y
+            |  y = 5
+            |  x = y
             |}
-            |print("x is" + x)
+            |print(("x is" + x))
           """.
             stripMargin.trim
 
@@ -638,8 +638,8 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myAdd = function(double x, double y) return (double x99){
-          |x99 = (x + y)
+          |myAdd = function(double x, double y) return (double x99) {
+          |  x99 = (x + y)
           |}
         """.stripMargin.trim
 
@@ -657,8 +657,8 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myAdd = function(double x, double y) return (double x99){
-          |x99 = (x + y)
+          |myAdd = function(double x, double y) return (double x99) {
+          |  x99 = (x + y)
           |}
           |res = myAdd(1.0, 2.0)
         """.stripMargin.trim
@@ -675,8 +675,8 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myAdd = function(matrix[double] A, matrix[double] B) return (matrix[double] x99){
-          |x99 = (A + B)
+          |myAdd = function(matrix[double] A, matrix[double] B) return (matrix[double] x99) {
+          |  x99 = (A + B)
           |}
         """.stripMargin.trim
 
@@ -693,9 +693,9 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myFun = function(matrix[double] A, matrix[double] B) return (double x99){
-          |x = (A %*% A)
-          |x99 = sum(x)
+          |myFun = function(matrix[double] A, matrix[double] B) return (double x99) {
+          |  x = (A %*% A)
+          |  x99 = sum(x)
           |}
         """.stripMargin.trim
 
@@ -714,10 +714,10 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myFun = function(matrix[double] A, matrix[double] B) return (double s, matrix[double] B){
-          |B = rand(rows=3, cols=3)
-          |x = (A %*% B)
-          |s = sum(x)
+          |myFun = function(matrix[double] A, matrix[double] B) return (double s, matrix[double] B) {
+          |  B = rand(rows=3, cols=3)
+          |  x = (A %*% B)
+          |  s = sum(x)
           |}
         """.stripMargin.trim
 
@@ -738,10 +738,10 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |myFun = function(matrix[double] A, matrix[double] B) return (double s, matrix[double] B){
-          |B = rand(rows=3, cols=3)
-          |x = (A %*% B)
-          |s = sum(x)
+          |myFun = function(matrix[double] A, matrix[double] B) return (double s, matrix[double] B) {
+          |  B = rand(rows=3, cols=3)
+          |  x = (A %*% B)
+          |  s = sum(x)
           |}
           |
           |[s, b] = myFun(matrix(0, rows=3, cols=3), rand(rows=3, cols=3))
