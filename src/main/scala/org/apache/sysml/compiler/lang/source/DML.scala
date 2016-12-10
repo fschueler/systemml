@@ -60,7 +60,7 @@ trait DML extends Common {
 
         val matrixFuncs = Set("t", "nrow", "ncol")
 
-        val constructors = Set("zeros", "rand")
+        val constructors = Set("zeros", "rand", "ones")
 
         val builtins = Set("read", "write", "min", "max", "mean", "sum")
 
@@ -102,8 +102,8 @@ trait DML extends Common {
 
           sym.name match {
             case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)}, min=0, max=1, pdf="uniform", sparsity=0.2)"""
-            case u.TermName("zeros") => if (isVector) s"matrix(0, rows=${args(0)}, cols=1)" else s"matrix(0, rows=${args(0)}, cols=${args(1)})"
-            case u.TermName("ones")  => if (isVector) s"matrix(1, rows=${args(0)}, cols=1)" else s"matrix(1, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=${args(0)}, cols=1)" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=${args(0)}, cols=1)" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
             case u.TermName("apply") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
 
@@ -363,6 +363,7 @@ trait DML extends Common {
                   method.name.decodedName match {
                     case u.TermName("to") | u.TermName("until") => s"${tgt(offset)}:${arg(offset)}"
                     case u.TermName("%") => s"($module %% ${args(0)})" // modulo in dml is %%
+                    case u.TermName("&&") => s"($module & ${args(0)})" // && in dml is &
                     case _ => s"($module ${method.name.decodedName} ${args(0)})"
                   }
                 }
@@ -394,13 +395,15 @@ trait DML extends Common {
                 else if (bindingRefs.contains(module)) {
                   // apply on matrix objects (right indexing)
                   // NOTE: Scala is 0-based indexing, DML is 1-based
-                  val Array(r, c) = argString.split(" ")
+                  val r = args(0) // rows
+                  val c = args(1) // columns
+
                   if (c == ":::")
-                    s"$module[$r,]"
+                    s"$module[$r + 1,]"
                   else if (r == ":::")
-                    s"$module[,$c]"
+                    s"$module[,$c + 1]"
                   else
-                    s"$module[$r,$c]"
+                    s"as.scalar($module[$r + 1, $c + 1])"
                 }
 
                 else
@@ -418,11 +421,11 @@ trait DML extends Common {
                   val v = args(2) // value to update with
 
                   if (c == ":::")
-                    s"$module[$r,] = $v"
+                    s"$module[$r + 1,] = $v"
                   else if (r == ":::")
-                    s"$module[,$c] = $v"
+                    s"$module[,$c + 1] = $v"
                   else
-                    s"$module[$r,$c] = $v"
+                    s"$module[$r + 1,$c + 1] = $v"
                 }
                 else
                   "case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method)"
@@ -559,7 +562,7 @@ trait DML extends Common {
             val body = indent(parts(1))
 
             s"""
-               |for ($idx in $range) {
+               |for ($idx in $range -1) {
                |$body
                |}
             """.stripMargin.trim
