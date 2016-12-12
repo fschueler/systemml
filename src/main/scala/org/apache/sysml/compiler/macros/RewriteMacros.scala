@@ -160,13 +160,3 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     identity(typeCheck = true)(alg)
   }
 }
-
-
-// TODO matrix should be abstract and other matrix types should be clearly defines (MLContextMatrix, BreezeMatrix, ...)
-
-// TODO implicit conversion from MLContextMatrix to Matrix for the return type
-// --> solve java.lang.ClassCastException: org.apache.sysml.api.mlcontext.Matrix cannot be cast to org.apache.sysml.api.linalg.Matrix
-
-// TODO single bindingrefs as return expressions in the src langauge need to be removed because DML doesn't support them
-
-// TODO Unit as return type should be removed
