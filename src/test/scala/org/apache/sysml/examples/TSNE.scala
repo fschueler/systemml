@@ -28,7 +28,7 @@ object TSNE extends App {
 
       println("Starting x2p for-loop...")
 
-      for (i <- 0 until n) {
+      for (i <- 0 until n - 1) {
         println("i: " + i)
 
         var betamin = 0.0
@@ -100,7 +100,7 @@ object TSNE extends App {
 
     val ZERODIAG = Matrix.diag(-1.0, Y.nrow) + 1.0
 
-    for (itr <- 0 until maxIter) {
+    for (itr <- 0 until maxIter - 1) {
       val D = distanceMatrix(Y)
       val Z = (1.0 / (D + 1.0)) * ZERODIAG
       val Q = Z / sum(Z)

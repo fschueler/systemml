@@ -120,8 +120,6 @@ class DMLSpec extends BaseCompilerSpec {
 
 
     }
-
-    "This" is pending
   }
 
   "Matrix" - {
@@ -146,7 +144,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |x$01 = matrix(0, rows=3, cols=3)
+          |x$01 = matrix(0.0, rows=3, cols=3)
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -166,8 +164,8 @@ class DMLSpec extends BaseCompilerSpec {
     }
 
     "construction from DataFrame" in {
-      val numRows = 10000
-      val numCols = 1000
+      val numRows = 100
+      val numCols = 100
       val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
       val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
       val df = sqlContext.createDataFrame(data, schema)
@@ -190,7 +188,7 @@ class DMLSpec extends BaseCompilerSpec {
       val exp =
         """
           |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
-          |y = x$01[1,]
+          |y = x$01[1 + 1,]
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -205,7 +203,7 @@ class DMLSpec extends BaseCompilerSpec {
       val exp =
         """
           |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
-          |y = x$01[,1]
+          |y = x$01[,1 + 1]
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -220,7 +218,7 @@ class DMLSpec extends BaseCompilerSpec {
       val exp =
         """
           |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
-          |y = x$01[1,1]
+          |y = as.scalar(x$01[1 + 1,1 + 1])
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -237,7 +235,7 @@ class DMLSpec extends BaseCompilerSpec {
         """
           |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
           |b = rand(rows=2, cols=1)
-          |A[,1] = b
+          |A[,1 + 1] = b
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -254,7 +252,7 @@ class DMLSpec extends BaseCompilerSpec {
         """
           |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
           |b = rand(rows=2, cols=1)
-          |A[1,] = t(b)
+          |A[1 + 1,] = t(b)
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -271,7 +269,7 @@ class DMLSpec extends BaseCompilerSpec {
         """
           |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
           |b = 5.0
-          |A[1,1] = b
+          |A[1 + 1,1 + 1] = b
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -288,7 +286,7 @@ class DMLSpec extends BaseCompilerSpec {
         """
           |A = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
           |b = 5.0
-          |A[2 / 1,1] = b
+          |A[2 + 1,1 + 1] = b
         """.stripMargin.trim
 
       act shouldEqual exp
@@ -419,7 +417,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     val exp =
       """
-        |B = matrix(0, rows=3, cols=3)
+        |B = matrix(0.0, rows=3, cols=3)
         |write(B, "path/to/matrix.csv", format="csv")
       """.stripMargin.trim
 
