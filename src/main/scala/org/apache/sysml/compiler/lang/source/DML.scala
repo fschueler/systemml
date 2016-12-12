@@ -18,7 +18,6 @@ package org.apache.sysml.compiler.lang.source
 
 import org.apache.sysml.api.linalg.Matrix
 import org.emmalanguage.compiler.Common
-import org.emmalanguage.compiler.lang.core.Core
 import org.emmalanguage.compiler.lang.source.Source
 
 import scala.collection.mutable
@@ -56,8 +55,6 @@ trait DML extends Common {
 
         val ops = Set('=', '+', '-', '*', '/', '%', '<', '>', '&', '|', '!', '?', '^', '\\', '@', '#', '~')
 
-        val matrixOps = Set("%*%")
-
         val matrixFuncs = Set("t", "nrow", "ncol")
 
         val constructors = Set("zeros", "rand", "ones")
@@ -76,11 +73,6 @@ trait DML extends Common {
 
         val isConstructor = (sym: u.MethodSymbol) =>
           constructors.contains(sym.name.toString)
-
-        val isMatrixOp = (sym: u.MethodSymbol) => {
-          val s = sym.name.decodedName.toString
-          matrixOps.contains(s)
-        }
 
         val isBuiltin = (sym: u.MethodSymbol) => {
           val s = sym.name.decodedName.toString
@@ -101,7 +93,7 @@ trait DML extends Common {
           val args = argss flatMap (args => args map (arg => arg(offset)))
 
           sym.name match {
-            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)}, min=0, max=1, pdf="uniform", sparsity=0.2)"""
+            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
             case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=${args(0)}, cols=1)" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=${args(0)}, cols=1)" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
@@ -120,10 +112,6 @@ trait DML extends Common {
               "null"
             }
           }
-        }
-
-        val printMatrixOp = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
-          "A %*% B"
         }
 
         val printBuiltin = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
@@ -403,7 +391,7 @@ trait DML extends Common {
                   else if (r == ":::")
                     s"$module[,$c + 1]"
                   else
-                    s"as.scalar($module[$r + 1, $c + 1])"
+                    s"as.scalar($module[$r + 1,$c + 1])"
                 }
 
                 else
@@ -562,7 +550,7 @@ trait DML extends Common {
             val body = indent(parts(1))
 
             s"""
-               |for ($idx in $range -1) {
+               |for ($idx in $range) {
                |$body
                |}
             """.stripMargin.trim
