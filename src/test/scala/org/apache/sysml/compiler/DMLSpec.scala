@@ -404,6 +404,21 @@ class DMLSpec extends BaseCompilerSpec {
     act shouldEqual exp
   }
 
+  "Matrix predicate operators" in {
+    val act = toDML(dmlidPipeline(u.reify {
+      val A = Matrix.rand(5, 3)
+      val B = ppred(A, 0.0, "!=")
+    }))
+
+    val exp =
+      """
+        |A = rand(rows=5, cols=3)
+        |B = ppred(A, 0.0, "!=")
+      """.stripMargin.trim
+
+    act shouldEqual exp
+  }
+
   "Reading a matrix" in {
 
     val act = toDML(dmlidPipeline(u.reify {

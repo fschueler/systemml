@@ -55,6 +55,8 @@ trait DML extends Common {
 
         val ops = Set('=', '+', '-', '*', '/', '%', '<', '>', '&', '|', '!', '?', '^', '\\', '@', '#', '~')
 
+        val booleanOps = Set(">", "<", "<=", ">=", "==", "!=")
+
         val matrixFuncs = Set("t", "nrow", "ncol")
 
         val constructors = Set("zeros", "rand", "ones")
@@ -354,6 +356,7 @@ trait DML extends Common {
                     case u.TermName("to") | u.TermName("until") => s"${tgt(offset)}:${arg(offset)}"
                     case u.TermName("%") => s"($module %% ${args(0)})" // modulo in dml is %%
                     case u.TermName("&&") => s"($module & ${args(0)})" // && in dml is &
+                    case u.TermName("||") => s"($module | ${args(0)})" // || in dml is |
                     case _ => s"($module ${method.name.decodedName} ${args(0)})"
                   }
                 }
@@ -447,6 +450,9 @@ trait DML extends Common {
 
               // matches functions without arguments (.t (transpose))
               case (Some(tgt), Nil) => {
+
+                val module = tgt(offset)
+                val argString = args.mkString(" ")
 
                 // this is the case if we access a DataFrame from the closure. it will be a defCall where the target is
                 // the enclosing object and the method will be the name of the dataframe.

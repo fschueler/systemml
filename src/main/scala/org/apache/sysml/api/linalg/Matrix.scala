@@ -218,5 +218,13 @@ object Vector {
   def rand(length: Int): Matrix = {
     Matrix.rand(length, 1)
   }
+
+  def zeros(length: Int): Matrix = {
+    Matrix.zeros(length, 1)
+  }
+
+  def ones(length: Int): Matrix = {
+    Matrix.ones(length, 1)
+  }
 }
 
