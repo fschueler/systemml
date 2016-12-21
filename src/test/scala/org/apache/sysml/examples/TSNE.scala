@@ -1,9 +1,18 @@
 package org.apache.sysml.examples
 
+import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.sysml.api.linalg._
 import org.apache.sysml.api.linalg.api._
+import org.apache.sysml.api.mlcontext.MLContext
 
 object TSNE extends App {
+  val conf = new SparkConf()
+    .setMaster("local[2]")
+    .setAppName("SystemML Spark App")
+
+  val sc: SparkContext = new SparkContext(conf)
+  implicit val mlctx: MLContext = new MLContext(sc)
 
   val alg =  parallelize {
     def distanceMatrix(X: Matrix): Matrix = {
