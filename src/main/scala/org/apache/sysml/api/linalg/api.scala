@@ -51,6 +51,8 @@ package object api {
 
   def pmax(mat: Matrix, s: Double): Matrix = ???
 
+  def ppred(mat: Matrix, s: Double, op: String): Matrix = ???
+
   def min(mat: Matrix): Double = ???
 
   def max(Mat: Matrix): Double = ???
