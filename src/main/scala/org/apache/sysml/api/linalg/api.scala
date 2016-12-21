@@ -9,15 +9,7 @@ import org.apache.sysml.compiler.macros.RewriteMacros
 import scala.language.experimental.macros
 
 package object api {
-
-  private val conf = new SparkConf()
-    .setMaster("local[2]")
-    .setAppName("SystemML Spark App")
-
-  lazy val sc: SparkContext = new SparkContext(conf)
-  lazy val sqlContext: SQLContext = new SQLContext(sc)
-
-  implicit lazy val mlctx: MLContext = new MLContext(sc)
+  import Format._
 
   /**
     * The entry point for the systemML macro
@@ -30,7 +22,7 @@ package object api {
 
   object :::
 
-  def read(path: String): Matrix = ???
+  def read(path: String, format: FileFormat): Matrix = ???
 
   def write(mat: Matrix, path: String, format: Format.FileFormat): Unit = ???
 

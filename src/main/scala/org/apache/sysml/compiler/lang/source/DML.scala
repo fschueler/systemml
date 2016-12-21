@@ -104,7 +104,7 @@ trait DML extends Common {
               val in = bindingRefs.get(args.head) match {
                 case Some(termSym) => termSym
                 case _ =>
-                  abort(s"Could not find reference to variable ${args.head} in Matrix.fromDataFrame", sym.pos)
+                  abort(s"Could not find reference to variable ${args.head} in Matrix.fromDataFrame. args: ${args}", sym.pos)
               }
               // memoize the pair of (lhs, reference name)
               sources.add((currLhs.name.decodedName.toString, in))
@@ -119,7 +119,7 @@ trait DML extends Common {
 
           sym.name match {
             case u.TermName("read") => {
-              s"read(${args(0)})"
+              s"""read(${args(0)}, format="${args(1).toLowerCase()}")"""
             }
 
             case u.TermName("write") => {
@@ -215,7 +215,9 @@ trait DML extends Common {
             //@formatter:on
           }
 
-          def this_(sym: u.Symbol): D = ???
+          def this_(sym: u.Symbol): D = offset => {
+            s"this_ref - sym-name: ${sym.name.decodedName}"
+          }
 
           def bindingRef(sym: u.TermSymbol): D = offset => {
             bindingRefs.put(sym.name.decodedName.toString, sym)
@@ -445,19 +447,24 @@ trait DML extends Common {
 
               // matches functions without arguments (.t (transpose))
               case (Some(tgt), Nil) => {
-                method.name.decodedName match {
+
+                // this is the case if we access a DataFrame from the closure. it will be a defCall where the target is
+                // the enclosing object and the method will be the name of the dataframe.
+                if (method.typeSignature.finalResultType.widen <:< u.typeOf[org.apache.spark.sql.DataFrame]) {
+                  bindingRefs.put(method.name.decodedName.toString, method)
+                  printSym(method)
+                }
+                else method.name.decodedName match {
                   case u.TermName(tn) if matrixFuncs.contains(tn) || udfRegistry.contains(method) => s"$tn(${tgt(offset)})"
                   case u.TermName(tn) if tn == "toDouble" => {
                     tgt(offset) // this is a scala implicit conversion from Int to Double
                   }
                   case _ =>
-                    "case (Some(tgt), Nil)"
+                    abort(s"Matching error, please report the following: case (Some(tgt), Nil): target ${tgt(offset)}")
                 }
               }
 
-              case (Some(tgt), _) => {
-                s"case (Some(tgt), _)"
-              }
+              case (Some(tgt), _) => abort(s"Matching error, please report the following: case case (Some(tgt), _): target ${tgt(offset)}")
 
               // matches functions that are not defined in a module or class (udfs)
               case (None, _) => {
