@@ -25,7 +25,7 @@ object NMF extends App {
     val spark = SparkSession.builder().getOrCreate()
 
   // read data
-  val df = spark.read.format("com.databricks.spark.csv").option("header", "true").load("/home/felix/repos/arxiv_abstracts/cs_abstracts.csv")
+  val df = spark.read.format("com.databricks.spark.csv").option("header", "true").load("/data/arxiv_abstracts/cs_abstracts.csv")
   df.show(10)
 
   // todo add document index (zipwithindex)
@@ -65,15 +65,15 @@ object NMF extends App {
 
   //TODO convert to RDD in (i j v)-format
 
-  val tfidf = rescaledData.select("features")
+  val tfidf = rescaledData.withColumn("dense_features", project.apply(rescaledData("features"))).select("dense_features")
   tfidf.show(10, truncate = false)
 
   implicit val mlctx: MLContext = new MLContext(sc)
 
   val nmf = parallelize {
-    val V = Matrix.fromDataFrame(df) // tfidf feature matrix coming from somewhere
+    val V = Matrix.fromDataFrame(tfidf) // tfidf feature matrix coming from somewhere
     val k = 40
-    val m, n = 20 // dimensions of tfidf
+    val m, n = 100 // dimensions of tfidf
     val maxIters = 200
 
     var W = Matrix.rand(m, k)
