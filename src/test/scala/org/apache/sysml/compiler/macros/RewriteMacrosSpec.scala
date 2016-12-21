@@ -19,11 +19,13 @@
 
 package org.apache.sysml.compiler.macros
 
+import org.apache.spark
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.sysml.api.linalg.Matrix
 import org.apache.sysml.api.linalg.api._
-import org.apache.sysml.api.mlcontext.{Matrix => MLMatrix}
+import org.apache.sysml.api.mlcontext.{MLContext, Matrix => MLMatrix}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FreeSpec, Matchers}
@@ -33,6 +35,14 @@ import scala.util.Random
 /** A spec for SystemML Algorithms. */
 @RunWith(classOf[JUnitRunner])
 class RewriteMacrosSpec extends FreeSpec with Matchers {
+  val conf = new SparkConf()
+    .setMaster("local[2]")
+    .setAppName("SystemML Spark App")
+
+  lazy val sc: SparkContext = new SparkContext(conf)
+  lazy val spark = SparkSession.builder().getOrCreate()
+
+  implicit lazy val mlctx: MLContext = new MLContext(sc)
 
   "Matrix output" in {
 
@@ -98,15 +108,16 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     }
 
     val (w, h) = nmf.run()
+    println(w)
   }
 
 
   "MinMaxMean from DataFrame" in {
-    val numRows = 10000
+    val numRows = 1000
     val numCols = 1000
     val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
     val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
-    val df = sqlContext.createDataFrame(data, schema)
+    val df = spark.createDataFrame(data, schema)
 
     val alg = parallelize {
       /* this should take a dataframeand set it as input to the MLContext */
@@ -153,6 +164,32 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
       }
 
       (x, y)
+    }
+
+    val res = alg.run()
+    println(res)
+  }
+
+  "Read csv" in {
+
+    val alg = parallelize {
+      // Read the input data
+      val data: Matrix = read("/home/felix/repos/incubator-systemml/src/test/resources/iris.data", Format.CSV)
+      val c = data.ncol
+      val r = data.nrow
+
+      println("r: " + r + ", c: " + c)
+
+      // initialize result vector
+      var stats = Matrix.rand(1, c)
+
+      for (i <- 1 until 2) {
+        stats = stats + 5.0
+      }
+
+      stats = stats / r
+
+      (stats, r, c)
     }
 
     val res = alg.run()

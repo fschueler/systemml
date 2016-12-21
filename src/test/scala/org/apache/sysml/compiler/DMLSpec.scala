@@ -19,10 +19,12 @@
 
 package org.apache.sysml.compiler
 
-import org.apache.spark.sql.Row
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.sysml.api.linalg.{Matrix, Vector}
 import org.apache.sysml.api.linalg.api._
+import org.apache.sysml.api.mlcontext.MLContext
 import org.emmalanguage.compiler.{BaseCompilerSpec, RuntimeCompiler}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -43,6 +45,13 @@ class DMLSpec extends BaseCompilerSpec {
   } andThen {
     dmlCompiler.dmlPipeline(typeCheck = true)()
   }
+
+  val conf = new SparkConf().setMaster("local[2]").setAppName("SystemML Spark App")
+
+  val sc: SparkContext = new SparkContext(conf)
+  val sqlContext: SQLContext = new SQLContext(sc)
+
+  implicit val mlctx: MLContext = new MLContext(sc)
   
   "Atomics:" - {
 
@@ -398,12 +407,12 @@ class DMLSpec extends BaseCompilerSpec {
   "Reading a matrix" in {
 
     val act = toDML(dmlidPipeline(u.reify {
-      val A = read("path/to/matrix.csv")
+      val A = read("path/to/matrix.csv", format = Format.CSV)
     }))
 
     val exp =
       """
-        |A = read("path/to/matrix.csv")
+        |A = read("path/to/matrix.csv", format="csv")
       """.stripMargin.trim
 
     act shouldEqual exp
