@@ -209,6 +209,7 @@ trait DML extends Common {
           // Atomics
           def lit(value: Any): D = offset => value match {
             //@formatter:off
+            case value: Boolean => if (value) "TRUE" else "FALSE"
             case value: Char => s""""${value}""""
             case value: String => s""""${escape(value)}""""
             case null => "null"
