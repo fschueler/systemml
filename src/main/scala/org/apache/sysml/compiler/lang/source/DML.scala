@@ -183,15 +183,6 @@ trait DML extends Common {
           case tpe => abort(s"Unsupported return type $tpe. Supported types are: Matrix, Double")
         }
 
-        val escape = (str: String) => str
-          .replace("\b", "\\b")
-          .replace("\n", "\\n")
-          .replace("\t", "\\t")
-          .replace("\r", "\\r")
-          .replace("\f", "\\f")
-          .replace("\"", "\\\"")
-          .replace("\\", "\\\\")
-
         // format a block to have 2 whitespace indentaion
         val indent = (str: String) => {
           val lines = str.split("\n")
@@ -201,6 +192,35 @@ trait DML extends Common {
           else
             s"  $str"
         }
+
+        /**
+          *constructs a for loop by deconstructing foreach together with the range and the lambda */
+        val forLoop = (target: D, targs: Seq[u.Type], args: Seq[D], offset: Int) => {
+          val range = target(offset)
+          val lambda = args.map(x => x(offset)).head
+
+          val parts = lambda.split(" => ")
+
+          val idx = parts(0).drop(1).dropRight(1) // remove braces
+
+          // format the body with 2 spaces of indentation
+          val body = indent(parts(1))
+
+          s"""
+             |for ($idx in $range) {
+             |$body
+             |}
+            """.stripMargin.trim
+        }
+
+        val escape = (str: String) => str
+          .replace("\b", "\\b")
+          .replace("\n", "\\n")
+          .replace("\t", "\\t")
+          .replace("\r", "\\r")
+          .replace("\f", "\\f")
+          .replace("\"", "\\\"")
+          .replace("\\", "\\\\")
 
         val alg = new Source.Algebra[D] {
 
@@ -222,16 +242,24 @@ trait DML extends Common {
             s"this_ref - sym-name: ${sym.name.decodedName}"
           }
 
-          def bindingRef(sym: u.TermSymbol): D = offset => {
+          def bindingDef(lhs: u.TermSymbol, rhs: D): D = valDef(lhs, rhs)
+
+          def ref(target: u.TermSymbol): D = ???
+
+          def loop(cond: D, body: D): D = whileLoop(cond, body)
+
+          def moduleAcc(target: D, member: u.ModuleSymbol): D = ???
+
+          override def bindingRef(sym: u.TermSymbol): D = offset => {
             bindingRefs.put(sym.name.decodedName.toString, sym)
             printSym(sym)
           }
 
-          def moduleRef(target: u.ModuleSymbol): D = offset =>
+          override def moduleRef(target: u.ModuleSymbol): D = offset =>
             printSym(target)
 
           // Definitions
-          def valDef(lhs: u.TermSymbol, rhs: D): D = offset => {
+          override def valDef(lhs: u.TermSymbol, rhs: D): D = offset => {
             currLhs = lhs
             val rhsString = rhs(offset)
             /* if we have a reference to a dataframe (rhs == null),
@@ -242,7 +270,7 @@ trait DML extends Common {
               ""
           }
 
-          def parDef(lhs: u.TermSymbol, rhs: D): D = offset => {
+          override def parDef(lhs: u.TermSymbol, rhs: D): D = offset => {
             val l = lhs.name.decodedName
             val tpe = lhs.typeSignature
             val r = rhs(offset)
@@ -254,65 +282,69 @@ trait DML extends Common {
             }
           }
 
-          def defDef(sym: u.MethodSymbol, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = offset => {
-            if (tparams.length > 0) {
-              abort(s"Type parameters are not supported: ${tparams}")
-            }
-
-            udfRegistry.add(sym)
-
-            val name = sym.name.decodedName
-            val block = body(offset)
-            val statements = indent(block.split("\n").dropRight(1).mkString("\n")) // drop last line
-            val expression = block.split("\n").takeRight(1).head
-
-            val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), List(resulttype))}
-
-            // transform scala types to systemml types
-            val inputTypes = inT.flatMap(convertTypes(_))
-            val inputNames = paramss.flatten.map(_(offset))
-
-            val outputType = outT.flatMap(convertTypes(_))
-            if (outputType.length > 1) {
-              abort(s"Currently we only support function definitions with a single return value but we found ${outputType.length} values of type $outT")
-            }
-
-            // TODO enable multiple return values
-            // val rng = new Random()
-            // val outputNames = List.fill(outputType.length)("_$x" + rng.nextString(3))
-
-            val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
-            val outputs = s"${outputType.head} x99"
-
-            if (statements != "  ") {
-              s"""
-                 |$name = function($inputs) return ($outputs) {
-                 |$statements
-                 |  x99 = $expression
-                 |}
-             """.stripMargin.trim
-            } else {
-              s"""
-                 |$name = function($inputs) return ($outputs) {
-                 |  x99 = $expression
-                 |}
-             """.stripMargin.trim
-            }
-          }
+//          def defDef(sym: u.MethodSymbol, tparams: Seq[u.TypeSymbol], paramss: Seq[Seq[D]], body: D): D = offset => {
+//            if (tparams.length > 0) {
+//              abort(s"Type parameters are not supported: ${tparams}")
+//            }
+//
+//            udfRegistry.add(sym)
+//
+//            val name = sym.name.decodedName
+//            val block = body(offset)
+//            val statements = indent(block.split("\n").dropRight(1).mkString("\n")) // drop last line
+//            val expression = block.split("\n").takeRight(1).head
+//
+//            val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), List(resulttype))}
+//
+//            // transform scala types to systemml types
+//            val inputTypes = inT.flatMap(convertTypes(_))
+//            val inputNames = paramss.flatten.map(_(offset))
+//
+//            val outputType = outT.flatMap(convertTypes(_))
+//            if (outputType.length > 1) {
+//              abort(s"Currently we only support function definitions with a single return value but we found ${outputType.length} values of type $outT")
+//            }
+//
+//            // TODO enable multiple return values
+//            // val rng = new Random()
+//            // val outputNames = List.fill(outputType.length)("_$x" + rng.nextString(3))
+//
+//            val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
+//            val outputs = s"${outputType.head} x99"
+//
+//            if (statements != "  ") {
+//              s"""
+//                 |$name = function($inputs) return ($outputs) {
+//                 |$statements
+//                 |  x99 = $expression
+//                 |}
+//             """.stripMargin.trim
+//            } else {
+//              s"""
+//                 |$name = function($inputs) return ($outputs) {
+//                 |  x99 = $expression
+//                 |}
+//             """.stripMargin.trim
+//            }
+//          }
 
           // Other
 
           /** type ascriptions such as `var x: Int` */
           def typeAscr(target: D, tpe: u.Type): D = offset => "" // TODO check for types allowed in SystemML
 
-          def defCall(target: Option[D], method: u.MethodSymbol, targs: S[u.Type], argss: SS[D]): D = offset => {
+          def defCall(target: Option[D], method: u.MethodSymbol, targs: Seq[u.Type], argss: Seq[Seq[D]]): D = offset => {
             val s = target
             val args = argss flatMap (args => args map (arg => arg(offset)))
+
             (target, argss) match {
 
               /* matches tuples */
               case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
                 ""
+
+              case (Some(tgt), _) if method == api.Sym.foreach || method.overrides.contains(api.Sym.foreach) =>
+                forLoop(tgt, targs, argss.flatten, offset)
 
               /* matches unary methods without arguments, e.g. A.t */
               case (Some(tgt), Nil) if isUnary(method) =>
@@ -324,6 +356,7 @@ trait DML extends Common {
 
               /* matches methods with one argument (%*%, read) */
               case (Some(tgt), (arg :: Nil) :: Nil) => {
+
                 val module = tgt(offset)
 
                 // methods in the package object (builtins with one argument (read)
@@ -485,9 +518,9 @@ trait DML extends Common {
             }
           }
 
-          def inst(target: u.Type, targs: Seq[u.Type], argss: SS[D]): D = ???
+          def inst(target: u.Type, targs: Seq[u.Type], argss: Seq[Seq[D]]): D = ???
 
-          def lambda(sym: u.TermSymbol, params: S[D], body: D): D = offset => {
+          def lambda(sym: u.TermSymbol, params: Seq[D], body: D): D = offset => {
             val p = params.map(p => p(offset))
             val b = body(offset)
 
@@ -515,7 +548,7 @@ trait DML extends Common {
             }
           }
 
-          def block(stats: S[D], expr: D): D = offset => {
+          def block(stats: Seq[D], expr: D): D = offset => {
             val statsString = stats.flatMap{x =>
               val res = x(offset)
               if (bindingRefs.keySet.contains(res)) {
@@ -540,7 +573,7 @@ trait DML extends Common {
             """.stripMargin.trim
           }
 
-          def whileLoop(cond: D, body: D) = offset => {
+          def whileLoop(cond: D, body: D): D = offset => {
             val formatted = indent(body(offset))
 
             s"""
@@ -548,26 +581,6 @@ trait DML extends Common {
                |$formatted
                |}
              """.stripMargin.trim
-          }
-
-          /**
-            *constructs a for loop by deconstructing foreach together with the range and the lambda */
-          def forLoop(target: D, targs: S[u.Type], args: S[D]): D = offset => {
-            val range = target(offset)
-            val lambda = args.map(x => x(offset)).head
-
-            val parts = lambda.split(" => ")
-
-            val idx = parts(0).drop(1).dropRight(1) // remove braces
-
-            // format the body with 2 spaces of indentation
-            val body = indent(parts(1))
-
-            s"""
-               |for ($idx in $range) {
-               |$body
-               |}
-            """.stripMargin.trim
           }
 
           def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {
