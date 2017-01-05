@@ -155,6 +155,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
       }
     }"""
 
-    identity(typeCheck = true)(alg)
+    val res = identity(typeCheck = true)(alg)
+    c.Expr[T]((removeShadowedThis)(res))
   }
 }
