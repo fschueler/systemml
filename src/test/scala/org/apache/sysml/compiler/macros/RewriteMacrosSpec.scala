@@ -136,6 +136,67 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
   }
 
+  "Matrix to DataFrame" in {
+
+    val alg = parallelize {
+      val matrix: Matrix = Matrix.rand(3, 3)
+
+      matrix
+    }
+
+    val  mat = alg.run()
+    val df = mat.toDF
+    df.show()
+  }
+
+  "Passing a matrix into a new parallelize block" in {
+
+    val alg1 = parallelize {
+      val matrix: Matrix = Matrix.rand(3, 3)
+
+      matrix
+    }
+    val  res1 = alg1.run()
+
+    val alg2 = parallelize {
+      val minOut = min(res1)
+      val maxOut = max(res1)
+      val meanOut = mean(res1)
+
+      (minOut, maxOut, meanOut)
+    }
+
+    val  (minOut: Double, maxOut: Double, meanOut: Double) = alg2.run()
+
+    println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
+  }
+
+  "Nested reference" in {
+    object w1 {
+      val x1 = 0.0
+
+      object w2 {
+        val x = 5.0
+
+        object w3 {
+          val y = 6.0
+
+          val alg = parallelize {
+            val z = x1 + x + y
+            z
+          }
+
+          def main(args: Array[String]): Unit = {
+            val res = alg.run()
+            println(res)
+          }
+        }
+
+      }
+    }
+    w1.w2.w3.main(Array())
+  }
+
   "UDF support" in {
 
     val alg = parallelize {

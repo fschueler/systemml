@@ -219,7 +219,7 @@ trait DML extends Common {
           }
 
           def this_(sym: u.Symbol): D = offset => {
-            s"this_ref - sym-name: ${sym.name.decodedName}"
+            s"this_ref" // - sym-name: ${sym.name.decodedName}"
           }
 
           def bindingRef(sym: u.TermSymbol): D = offset => {
@@ -455,9 +455,16 @@ trait DML extends Common {
                 val module = tgt(offset)
                 val argString = args.mkString(" ")
 
+                // this is for nested references (i.e. nested classes or objects that contain variables that are passed
+                // into parallelize. This is the case when using the REPL
+                if (module == "this_ref") {
+                  bindingRefs.put(method.name.decodedName.toString, method)
+                  sources.add((method.name.decodedName.toString, method))
+                  method.name.decodedName.toString
+                }
                 // this is the case if we access a DataFrame from the closure. it will be a defCall where the target is
                 // the enclosing object and the method will be the name of the dataframe.
-                if (method.typeSignature.finalResultType.widen <:< u.typeOf[org.apache.spark.sql.DataFrame]) {
+                else if (method.typeSignature.finalResultType.widen <:< u.typeOf[org.apache.spark.sql.DataFrame]) {
                   bindingRefs.put(method.name.decodedName.toString, method)
                   printSym(method)
                 }
@@ -467,7 +474,7 @@ trait DML extends Common {
                     tgt(offset) // this is a scala implicit conversion from Int to Double
                   }
                   case _ =>
-                    abort(s"Matching error, please report the following: case (Some(tgt), Nil): target ${tgt(offset)}")
+                    abort(s"Matching error, please report the following: case (Some(tgt), Nil): target ${tgt(offset)}, method: $method")
                 }
               }
 
