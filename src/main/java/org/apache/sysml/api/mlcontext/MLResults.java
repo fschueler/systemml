@@ -476,7 +476,7 @@ public class MLResults {
 	public Matrix getMatrix(String outputName) {
 		MatrixObject mo = getMatrixObject(outputName);
 		//return new Matrix(mo, sparkExecutionContext);
-		return new Matrix(null, (int) mo.getNumRows(), (int) mo.getNumColumns(), false, mo);
+		return new Matrix(null, (int) mo.getNumRows(), (int) mo.getNumColumns(), false, mo, sparkExecutionContext);
 	}
 
 	/**

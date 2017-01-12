@@ -21,8 +21,9 @@ package org.apache.sysml.api.linalg
 
 import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContextConversionUtil}
+import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContext, MLContextConversionUtil}
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
+import org.apache.sysml.runtime.controlprogram.context.SparkExecutionContext
 
 import scala.util.Random
 
@@ -42,7 +43,8 @@ class Matrix protected(val impl: Array[Double],
                        val nrow: Int,
                        val ncol: Int,
                        var isTransposed: Boolean = false,
-                       val matob: MatrixObject = null) {
+                       val matob: MatrixObject = null,
+                       val sparkExecutionContext: SparkExecutionContext) {
 
   //////////////////////////////////////////
   // Constructors
@@ -161,9 +163,11 @@ class Matrix protected(val impl: Array[Double],
   // Convenience Transformations
   //////////////////////////////////////////
 
-  def toMatrixObject(): MatrixObject = matob
-  def toBinaryBlockMatrix(): BinaryBlockMatrix = ???
-  def toDF(): DataFrame = ???
+  def toMatrixObject: MatrixObject = matob
+  def toBinaryBlockMatrix: BinaryBlockMatrix = ???
+
+  // FIXME I don't like giving the Matrix a reference to the SparkExecutioncontext
+  def toDF: DataFrame = MLContextConversionUtil.matrixObjectToDataFrame(matob, sparkExecutionContext, false)
 }
 
 object Matrix {
@@ -179,7 +183,7 @@ object Matrix {
     * @param cols number of columns of the generated matrix
     * @return a [[Matrix]] with values as cell entries and dimensionality (rows, cols)
     */
-  def apply(impl: Array[Double], rows: Int, cols: Int): Matrix = new Matrix(impl, rows, cols)
+  def apply(impl: Array[Double], rows: Int, cols: Int): Matrix = new Matrix(impl, rows, cols, false, null, null)
 
   def apply(values: Seq[Double], rows: Int, cols: Int): Matrix = apply(values.toArray, rows, cols)
 
