@@ -19,64 +19,57 @@ to get you motivated, here is a first example of an algorithm written in DML and
 </tr>
 <tr>
 <td>
-<pre lang="scala">
-val nmf = parallelize {
-      // tfidf feature matrix coming from somewhere
-      val tfidf = read("/path/to/file.csv", CSV)
-      val k = 40
-      val m, n = 2 // dimensions of tfidf
-      val maxIters = 200
+<pre lang="R">
+# tfidf feature matrix coming from somewhere
+tfidf = "1.0, 2.0, 3.0, 4.0"
+k = 40
+m = 2
+n = 2
+maxIters = 200
 
-      // initialize matrices
-      val V = Matrix(tfidf, m, n)
-      var W = Matrix.rand(m, k)
-      var H = Matrix.rand(k, n)
+# initialize matrices
+V = matrix(tfidf, rows=m, cols=n)
+W = rand(rows=m, cols=k)
+H = rand(rows=k, cols=n)
 
-      for (i <- 0 to maxIters) { //main loop
-        H = H * (W.t %*% V) / (W.t %*% (W %*% H))
-        W = W * (V %*% H.t) / (W %*% (H %*% H.t))
-      }
-
-      (W, H) // return values
-    }
+for (i in 0:maxIters) {
+  H = ((H * (t(W) %*% V)) / (t(W) %*% (W %*% H)))
+  W = ((W * (V %*% t(H))) / (W %*% (H %*% t(H))))
+}
 </pre>
 </td>
 <td>
 <pre lang="scala">
-val nmf = parallelize {
-      // tfidf feature matrix coming from somewhere
-      val tfidf = read("/path/to/file.csv", CSV)
-      val k = 40
-      val m, n = 2 // dimensions of tfidf
-      val maxIters = 200
+// tfidf feature matrix coming from somewhere
+val tfidf = Array(1.0, 2.0, 3.0, 4.0)
+val k = 40
+val m, n = 2 // dimensions of tfidf
+val maxIters = 200
 
-      // initialize matrices
-      val V = Matrix(tfidf, m, n)
-      var W = Matrix.rand(m, k)
-      var H = Matrix.rand(k, n)
+// initialize matrices
+val V = Matrix(tfidf, m, n)
+var W = Matrix.rand(m, k)
+var H = Matrix.rand(k, n)
 
-      for (i <- 0 to maxIters) { //main loop
-        H = H * (W.t %*% V) / (W.t %*% (W %*% H))
-        W = W * (V %*% H.t) / (W %*% (H %*% H.t))
-      }
-
-      (W, H) // return values
-    }
+for (i <- 0 to maxIters) { //main loop
+  H = H * (W.t %*% V) / (W.t %*% (W %*% H))
+  W = W * (V %*% H.t) / (W %*% (H %*% H.t))
+}
 </pre>
 </td>
 </tr>
 </table>
 </body>
 
-As an overwiew, we collected the main differences between DML and our Scala DSL in the following table. Since the error- and debug facilities of SystemML and our Scala DSL are still in its infancy, the best way of debugging right now is to look at the generated DML code and plan of instructions that are printed before executing a DSL written algorithm.
+As an overwiew, we collected the main differences between DML and our Scala DSL in the following table. Since the error- and debug facilities of SystemML and our Scala DSL are still in their infancy, the best way of debugging right now is to look at the generated DML code and plan of instructions that are printed before executing a DSL written algorithm.
 
 Main differences between the Scala DSL and DML. Notice that these are only important for debugging purposes. To write an algorihm in the Scala DSL you should always use the Scala way just like you would for your other Scala programs, e.g. think 0-indexing and write `&&` for `AND`. The conversion is done in the compiler and these differences are just for relating generated to written code.
 
-|Feature          | |    DML       |   Scala DSL    |
-| :---            | |   :---:      |     :---:      |
-| Array-indexing  | | 1-based      | 0-based        |
-| Logical `AND`   | |   `&`        | `&&`           |
-| Logical `OR`    | |     \|       |   \|\|         |
+|Feature          |     DML       |   Scala DSL    |
+| :---            |    :---:      |     :---:      |
+| Array-indexing  |  1-based      | 0-based        |
+| Logical `AND`   |    `&`        | `&&`           |
+| Logical `OR`    |      `|`      |   `||`     |
 
 ### Installation
 
@@ -100,7 +93,7 @@ Import the project into an IDE of your choice (as maven project) and write an Al
 ## Getting Started
 
 The current API to write user code for SystemML includes a `Matrix` and `Vector` type, where vector is just syntactic sugar for a column matrix with a single column in SystemML.
-Additionally, we aim to provide all builtin functions that SystemML currently supports. The current state of the DSL is a first alpha and many things are still missing. If you encounter problems or missing features, please add it to the list [here](ADD LINK TO  JIRA)
+Additionally, we aim to provide all builtin functions that SystemML currently supports. The current state of the DSL is a first alpha and many things are still missing. If you encounter problems or missing features, please add it to the list [here](https://issues.apache.org/jira/browse/SYSTEMML)
 
 ### Algorithm structure
 
@@ -120,7 +113,7 @@ val algorithm = parallelize {
 }
 ```
 
-`App` objects in Scala don't need a `main`-method and can be directly executed from within the IDE. The function `parallelize` takes our Scala code and converts it into DML code. It then wraps everything inside an instance of the class `SystemMLAlgorithm[T]` and returns it. The type parameter `T` will be the type of the returned values inside the `parallelize` block. To make it more concrete, let's consider a simple example:
+`App` objects in Scala don't need a `main`-method and can be directly executed from within the IDE. The function `parallelize` takes our Scala code and converts it into DML code. It then wraps everything inside an instance of the class `SystemMLAlgorithm[T]` and returns it. The type parameter `T` will be the type of the returned values inside the `parallelize` block. To make it more concrete, let's consider a simple example. To be able to run the algorithm on Spark we also have to create a `SparkContext` and initialize the `MLContext` to be able to communicate with SystemML.
 
 ```scala
 package org.apache.sysml.examples
@@ -130,7 +123,14 @@ import org.apache.sysml.api.linalg.api._
 
 object MyAlgorithm extends App {
 
-val algorithm = parallelize {
+val conf = new SparkConf()
+                .setMaster("local[2]")
+                .setAppName("SystemML Spark App")
+
+val sc: SparkContext = new SparkContext(conf)
+val ml: MLContext    = new MLContext(sc)
+
+val algorithm: SystemMLAlgorithm[Matrix] = parallelize {
   val A: Matrix = Matrix.rand(5, 3)
   val B: Matrix = Matrix.rand(3, 7)
   val C: Matrix = A %*% B
@@ -139,7 +139,7 @@ val algorithm = parallelize {
 }
 ```
 
-This code performs a simple matrix multiplication of two random matrices and returns the result in the variable `C`. The result of `parallelize` is then `SystemMLAlgorithm[Matrix]`. Up until now, no code has actually been executed. To run the algorithm with SystemML on Spark we have to evoke the `run()` method on the algorithm instance:
+This code performs a simple matrix multiplication of two random matrices and returns the result in the variable `C`. The result of `parallelize` is then `SystemMLAlgorithm[Matrix]` which is assigned to the value `algorithm`. Up until now, no code has actually been executed. To run the algorithm with SystemML on Spark we have to evoke the `run()` method on the algorithm instance:
 
 ```scala
 package org.apache.sysml.examples
@@ -149,7 +149,14 @@ import org.apache.sysml.api.linalg.api._
 
 object MyAlgorithm extends App {
 
-  val algorithm = parallelize {
+  val conf = new SparkConf()
+                  .setMaster("local[2]")
+                  .setAppName("SystemML Spark App")
+
+  val sc: SparkContext = new SparkContext(conf)
+  val ml: MLContext    = new MLContext(sc)
+
+  val algorithm: SystemMLAlgorithm[Matrix] = parallelize {
     val A: Matrix = Matrix.rand(5, 3)
     val B: Matrix = Matrix.rand(3, 7)
     val C: Matrix = A %*% B
@@ -160,9 +167,9 @@ object MyAlgorithm extends App {
 }
 ```
 
-This will execute the algorithm using SystemML and Spark. Currently, the `MLContext` and `SparkContext` are preset to use a local master but in future versions there will be a way of passing custom contexts to the `run()`-method. Executing the `run()`-method then returns the result of type `Matrix`.
+This will execute the algorithm using SystemML and Spark. Executing the `run()`-method then returns the result of type `Matrix`.
 
-Internally, the `parallelize` function converts the Scala code that is gets as an argument into DML. For our above example, the expanded/transformed version would look like this:
+Internally, the `parallelize` function converts the Scala code that it gets as an argument into DML. For our above example, the expanded/transformed version would look like this:
 
 ```Scala
 val algorithm = new SystemMLAlgorithm[Matrix]  {
@@ -183,6 +190,7 @@ val algorithm = new SystemMLAlgorithm[Matrix]  {
   val result: Matrix = algorithm.run()
 }
 ```
+
 ### Error handling
 
 Before execution, we print the generated DML code including line-numbers and the plan of generated instructions. Error-messages returned from SystemML refer to the line-numbers in generated DML while errors thrown during translation can have different causes and therefore different appearances. We're working on improved error handling in both cases. If you get a message that says `Error during macro expansion...` then it's probably not your fault and something inside the translation phase went wrong. In this case, please open a new Jira issue with your code and the error message.
@@ -201,7 +209,18 @@ One of the strengths of this approach is that while we write our programs we hav
 As an example that involves control flow (the for-loop) we show how the NMF algorithm can be implemented in the Scala DSL:
 
 ```Scala
+import org.apache.sysml.api.linalg._
+import org.apache.sysml.api.linalg.api._
+
 object MyApp extends App {
+
+  val conf = new SparkConf()
+                  .setMaster("local[2]")
+                  .setAppName("SystemML Spark App")
+
+  val sc: SparkContext = new SparkContext(conf)
+  val ml: MLContext    = new MLContext(sc)
+
   val nmf = parallelize {
     // tfidf feature matrix coming from somewhere
     val tfidf = Array(1.0, 2.0, 3.0, 4.0)
@@ -231,9 +250,11 @@ We write the whole algorithm inside the `parallelize` block and specify our retu
 val (w, h) = nmf.run()
 ```
 
-This will run the generated code on SystemML and return the requested values. Internally, the `SystemMLAlgorithm.run()` method uses SystemML's `MLContext`. The `parallelize` macro can automatically discover that we want `(W, H)` as our return value and makes sure that these are set in the `MLContext`.
+This will run the generated code on SystemML and return the requested values. Internally, the `SystemMLAlgorithm.run()` method uses SystemML's `MLContext`. The `parallelize` macro can automatically discover that we want `(W, H)` as our return value and makes sure that these are set as outputs in the `MLContext`.
 
 ### Input and Output handling
+
+:x: Currently, input and output handling in the Spark REPL and Notebooks is not working without problems. We're working on fixing that!
 
 In the case of NMF we did not load data from any external data-source. In most scenarios, our data will come from some outside source. We provide several ways of passing this data to SystemML. The easiest way is to read data from a file using the builtin `read(...)` primitive that directly maps to SystemML's builtin `read`-primitive.
 
