@@ -21,18 +21,13 @@ import org.emmalanguage.compiler.RuntimeCompiler
 
 class DMLRuntimeCompiler extends RuntimeCompiler with DML {
 
-  lazy val dmlNormalize = {
-    PatternMatching.destruct
-  }
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
     Source.removeImplicits(API.implicitTypes),
     fixSymbolTypes,
     //stubTypeTrees,
     unQualifyStatics,
-    normalizeStatements,
-    // Source.normalize,
-    dmlNormalize
+    normalizeStatements
   )
 
   /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */
