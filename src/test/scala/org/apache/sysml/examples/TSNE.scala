@@ -14,80 +14,80 @@ object TSNE extends App {
   val sc: SparkContext = new SparkContext(conf)
   implicit val mlctx: MLContext = new MLContext(sc)
 
-  val alg =  parallelize {
-    def distanceMatrix(X: Matrix): Matrix = {
-      val n = X.nrow
-      val s = rowSums(X * X)
+  def distanceMatrix(X: Matrix): Matrix = {
+    val n = X.nrow
+    val s = rowSums(X * X)
 
-      println("Computing distance matrix...")
+    println("Computing distance matrix...")
 
-      (((X * -2.0) %*% X.t) + s) + s.t
-    }
+    (((X * -2.0) %*% X.t) + s) + s.t
+  }
 
-    def x2p(X: Matrix, perplexity: Double): Matrix = {
-      val tol = 1.0e-3
-      val INF = 1.0e20
-      val n = X.nrow
-      println("n: " + n)
-      val D = distanceMatrix(X)
+  def x2p(X: Matrix, perplexity: Double): Matrix = {
+    val tol = 1.0e-3
+    val INF = 1.0e20
+    val n = X.nrow
+    println("n: " + n)
+    val D = distanceMatrix(X)
 
-      var P = Matrix.zeros(n, n)
-      var beta = Matrix.ones(n, 1)
-      val logU = log(perplexity)
+    var P = Matrix.zeros(n, n)
+    var beta = Matrix.ones(n, 1)
+    val logU = log(perplexity)
 
-      println("Starting x2p for-loop...")
+    println("Starting x2p for-loop...")
 
-      for (i <- 0 until n - 1) {
-        println("i: " + i)
+    for (i <- 0 until n - 1) {
+      println("i: " + i)
 
-        var betamin = 0.0
-        var betamax = INF
-        var Hdiff = INF
+      var betamin = 0.0
+      var betamax = INF
+      var Hdiff = INF
 
-        var itr = 0
-        if (i % 500 == 0) {
-          println(i)
-        }
-        val Di = D(i, :::)
-        var Pi = Matrix.zeros(1, Di.nrow)
-
-        // while ((abs(Hdiff) > tol) && (itr < 50)) {
-        while (itr < 10) {
-          Pi = exp(Di * -1.0 * beta(i, 0))
-
-          Pi(0, i) = 0.0
-
-          val sumPi = sum(Pi)
-
-          val H = log(sumPi) + beta(i, 0) * sum(Di * Pi) / sumPi
-          Pi = Pi / sumPi
-          Hdiff = H - logU
-
-          if (Hdiff > 0.0) {
-            betamin = beta(i, 0) * 2.0
-            if (betamax == INF) {
-              beta(i, 0) = beta(i, 0) * 2.0
-            } else {
-              beta(i, 0) = beta(i, 0) / 2.0
-            }
-          } else {
-            betamax = beta(i, 0)
-            if (betamin == 0.0) {
-              beta(i, 0) = beta(i, 0) / 2.0
-            } else {
-              beta(i, 0) = beta(i, 0) / 2.0
-            }
-          }
-          itr = itr + 1
-        }
-        P(i, :::) = Pi // update a row/column with a vector or a range of rows/cols with a matrix
+      var itr = 0
+      if (i % 500 == 0) {
+        println(i)
       }
-      println("Done with for-loop!")
-      P = P + P.t
-      P / sum(P)
+      val Di = D(i, :::)
+      var Pi = Matrix.zeros(1, Di.nrow)
+
+      // while ((abs(Hdiff) > tol) && (itr < 50)) {
+      while (itr < 10) {
+        Pi = exp(Di * -1.0 * beta(i, 0))
+
+        Pi(0, i) = 0.0
+
+        val sumPi = sum(Pi)
+
+        val H = log(sumPi) + beta(i, 0) * sum(Di * Pi) / sumPi
+        Pi = Pi / sumPi
+        Hdiff = H - logU
+
+        if (Hdiff > 0.0) {
+          betamin = beta(i, 0) * 2.0
+          if (betamax == INF) {
+            beta(i, 0) = beta(i, 0) * 2.0
+          } else {
+            beta(i, 0) = beta(i, 0) / 2.0
+          }
+        } else {
+          betamax = beta(i, 0)
+          if (betamin == 0.0) {
+            beta(i, 0) = beta(i, 0) / 2.0
+          } else {
+            beta(i, 0) = beta(i, 0) / 2.0
+          }
+        }
+        itr = itr + 1
+      }
+      P(i, :::) = Pi // update a row/column with a vector or a range of rows/cols with a matrix
     }
+    println("Done with for-loop!")
+    P = P + P.t
+    P / sum(P)
+  }
 
 
+  val alg =  parallelize {
     // ALGORITHM
 
     // parameters
