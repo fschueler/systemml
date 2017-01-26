@@ -19,7 +19,14 @@ package org.apache.sysml.compiler.macros
 import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.compiler.lang.source.DML
 import org.emmalanguage.compiler.MacroCompiler
+import org.emmalanguage.util.Monoids
+import cats.std.all._
+import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.sysml.api.linalg.Matrix
+import shapeless._
 
+import scala.Option
+import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -101,6 +108,33 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         (e.tree.tpe, e.tree)
     }
 
+    // types that can be passed by reference into the macro
+    val supportedTypes = Set(u.typeOf[Dataset[_]], u.typeOf[DataFrame], u.typeOf[Double], u.typeOf[Int])
+
+    def isSupportedType(sym: u.Symbol): Boolean = {
+      val tpe = sym.typeSignature.finalResultType.widen
+      supportedTypes.exists(tpe <:< _)
+    }
+
+    val att = {
+      api.TopDown
+        // function calls (includes outer scope variable references!)
+        .synthesize(Attr.collect[Set, u.Symbol] {
+        case a @ api.DefCall(target, method, targs, args) if isSupportedType(method) && args.isEmpty => {
+          val tg = target
+          method
+        }
+      })
+        // function definitions
+          .synthesize(Attr.collect[Set, u.Symbol] {
+        case api.DefDef(method, tparams, params, body) => method
+      })
+        .synthesizeWith[Set[u.Symbol]] {
+        case Attr.syn(_, _ :: defs :: uses :: _) => defs diff uses
+      }
+        .traverseAny(removeShadowedThis(e.tree))
+    }
+
     // generate the actual DML code
     val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))
 
@@ -151,6 +185,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     }"""
 
     val res = identity(typeCheck = true)(alg)
+    println(showCode(res))
     c.Expr[T]((removeShadowedThis)(res))
   }
 }
