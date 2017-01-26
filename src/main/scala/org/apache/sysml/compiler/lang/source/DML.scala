@@ -43,7 +43,7 @@ trait DML extends Common {
       val sources: mutable.Set[(String, u.TermSymbol)] = mutable.Set.empty
 
       // map of all binding references to get the symbol for dataframes that are passed from outside the macro
-      val bindingRefs: mutable.Map[String, u.TermSymbol] = mutable.Map.empty
+      val bindingRefs: mutable.HashMap[String, u.TermSymbol] = mutable.HashMap.empty
 
       // all registered udfs
       val udfRegistry: mutable.Set[u.MethodSymbol] = mutable.Set.empty
@@ -103,13 +103,15 @@ trait DML extends Common {
 
             case u.TermName("fromDataFrame") => {
               // get the name of the referenced variable (dataframe)
-              val in = bindingRefs.get(args.head) match {
-                case Some(termSym) => termSym
-                case _ =>
-                  abort(s"Could not find reference to variable ${args.head} in Matrix.fromDataFrame. args: ${args}", sym.pos)
+              bindingRefs.get(args.head.trim) match {
+                case Some(termSym) => {
+                  sources.add((currLhs.name.decodedName.toString, termSym))
+                }
+                case None => {
+                  //abort(s"Could not find reference to variable ${args.head.toString} in Matrix.fromDataFrame with key: ${args.head.hashCode}, Keyset: ${bindingRefs.keySet.mkString(",")}", sym.pos)
+                }
               }
               // memoize the pair of (lhs, reference name)
-              sources.add((currLhs.name.decodedName.toString, in))
               // the original valdef is removed as references to the variable will be resolved from MLContext
               "null"
             }
@@ -239,7 +241,7 @@ trait DML extends Common {
           }
 
           def this_(sym: u.Symbol): D = offset => {
-            s"this_ref - sym-name: ${sym.name.decodedName}"
+            s"_this: ${sym.name.decodedName.toString}"
           }
 
           def bindingDef(lhs: u.TermSymbol, rhs: D): D = valDef(lhs, rhs)
@@ -491,16 +493,18 @@ trait DML extends Common {
                 // this is the case if we access a DataFrame from the closure. it will be a defCall where the target is
                 // the enclosing object and the method will be the name of the dataframe.
                 if (method.typeSignature.finalResultType.widen <:< u.typeOf[org.apache.spark.sql.DataFrame]) {
-                  bindingRefs.put(method.name.decodedName.toString, method)
-                  printSym(method)
+                  val registeredName = method.name.decodedName.toString
+                  bindingRefs.put(registeredName, method)
+                  println(s"Registering dataframe with (key: ${registeredName.hashCode}, value: $method)")
+                  //printSym(method)
+                  method.fullName
                 }
                 else method.name.decodedName match {
                   case u.TermName(tn) if matrixFuncs.contains(tn) || udfRegistry.contains(method) => s"$tn(${tgt(offset)})"
-                  case u.TermName(tn) if tn == "toDouble" => {
-                    tgt(offset) // this is a scala implicit conversion from Int to Double
-                  }
-                  case _ =>
-                    abort(s"Matching error, please report the following: case (Some(tgt), Nil): target ${tgt(offset)}")
+                  case u.TermName(tn) if tn == "toDouble" => tgt(offset) // this is a scala implicit conversion from Int to Double
+                  case u.TermName(tn) if Seq("$line", "$read", "$iw", "INSTANCE").exists(tn.contains(_)) => tgt(offset) // this is the case for accesses to vars and vals in the REPL/interpreter (classbased)
+                  case _ => tgt(offset) // here we catch references to outside values that might have names such as outer1.outer2.x
+                  // case _ => abort(s"Unable to translate to DML: Unsupported reference to ${method.fullName}")
                 }
               }
 
