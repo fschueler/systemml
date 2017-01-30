@@ -19,6 +19,8 @@ object DataFramePassing extends App {
 
   implicit val mlctx = new MLContext(sc)
 
+  // def plusOne: Double => Double = x => x + 1.0
+
   val x = 5.0
 
   val alg = parallelize {
@@ -27,15 +29,26 @@ object DataFramePassing extends App {
 
     val tr = matrix.t
 
+    // val y = plusOne(x)
+
     val minOut = x
     val maxOut = max(matrix)
     val meanOut = mean(matrix)
 
-    (minOut, maxOut, meanOut)
+    (minOut, maxOut, meanOut, tr)
   }
 
-  val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
+  val  (minOut: Double, maxOut: Double, meanOut: Double, tr: Matrix) = alg.run()
 
   println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
+
+  val alg2 = parallelize {
+    val M = Matrix.rand(3, 3)
+    val N = M %*% tr
+
+    N
+  }
+
+  val res = alg2.run()
 
 }

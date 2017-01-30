@@ -42,7 +42,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
-    Source.removeImplicits(API.implicitTypes),
     fixSymbolTypes,
     //stubTypeTrees,
     unQualifyStatics,
@@ -93,6 +92,9 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     */
   def impl[T: c.WeakTypeTag](e: u.Expr[T]) = {
 
+    // make sure that only things are used that we can support
+    validate(e.tree)
+
     // TODO this needs to be more robust for possible and impossible return types
     /** extract the return type that has to be retained from mlcontext */
     val (outType: u.Type, outNames: List[u.Tree]) = e.tree match {
@@ -108,32 +110,47 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         (e.tree.tpe, e.tree)
     }
 
-    // types that can be passed by reference into the macro
-    val supportedTypes = Set(u.typeOf[Dataset[_]], u.typeOf[DataFrame], u.typeOf[Double], u.typeOf[Int])
+    //TODO
+    /*
+    1. Find all arguments from the closure that have to be set as inputs to MLContext (DataFrame, Double, Int, Matrix)
+    2. Make sure functions in the closure only come from the api package module or the Matrix module
+     */
 
-    def isSupportedType(sym: u.Symbol): Boolean = {
-      val tpe = sym.typeSignature.finalResultType.widen
-      supportedTypes.exists(tpe <:< _)
+    def isValidInput(input: u.MethodSymbol): Boolean = {
+      DMLAPI.inputs.exists(input.returnType.finalResultType <:< _) || isPrimitive(input)
     }
 
-    val att = {
+    def isBuiltin(input: u.MethodSymbol): Boolean = {
+      DMLAPI.ops.contains(input)
+    }
+
+    def isApply(input: u.MethodSymbol): Boolean = {
+      input.name == u.TermName("apply")
+    }
+
+    def isPrimitive(input: u.MethodSymbol): Boolean = {
+      DMLAPI.primitives.exists(_ =:= input.returnType.finalResultType)
+    }
+
+    // validate the tree and collect macro inputs (DataFrame, Matrix, Double, Int)
+    val Attr.all(_, _, _, valdefs :: inputs :: defcalls :: HNil) = {
       api.TopDown
-        // function calls (includes outer scope variable references!)
-        .synthesize(Attr.collect[Set, u.Symbol] {
-        case a @ api.DefCall(target, method, targs, args) if isSupportedType(method) && args.isEmpty => {
-          val tg = target
-          method
-        }
+        .synthesize(Attr.collect[Set, u.TermSymbol] {
+          case api.DefCall(Some(target), method, targs, args) if !(isBuiltin(method) || isApply(method)) => method
       })
-        // function definitions
-          .synthesize(Attr.collect[Set, u.Symbol] {
-        case api.DefDef(method, tparams, params, body) => method
-      })
-        .synthesizeWith[Set[u.Symbol]] {
-        case Attr.syn(_, _ :: defs :: uses :: _) => defs diff uses
-      }
-        .traverseAny(removeShadowedThis(e.tree))
+        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect valid inputs to MLContext
+          case api.DefCall(Some(target), method, targs, args) if isValidInput(method) && !(isBuiltin(method) || isPrimitive(method)) => method
+        })
+        .synthesize(Attr.collect[Set, u.TermSymbol] {
+          case api.ValDef(lhs, rhs) => lhs
+        })
+        .traverseAny(e.tree)
     }
+
+    val closure = defcalls diff valdefs diff inputs
+
+    //if (closure.nonEmpty)
+      //abort(s"Invalid reference to the outside scope of the macro: ${closure.mkString(", ")}")
 
     // generate the actual DML code
     val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))
@@ -142,7 +159,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     val formatted = dmlString.split("\n").zipWithIndex.map(tup => f"${tup._2 + 1}%4d|${tup._1}").mkString("\n")
 
     // assemble the input and output parameters to MLContext
-    val inParams  = sources.toList
+    val inParams  = inputs.map(in => (in.name.decodedName.toString, in))
     val outParams = outNames.map(_.symbol.name.toString)
 
     // assemble the type of the return expression we want from MLContext
