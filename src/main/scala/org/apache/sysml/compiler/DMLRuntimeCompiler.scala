@@ -54,5 +54,6 @@ class DMLRuntimeCompiler extends RuntimeCompiler with DML {
   }
 
   def toDML: u.Tree => String = DML.toDML
+  lazy val valid = DMLSourceValidate.valid
 
 }
