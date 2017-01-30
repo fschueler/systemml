@@ -17,18 +17,23 @@
 package org.apache.sysml.compiler.lang.source
 
 import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.compiler.DMLCommon
 import org.emmalanguage.compiler.Common
 import org.emmalanguage.compiler.lang.source.Source
 
 import scala.collection.mutable
 import scala.util.Random
 
-trait DML extends Common {
+trait DML extends DMLCommon with DMLSourceValidate {
   this: Source =>
 
   object DML {
 
     lazy val toDML = unQualifyStatics andThen DMLTransform.generateDML
+
+    lazy val valid = DMLSourceValidate.valid
+
+    lazy val validate = (tree: u.Tree) => valid(tree).isGood
 
     def sources = DMLTransform.sources
 
