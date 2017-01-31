@@ -19,7 +19,7 @@ object DataFramePassing extends App {
 
   implicit val mlctx = new MLContext(sc)
 
-  // def plusOne: Double => Double = x => x + 1.0
+  def plusOne: Double => Double = x => x + 1.0
 
   val x = 5.0
 
@@ -29,7 +29,7 @@ object DataFramePassing extends App {
 
     val tr = matrix.t
 
-    // val y = plusOne(x)
+    val y = plusOne(x)
 
     val minOut = x
     val maxOut = max(matrix)

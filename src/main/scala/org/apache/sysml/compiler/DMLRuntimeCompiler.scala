@@ -53,7 +53,6 @@ class DMLRuntimeCompiler extends RuntimeCompiler with DML {
     else Function.chain(List(print) ++ steps.flatMap(List(_, print)))
   }
 
-  def toDML: u.Tree => String = DML.toDML
+  def toDML: u.Tree => String = (tree: u.Tree) => DML.toDML(tree)(new Environment(Map.empty[String, u.TermSymbol], Map.empty[String, u.TermSymbol], 0))
   lazy val valid = DMLSourceValidate.valid
-
 }
