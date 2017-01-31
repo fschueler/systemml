@@ -29,7 +29,7 @@ object DataFramePassing extends App {
 
     val tr = matrix.t
 
-    val y = plusOne(x)
+    // val y = plusOne(x)
 
     val minOut = x
     val maxOut = max(matrix)
