@@ -132,28 +132,33 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
       DMLAPI.primitives.exists(_ =:= input.returnType.finalResultType)
     }
 
+    // TODO ensure that methods outside the macro can't be used inside the macro (except builtins and references to dataframes, matrices, doubles, ints)
+
     // validate the tree and collect macro inputs (DataFrame, Matrix, Double, Int)
-    val Attr.all(_, _, _, valdefs :: inputs :: defcalls :: HNil) = {
+    val Attr.all(_, _, _, bindingRefs :: valdefs :: inputs :: defcalls :: HNil) = {
       api.TopDown
         .synthesize(Attr.collect[Set, u.TermSymbol] {
           case api.DefCall(Some(target), method, targs, args) if !(isBuiltin(method) || isApply(method)) => method
       })
         .synthesize(Attr.collect[Set, u.TermSymbol] { // collect valid inputs to MLContext
-          case api.DefCall(Some(target), method, targs, args) if isValidInput(method) && !(isBuiltin(method) || isPrimitive(method)) => method
+          case api.DefCall(Some(target), method, targs, args) if isValidInput(method) && !(isBuiltin(method) || isApply(method)) => method
         })
         .synthesize(Attr.collect[Set, u.TermSymbol] {
           case api.ValDef(lhs, rhs) => lhs
+        })
+        .synthesize(Attr.collect[Set, u.TermSymbol] {
+          case api.BindingRef(sym) => sym
         })
         .traverseAny(e.tree)
     }
 
     val closure = defcalls diff valdefs diff inputs
 
-    //if (closure.nonEmpty)
-      //abort(s"Invalid reference to the outside scope of the macro: ${closure.mkString(", ")}")
+    val inputMap = inputs.map(x => x.name.decodedName.toString -> x).toMap
+    val bindingRefMap = bindingRefs.map(x => x.name.decodedName.toString -> x).toMap
 
     // generate the actual DML code
-    val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))
+    val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))(new Environment(inputMap, bindingRefMap, 0))
 
     // prepend line numbers
     val formatted = dmlString.split("\n").zipWithIndex.map(tup => f"${tup._2 + 1}%4d|${tup._1}").mkString("\n")

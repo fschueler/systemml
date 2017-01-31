@@ -29,34 +29,22 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
   object DML {
 
-    lazy val toDML = unQualifyStatics andThen DMLTransform.generateDML
+    lazy val toDML = (tree: u.Tree) => (env: Environment) =>  DMLTransform.generateDML(unQualifyStatics(tree), env)
 
     lazy val valid = DMLSourceValidate.valid
 
     lazy val validate = (tree: u.Tree) => valid(tree).isGood
 
-    def sources = DMLTransform.sources
-
     private[source] object DMLTransform {
 
-      type D = Int => String
-      // semantic domain (offset => string representation)
+      type D = Environment => String
+      // semantic domain (env => string representation)
       val indent = 0
-
-      /** contains all sources that have to be specified in the MLContext
-        * with their names and the names in the dml script) */
-      val sources: mutable.Set[(String, u.TermSymbol)] = mutable.Set.empty
-
-      // map of all binding references to get the symbol for dataframes that are passed from outside the macro
-      val bindingRefs: mutable.HashMap[String, u.TermSymbol] = mutable.HashMap.empty
-
-      // all registered udfs
-      val udfRegistry: mutable.Set[u.MethodSymbol] = mutable.Set.empty
 
       // the last seen lhs of a valdef
       var currLhs: u.TermSymbol = _
 
-      val generateDML: u.Tree => String = (tree: u.Tree) => {
+      val generateDML: (u.Tree, Environment) => String = (tree: u.Tree, startingEnv: Environment) => {
 
         val ops = Set('=', '+', '-', '*', '/', '%', '<', '>', '&', '|', '!', '?', '^', '\\', '@', '#', '~')
 
@@ -96,8 +84,8 @@ trait DML extends DMLCommon with DMLSourceValidate {
           if (isApply(sym)) ""
           else pre + printSym(sym) + suf
 
-        val printConstructor = (sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int, isVector: Boolean) => {
-          val args = argss flatMap (args => args map (arg => arg(offset)))
+        val printConstructor = (sym: u.MethodSymbol, argss: Seq[Seq[D]], env: Environment, isVector: Boolean) => {
+          val args = argss flatMap (args => args map (arg => arg(env)))
 
           sym.name match {
             case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
@@ -106,25 +94,15 @@ trait DML extends DMLCommon with DMLSourceValidate {
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
             case u.TermName("apply") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
 
-            case u.TermName("fromDataFrame") => {
-              // get the name of the referenced variable (dataframe)
-              bindingRefs.get(args.head.trim) match {
-                case Some(termSym) => {
-                  sources.add((currLhs.name.decodedName.toString, termSym))
-                }
-                case None => {
-                  //abort(s"Could not find reference to variable ${args.head.toString} in Matrix.fromDataFrame with key: ${args.head.hashCode}, Keyset: ${bindingRefs.keySet.mkString(",")}", sym.pos)
-                }
-              }
-              // memoize the pair of (lhs, reference name)
-              // the original valdef is removed as references to the variable will be resolved from MLContext
-              "null"
-            }
+            /* Here we just remove the call to Matrix.fromDataFrame(ref) with ref. We will take care of setting the input
+               to the MLContext so that the actual dataframe reference will be passed with the name "ref"
+             */
+            case u.TermName("fromDataFrame") => args(0)
           }
         }
 
-        val printBuiltin = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
-          val args = argss flatMap (args => args map (arg => arg(offset)))
+        val printBuiltin = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], env: Environment) => {
+          val args = argss flatMap (args => args map (arg => arg(env)))
 
           sym.name match {
             case u.TermName("read") => {
@@ -151,14 +129,14 @@ trait DML extends DMLCommon with DMLSourceValidate {
         val isUnary = (sym: u.MethodSymbol) =>
           sym.name.decodedName.toString.startsWith("unary_")
 
-        val printArgss = (argss: Seq[Seq[D]], offset: Int) =>
-          (argss map (args => (args map (arg => arg(offset))).mkString("(", ", ", ")"))).mkString
+        val printArgss = (argss: Seq[Seq[D]], env: Environment) =>
+          (argss map (args => (args map (arg => arg(env))).mkString("(", ", ", ")"))).mkString
 
-        val printParams = (params: Seq[D], offset: Int) =>
-          (params map (param => param(offset))).mkString("(", ", ", ")")
+        val printParams = (params: Seq[D], env: Environment) =>
+          (params map (param => param(env))).mkString("(", ", ", ")")
 
-        val printParamss = (paramss: Seq[Seq[D]], offset: Int) =>
-          (paramss map (params => printParams(params, offset))).mkString
+        val printParamss = (paramss: Seq[Seq[D]], env: Environment) =>
+          (paramss map (params => printParams(params, env))).mkString
 
         def printTpe(tpe: u.Type): String = {
           val tpeCons = tpe.typeConstructor
@@ -202,9 +180,9 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
         /**
           *constructs a for loop by deconstructing foreach together with the range and the lambda */
-        val forLoop = (target: D, targs: Seq[u.Type], args: Seq[D], offset: Int) => {
-          val range = target(offset)
-          val lambda = args.map(x => x(offset)).head
+        val forLoop = (target: D, targs: Seq[u.Type], args: Seq[D], env: Environment) => {
+          val range = target(env)
+          val lambda = args.map(x => x(env)).head
 
           val parts = lambda.split(" => ")
 
@@ -231,10 +209,10 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
         val alg = new Source.Algebra[D] {
 
-          def empty: D = offset => ""
+          def empty: D = env => ""
 
           // Atomics
-          def lit(value: Any): D = offset => value match {
+          def lit(value: Any): D = env => value match {
             //@formatter:off
             case value: Boolean => if (value) "TRUE" else "FALSE"
             case value: Char => s""""${value}""""
@@ -245,7 +223,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
             //@formatter:on
           }
 
-          def this_(sym: u.Symbol): D = offset => {
+          def this_(sym: u.Symbol): D = env => {
             s"_this: ${sym.name.decodedName.toString}"
           }
 
@@ -257,30 +235,21 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
           def moduleAcc(target: D, member: u.ModuleSymbol): D = ???
 
-          override def bindingRef(sym: u.TermSymbol): D = offset => {
-            bindingRefs.put(sym.name.decodedName.toString, sym)
+          override def bindingRef(sym: u.TermSymbol): D = env => {
             printSym(sym)
           }
 
-          override def moduleRef(target: u.ModuleSymbol): D = offset =>
+          override def moduleRef(target: u.ModuleSymbol): D = env =>
             printSym(target)
 
           // Definitions
-          override def valDef(lhs: u.TermSymbol, rhs: D): D = offset => {
-            currLhs = lhs
-            val rhsString = rhs(offset)
-            /* if we have a reference to a dataframe (rhs == null),
-             we need to scratch it and put the reference as input to mlContext */
-            if (rhsString != "null")
-              s"${printSym(lhs)} = $rhsString"
-            else
-              ""
-          }
+          override def valDef(lhs: u.TermSymbol, rhs: D): D = env =>
+            s"${printSym(lhs)} = ${rhs(env)}"
 
-          override def parDef(lhs: u.TermSymbol, rhs: D): D = offset => {
+          override def parDef(lhs: u.TermSymbol, rhs: D): D = env => {
             val l = lhs.name.decodedName
             val tpe = lhs.typeSignature
-            val r = rhs(offset)
+            val r = rhs(env)
 
             if (r.isEmpty) {
               s"$l"
@@ -289,7 +258,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
             }
           }
 
-//          def defDef(sym: u.MethodSymbol, tparams: Seq[u.TypeSymbol], paramss: Seq[Seq[D]], body: D): D = offset => {
+//          def defDef(sym: u.MethodSymbol, tparams: Seq[u.TypeSymbol], paramss: Seq[Seq[D]], body: D): D = env => {
 //            if (tparams.length > 0) {
 //              abort(s"Type parameters are not supported: ${tparams}")
 //            }
@@ -297,7 +266,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
 //            udfRegistry.add(sym)
 //
 //            val name = sym.name.decodedName
-//            val block = body(offset)
+//            val block = body(env)
 //            val statements = indent(block.split("\n").dropRight(1).mkString("\n")) // drop last line
 //            val expression = block.split("\n").takeRight(1).head
 //
@@ -305,7 +274,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
 //
 //            // transform scala types to systemml types
 //            val inputTypes = inT.flatMap(convertTypes(_))
-//            val inputNames = paramss.flatten.map(_(offset))
+//            val inputNames = paramss.flatten.map(_(env))
 //
 //            val outputType = outT.flatMap(convertTypes(_))
 //            if (outputType.length > 1) {
@@ -338,11 +307,13 @@ trait DML extends DMLCommon with DMLSourceValidate {
           // Other
 
           /** type ascriptions such as `var x: Int` */
-          def typeAscr(target: D, tpe: u.Type): D = offset => "" // TODO check for types allowed in SystemML
+          def typeAscr(target: D, tpe: u.Type): D = env => "" // TODO check for types allowed in SystemML
 
-          def defCall(target: Option[D], method: u.MethodSymbol, targs: Seq[u.Type], argss: Seq[Seq[D]]): D = offset => {
+          def defCall(target: Option[D], method: u.MethodSymbol, targs: Seq[u.Type], argss: Seq[Seq[D]]): D = env => {
             val s = target
-            val args = argss flatMap (args => args map (arg => arg(offset)))
+            val args = argss flatMap (args => args map (arg => arg(env)))
+
+            println("env: " + env)
 
             (target, argss) match {
 
@@ -351,33 +322,33 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 ""
 
               case (Some(tgt), _) if method == api.Sym.foreach || method.overrides.contains(api.Sym.foreach) =>
-                forLoop(tgt, targs, argss.flatten, offset)
+                forLoop(tgt, targs, argss.flatten, env)
 
               /* matches unary methods without arguments, e.g. A.t */
               case (Some(tgt), Nil) if isUnary(method) =>
-                s"${printSym(method)}${tgt(offset)}"
+                s"${printSym(method)}${tgt(env)}"
 
               /* matches apply methods with one argument */
               case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
-                s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
+                s"${tgt(env)}${printMethod(" ", method, " ")}${arg(env)}"
 
               /* matches methods with one argument (%*%, read) */
               case (Some(tgt), (arg :: Nil) :: Nil) => {
 
-                val module = tgt(offset)
+                val module = tgt(env)
 
                 // methods in the package object (builtins with one argument (read)
                 if (module == "package") {
-                  printBuiltin(tgt, method, argss, offset)
+                  printBuiltin(tgt, method, argss, env)
                 }
 
                 // matrix constructors with one argument (fromDataFrame)
                 else if (module == "Matrix") {
-                  printConstructor(method, argss, offset, false)
+                  printConstructor(method, argss, env, false)
                 }
 
                 else if (module == "Vector") {
-                  printConstructor(method, argss, offset, true)
+                  printConstructor(method, argss, env, true)
                 }
 
                 // methods from scala.predef with one argument (println(...) etc.)
@@ -385,8 +356,8 @@ trait DML extends DMLCommon with DMLSourceValidate {
                   val name = method.name.decodedName
 
                   name match {
-                    case u.TermName("println") => s"print(${arg(offset)})"
-                    case u.TermName("intWrapper") => s"${arg(offset)}"
+                    case u.TermName("println") => s"print(${arg(env)})"
+                    case u.TermName("intWrapper") => s"${arg(env)}"
                     case _ => abort(s"scala.predef.$name is not supported in DML", method.pos)
                   }
                 }
@@ -394,7 +365,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 // binary operators
                 else {
                   method.name.decodedName match {
-                    case u.TermName("to") | u.TermName("until") => s"${tgt(offset)}:${arg(offset)}"
+                    case u.TermName("to") | u.TermName("until") => s"${tgt(env)}:${arg(env)}"
                     case u.TermName("%") => s"($module %% ${args(0)})" // modulo in dml is %%
                     case u.TermName("&&") => s"($module & ${args(0)})" // && in dml is &
                     case u.TermName("||") => s"($module | ${args(0)})" // || in dml is |
@@ -405,7 +376,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
               // matches apply methods with multiple arguments
               case (Some(tgt), (x :: xs) :: Nil) if isApply(method) => {
-                val module = tgt(offset)
+                val module = tgt(env)
                 val argString = args.mkString(" ")
 
                 if (module == "Seq" || module == "Array") {
@@ -414,11 +385,11 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 }
 
                 else if (module == "Matrix") {
-                  printConstructor(method, argss, offset, false)
+                  printConstructor(method, argss, env, false)
                 }
 
                 else if (module == "Vector") {
-                  printConstructor(method, argss, offset, true)
+                  printConstructor(method, argss, env, true)
                 }
 
                 else if (module == "package") {
@@ -426,9 +397,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
                   "builtin"
                 }
 
-                else if (bindingRefs.contains(module)) {
-                  // apply on matrix objects (right indexing)
-                  // NOTE: Scala is 0-based indexing, DML is 1-based
+                else {
                   val r = args(0) // rows
                   val c = args(1) // columns
 
@@ -440,15 +409,15 @@ trait DML extends DMLCommon with DMLSourceValidate {
                     s"as.scalar($module[$r + 1,$c + 1])"
                 }
 
-                else
-                  "case (Some(tgt), (x :: xs) :: Nil) if isApply(method)"
+//                else
+//                  "case (Some(tgt), (x :: xs) :: Nil) if isApply(method)"
               }
 
               // matches apply methods with multiple arguments
               case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method) => {
-                val module = tgt(offset)
+                val module = tgt(env)
 
-                if (bindingRefs.contains(module)) {
+//                if (bindingRefs.contains(module)) {
                   // update on matrix objects (left indexing): A[r, c] = v === A.update(r, c, v)
                   val r = args(0) // rows
                   val c = args(1) // columns
@@ -460,28 +429,28 @@ trait DML extends DMLCommon with DMLSourceValidate {
                     s"$module[,$c + 1] = $v"
                   else
                     s"$module[$r + 1,$c + 1] = $v"
-                }
-                else
-                  "case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method)"
+//                }
+//                else
+//                  "case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method)"
               }
 
               // matches methods with multiple arguments (e.g. zeros(3, 3), write)
               case (Some(tgt), (x :: xs) :: Nil) => {
 
-                val module = tgt(offset)
+                val module = tgt(env)
                 val argString = args.mkString(" ")
 
                 if (module == "Matrix") {
-                  printConstructor(method, argss, offset, false)
+                  printConstructor(method, argss, env, false)
                 }
 
                 else if (module == "Vector") {
-                  printConstructor(method, argss, offset, true)
+                  printConstructor(method, argss, env, true)
                 }
 
                 else if (module == "package") {
                   // builtin
-                  printBuiltin(tgt, method, argss, offset)
+                  printBuiltin(tgt, method, argss, env)
                 }
 
                 else {
@@ -492,28 +461,16 @@ trait DML extends DMLCommon with DMLSourceValidate {
               // matches functions without arguments (.t (transpose))
               case (Some(tgt), Nil) => {
 
-                val module = tgt(offset)
-                val argString = args.mkString(" ")
-
-                // this is the case if we access a DataFrame from the closure. it will be a defCall where the target is
-                // the enclosing object and the method will be the name of the dataframe.
-                if (method.typeSignature.finalResultType.widen <:< u.typeOf[org.apache.spark.sql.DataFrame]) {
-                  val registeredName = method.name.decodedName.toString
-                  bindingRefs.put(registeredName, method)
-                  println(s"Registering dataframe with (key: ${registeredName.hashCode}, value: $method)")
-                  //printSym(method)
-                  method.fullName
-                }
-                else method.name.decodedName match {
-                  case u.TermName(tn) if matrixFuncs.contains(tn) || udfRegistry.contains(method) => s"$tn(${tgt(offset)})"
-                  case u.TermName(tn) if tn == "toDouble" => tgt(offset) // this is a scala implicit conversion from Int to Double
-                  case u.TermName(tn) if Seq("$line", "$read", "$iw", "INSTANCE").exists(tn.contains(_)) => tgt(offset) // this is the case for accesses to vars and vals in the REPL/interpreter (classbased)
-                  case _ => tgt(offset) // here we catch references to outside values that might have names such as outer1.outer2.x
+                method.name.decodedName match {
+                  case u.TermName(tn) if matrixFuncs.contains(tn) => s"$tn(${tgt(env)})"
+                  case u.TermName(tn) if tn == "toDouble" => tgt(env) // this is a scala implicit conversion from Int to Double
+                  case u.TermName(tn) if Seq("$line", "$read", "$iw", "INSTANCE").exists(tn.contains(_)) => tgt(env) // this is the case for accesses to vars and vals in the REPL/interpreter (classbased)
+                  case _ => method.name.decodedName.toString // here we catch references to outside values that might have names such as outer1.outer2.x
                   // case _ => abort(s"Unable to translate to DML: Unsupported reference to ${method.fullName}")
                 }
               }
 
-              case (Some(tgt), _) => abort(s"Matching error, please report the following: case case (Some(tgt), _): target ${tgt(offset)}")
+              case (Some(tgt), _) => abort(s"Matching error, please report the following: case case (Some(tgt), _): target ${tgt(env)}")
 
               // matches functions that are not defined in a module or class (udfs)
               case (None, _) => {
@@ -529,20 +486,20 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
           def inst(target: u.Type, targs: Seq[u.Type], argss: Seq[Seq[D]]): D = ???
 
-          def lambda(sym: u.TermSymbol, params: Seq[D], body: D): D = offset => {
-            val p = params.map(p => p(offset))
-            val b = body(offset)
+          def lambda(sym: u.TermSymbol, params: Seq[D], body: D): D = env => {
+            val p = params.map(p => p(env))
+            val b = body(env)
 
             s"""(${p.mkString(", ")}) => $b"""
           }
 
-          def branch(cond: D, thn: D, els: D): D = offset => {
-            val thenBlock = indent(thn(offset))
-            val elseBlock = indent(els(offset))
+          def branch(cond: D, thn: D, els: D): D = env => {
+            val thenBlock = indent(thn(env))
+            val elseBlock = indent(els(env))
 
             if (elseBlock != "  ") {
               s"""
-                 |if (${cond(offset)}) {
+                 |if (${cond(env)}) {
                  |$thenBlock
                  |} else {
                  |$elseBlock
@@ -550,27 +507,27 @@ trait DML extends DMLCommon with DMLSourceValidate {
             """.stripMargin.trim
             } else {
               s"""
-                 |if (${cond(offset)}) {
+                 |if (${cond(env)}) {
                  |$thenBlock
                  |}
             """.stripMargin.trim
             }
           }
 
-          def block(stats: Seq[D], expr: D): D = offset => {
+          def block(stats: Seq[D], expr: D): D = env => {
             val statsString = stats.flatMap{x =>
-              val res = x(offset)
-              if (bindingRefs.keySet.contains(res)) {
+              val res = x(env)
+              if (env.bindingRefs.keySet.contains(res)) {
                 None // if the statement is a single varref/valref, remove it
               } else {
                 Some(res)
               }
             }.filter(x => x.trim.length > 0).mkString("\n")
 
-            val exprString  = expr(offset)
+            val exprString  = expr(env)
 
             // if the expression is a valref or varref, we leave it out because SystemML doesn't allow single expressions as statements
-            val returnExpr = if (bindingRefs.keySet.contains(exprString)) {
+            val returnExpr = if (env.bindingRefs.keySet.contains(exprString)) {
               ""
             } else {
               exprString
@@ -582,21 +539,21 @@ trait DML extends DMLCommon with DMLSourceValidate {
             """.stripMargin.trim
           }
 
-          def whileLoop(cond: D, body: D): D = offset => {
-            val formatted = indent(body(offset))
+          def whileLoop(cond: D, body: D): D = env => {
+            val formatted = indent(body(env))
 
             s"""
-               |while(${cond(offset)}) {
+               |while(${cond(env)}) {
                |$formatted
                |}
              """.stripMargin.trim
           }
 
-          def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {
-            s"${lhs.name.decodedName} = ${rhs(offset)}"
+          def varMut(lhs: u.TermSymbol, rhs: D): D = env => {
+            s"${lhs.name.decodedName} = ${rhs(env)}"
           }
         }
-        Source.fold(alg)(tree)(0)
+        Source.fold(alg)(tree)(startingEnv)
       }
     }
   }
