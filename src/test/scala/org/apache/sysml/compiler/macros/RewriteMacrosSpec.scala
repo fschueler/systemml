@@ -35,86 +35,112 @@ import scala.util.Random
 /** A spec for SystemML Algorithms. */
 @RunWith(classOf[JUnitRunner])
 class RewriteMacrosSpec extends FreeSpec with Matchers {
-  val conf = new SparkConf()
-    .setMaster("local[2]")
-    .setAppName("SystemML Spark App")
+  val spark = SparkSession.builder().appName("RewriteMacroSpec").master("local[4]").getOrCreate()
+  val sc    = spark.sparkContext
 
-  lazy val sc: SparkContext = new SparkContext(conf)
-  lazy val spark = SparkSession.builder().getOrCreate()
-
-  implicit lazy val mlctx: MLContext = new MLContext(sc)
+  implicit var mlctx: MLContext = _
 
   "Matrix output" in {
 
-    val alg = parallelize {
-      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
-      val n = sum(m)
-      (m, n)
+    object MatrixOutputTest extends App with Serializable {
+      mlctx = new MLContext(sc)
+
+      val alg = parallelize {
+        val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
+        val n = sum(m)
+        (m, n)
+      }
+
+      val (m: Matrix, n: Double) = alg.run()
     }
 
-    val (m: Matrix, n: Double) = alg.run()
+    MatrixOutputTest.main(Array())
   }
 
   "Matrix Multiplication" in {
 
-    val alg = parallelize {
-      val A = Matrix.rand(5, 3)
-      val B = Matrix.rand(3, 7)
-      val C = A %*% B
-      C
+    object MatrixMultiplication extends App with Serializable {
+      mlctx = new MLContext(sc)
+
+      val alg = parallelize {
+        val A = Matrix.rand(5, 3)
+        val B = Matrix.rand(3, 7)
+        val C = A %*% B
+        C
+      }
+
+      val res = alg.run()
+      println("Matrix multiplication result: " + res)
     }
 
-    val res = alg.run()
+    MatrixMultiplication.main(Array())
   }
 
   "For loop" in {
 
-    val loop = parallelize {
-      val A = Matrix.rand(3, 3)
-      val B = Matrix.rand(3, 3)
-      var C = Matrix.zeros(3, 3)
+    object LoopTest extends App with Serializable {
+      mlctx = new MLContext(sc)
 
-      val iter = 10
-      var s = 0.0
+      val loop = parallelize {
+        val A = Matrix.rand(3, 3)
+        val B = Matrix.rand(3, 3)
+        var C = Matrix.zeros(3, 3)
 
-      for (i <- 1 to iter) {
-        C = A %*% B
-        s = sum(C)
-        println(s)
+        val iter = 10
+        var s = 0.0
+
+        for (i <- 1 to iter) {
+          C = A %*% B
+          s = sum(C)
+          println(s)
+        }
       }
+
+      val res = loop.run()
     }
 
-    val res = loop.run()
+    LoopTest.main(Array())
   }
 
   "NMF" in {
+    object NMF extends App with Serializable {
+      mlctx = new MLContext(sc)
 
-    val nmf: SystemMLAlgorithm[(Matrix, Matrix)] = parallelize {
-      val tfidf = Array(1.0, 2.0, 3.0, 4.0) // tfidf feature matrix coming from somewhere
-      val k = 40
-      val m, n = 2 // dimensions of tfidf
-      val maxIters = 200
+      val nmf: SystemMLAlgorithm[(Matrix, Matrix)] = parallelize {
+        val tfidf = Array(1.0, 2.0, 3.0, 4.0)
+        // tfidf feature matrix coming from somewhere
+        val k = 40
+        val m, n = 2
+        // dimensions of tfidf
+        val maxIters = 200
 
-      val V = Matrix(tfidf, m, n) // initialize matrices
-      var W = Matrix.rand(m, k)
-      var H = Matrix.rand(k, n)
+        val V = Matrix(tfidf, m, n)
+        // initialize matrices
+        var W = Matrix.rand(m, k)
+        var H = Matrix.rand(k, n)
 
-      for (i <- 0 to maxIters) { //main loop
-        H = H * (W.t %*% V) / (W.t %*% (W %*% H))
-        W = W * (V %*% H.t) / (W %*% (H %*% H.t))
+        for (i <- 0 to maxIters) {
+          //main loop
+          H = H * (W.t %*% V) / (W.t %*% (W %*% H))
+          W = W * (V %*% H.t) / (W %*% (H %*% H.t))
+        }
+
+        (W, H) // return values
       }
 
-      (W, H) // return values
+      val (w, h) = nmf.run()
+      println(w)
     }
 
-    val (w, h) = nmf.run()
-    println(w)
+    NMF.main(Array())
   }
 
 
   "MinMaxMean from DataFrame" in {
 
-    object TestObject extends Serializable {
+    object MinMaxMean extends App with Serializable {
+      mlctx = new MLContext(sc)
+
       val numRows = 1000
       val numCols = 1000
       val data = sc.parallelize(0 to numRows - 1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
@@ -132,57 +158,35 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         (minOut, maxOut, meanOut)
       }
 
-      def main(args: Array[String]): Unit = {
-        val (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
+      val (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
 
-        println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
-      }
+      println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
     }
 
-    TestObject.main(Array())
+    MinMaxMean.main(Array())
   }
 
   "While Loop" in {
 
-    val alg = parallelize {
-      var x = 5
-      var y = 100
+    object WhileLoop extends App with Serializable {
+      mlctx = new MLContext(sc)
 
-      while (x > 0) {
-        x = x - 1
-        y = y / 2
+      val alg = parallelize {
+        var x = 5
+        var y = 100
+
+        while (x > 0) {
+          x = x - 1
+          y = y / 2
+        }
+
+        (x, y)
       }
 
-      (x, y)
+      val res = alg.run()
+      println(res)
     }
 
-    val res = alg.run()
-    println(res)
-  }
-
-  "Read csv" in {
-
-    val alg = parallelize {
-      // Read the input data
-      val data: Matrix = read("/home/felix/repos/incubator-systemml/src/test/resources/iris.data", Format.CSV)
-      val c = data.ncol
-      val r = data.nrow
-
-      println("r: " + r + ", c: " + c)
-
-      // initialize result vector
-      var stats = Matrix.rand(1, c)
-
-      for (i <- 1 until 2) {
-        stats = stats + 5.0
-      }
-
-      stats = stats / r
-
-      (stats, r, c)
-    }
-
-    val res = alg.run()
-    println(res)
+    WhileLoop.main(Array())
   }
 }
