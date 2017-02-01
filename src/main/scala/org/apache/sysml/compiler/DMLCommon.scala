@@ -1,7 +1,7 @@
 package org.apache.sysml.compiler
 
 import org.apache.spark.sql.{DataFrame, Dataset}
-import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.{Matrix, Vector}
 import org.apache.sysml.api.mlcontext.MLContext
 import org.emmalanguage.compiler.Common
 
@@ -25,6 +25,8 @@ trait DMLCommon extends Common {
     val predefModuleSymbol      = api.Sym[scala.Predef.type].asModule
     val apiModuleSymbol         = api.Sym[org.apache.sysml.api.linalg.api.`package`.type].asModule
     val matrixSymbol            = api.Sym[org.apache.sysml.api.linalg.Matrix].asClass
+    val vectorModuleSymbol      = api.Sym[org.apache.sysml.api.linalg.Vector.type ].asModule
+    val matrixOpsSymbol         = api.Sym[org.apache.sysml.api.linalg.api.MatrixOps].asClass
     val doubleSymbol            = api.Sym[scala.Double].asClass
     val intSymbol               = api.Sym[scala.Int].asClass
     val matrixModuleSymbol      = matrixSymbol.companion.asModule
@@ -70,7 +72,9 @@ trait DMLCommon extends Common {
     // Sources
     val zeros               = methodIn(matrixModuleSymbol, "zeros")
     val ones                = methodIn(matrixModuleSymbol, "ones")
+    val onesV               = methodIn(vectorModuleSymbol, "ones")
     val rand                = methodIn(matrixModuleSymbol, "rand")
+    val randV               = methodIn(vectorModuleSymbol, "rand")
     val fromDataFrame       = methodIn(matrixModuleSymbol, "fromDataFrame")
 
     // builtin functions
@@ -79,10 +83,26 @@ trait DMLCommon extends Common {
     val min       = methodIn(apiModuleSymbol, "min")
     val max       = methodIn(apiModuleSymbol, "max")
     val read      = methodIn(apiModuleSymbol, "read")
+    val ppred     = methodIn(apiModuleSymbol, "ppred")
+    val colMeans  = methodIn(apiModuleSymbol, "colMeans")
+    val rowSums   = methodIn(apiModuleSymbol, "rowSums")
+    val pmax      = methodIn(apiModuleSymbol, "pmax")
 
     // matrix operators
-    val transpose = matrixOp("t")
-    val matmult   = matrixOp("%*%")
+    // FIXME this is a hack and should be solved in a more general way so that we can create method symbols for overloaded methods
+    val updateI          = matrixSymbol.info.member(api.TermName("update")).alternatives.find {alt =>
+      alt.typeSignature.paramLists.flatten.zip(List(Int, Int, Double)).forall(tup => tup._1.typeSignature.resultType =:= tup._2 )
+    }.headOption match {
+      case Some(sym) => sym.asMethod
+      case _ => abort("this didn't work!")
+    }
+
+    //val updateD          = matrixOp("update", Double)
+    val nrow            = matrixOp("nrow")
+    val ncol            = matrixOp("ncol")
+    val pow             = matrixOp("^", Int)
+    val transpose       = matrixOp("t")
+    val matmult         = matrixOp("%*%")
     val timesDouble     = matrixOp("*", Double)
     val divDouble       = matrixOp("/", Double)
     val plusDouble      = matrixOp("+", Double)
@@ -101,6 +121,18 @@ trait DMLCommon extends Common {
     val leqDD     = doubleOp("<=", Double)
     val lessDD    = doubleOp("<", Double)
     val greaterDD = doubleOp(">", Double)
+    val modDD     = doubleOp("%", Double)
+
+    // Double/Matrix
+    val plusDM    = methodIn(matrixOpsSymbol, "+", Matrix)
+    val minusDM   = methodIn(matrixOpsSymbol, "-", Matrix)
+    val timesDM   = methodIn(matrixOpsSymbol, "*", Matrix)
+    val divDM     = methodIn(matrixOpsSymbol, "/", Matrix)
+//    val geqDM     = doubleOp(">=", Matrix)
+//    val leqDM     = doubleOp("<=", Matrix)
+//    val lessDM    = doubleOp("<", Matrix)
+//    val greaterDM = doubleOp(">", Matrix)
+
 
     // Int/Int operators
     val plusII    = intOp("+", Int)
@@ -111,13 +143,14 @@ trait DMLCommon extends Common {
     val leqII     = intOp("<=", Int)
     val lessII    = intOp("<", Int)
     val greaterII = intOp(">", Int)
+    val modII     = intOp("%", Int)
 
 
-    val sourceOps   = Set(zeros, ones, rand, fromDataFrame)
-    val builtinOps  = Set(sum, mean, min, max, read)
-    val matOps      = Set(transpose, matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix)
-    val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD)
-    val intOps      = Set(plusII, minusII, timesII, divII, geqII, leqII, lessII, greaterII)
+    val sourceOps   = Set(zeros, ones, onesV, rand, randV, fromDataFrame)
+    val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax)
+    val matOps      = Set(updateI, pow, nrow, ncol, transpose, matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix)
+    val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD, plusDM, minusDM, timesDM, modDD, divDM)
+    val intOps      = Set(plusII, minusII, timesII, divII, geqII, leqII, lessII, greaterII, modII)
 
     val ops: Set[u.MethodSymbol] = sourceOps | builtinOps | matOps | doubleOps | intOps
 
