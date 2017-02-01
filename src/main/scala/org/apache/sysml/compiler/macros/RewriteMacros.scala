@@ -23,6 +23,7 @@ import org.emmalanguage.util.Monoids
 import cats.std.all._
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.mlcontext.MLContext
 import shapeless._
 
 import scala.Option
@@ -42,6 +43,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
+    removeShadowedThis,
     fixSymbolTypes,
     //stubTypeTrees,
     unQualifyStatics,
@@ -80,6 +82,26 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     q"(${p._1}, ${p._2})"
   }
 
+  private def isValidInput(input: u.MethodSymbol): Boolean = {
+    DMLAPI.inputs.exists(input.returnType.finalResultType <:< _) || isPrimitive(input)
+  }
+
+  private def isBuiltin(input: u.MethodSymbol): Boolean = {
+    DMLAPI.ops.contains(input)
+  }
+
+  private def isApply(input: u.MethodSymbol): Boolean = {
+    input.name == u.TermName("apply")
+  }
+
+  private def isPrimitive(input: u.MethodSymbol): Boolean = {
+    DMLAPI.primitives.exists(_ =:= input.returnType.finalResultType)
+  }
+
+  private def isValidModule(input: u.ModuleSymbol): Boolean = {
+    DMLAPI.modules.contains(input)
+  }
+
   ////////////////////////////////////////////////////////////////////////////////
   // MACRO IMPLEMENTATION
   ////////////////////////////////////////////////////////////////////////////////
@@ -92,8 +114,48 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     */
   def impl[T: c.WeakTypeTag](e: u.Expr[T]) = {
 
-    // make sure that only things are used that we can support
+    /*
+    General validation of source language.
+    Make sure that only things are used that we can support in Scala. This does not include more domain specific
+    semantic validation which is done later.
+    */
     validate(e.tree)
+
+    /*
+    Here we collect inputs (i.e. the instances in the closure that can be passed to MLContext) and also perform some
+    more domain specific semantic validation, making sure that we only reference things in the outside scope that can
+    safely be translated to DML.
+     */
+    val Attr.all(_, _, _, bindingRefs :: valdefs :: modules :: inputs :: defcalls :: HNil) = {
+      api.TopDown
+        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all def calls
+          case api.DefCall(Some(target), method, targs, args) if !(isBuiltin(method) || isApply(method)) => method
+        })
+        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect valid inputs to MLContext (def calls since they come from some other module)
+          case api.DefCall(Some(target), method, targs, args) if isValidInput(method) && !(isBuiltin(method) || isApply(method)) => method
+        })
+        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect valid module accesses
+          case api.DefCall(Some(api.ModuleAcc(tree, sym)), method, targs, args) => sym
+        })
+        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all valdefs
+          case api.ValDef(lhs, rhs) => lhs
+        })
+        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all bindingrefs
+          case api.BindingRef(sym) => sym
+        })
+        .traverseAny(e.tree)
+    }
+
+    // take the closure and remove all "legal" accesses
+    val closure = defcalls diff valdefs diff inputs
+
+    // if the remaining closure is not empty, there are illegal accesses to the outside scope
+//    if (closure.nonEmpty)
+//      abort(s"Illegal reference to outside scope of the macro: ${closure.mkString(", ")}")
+
+    // construct maps for all inputs to the MLContext and binding references
+    val inputMap = inputs.map(x => x.name.decodedName.toString -> x).toMap
+    val bindingRefMap = bindingRefs.map(x => x.name.decodedName.toString -> x).toMap
 
     // TODO this needs to be more robust for possible and impossible return types
     /** extract the return type that has to be retained from mlcontext */
@@ -109,57 +171,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
       case _ =>
         (e.tree.tpe, e.tree)
     }
-
-    //TODO
-    /*
-    1. Find all arguments from the closure that have to be set as inputs to MLContext (DataFrame, Double, Int, Matrix)
-    2. Make sure functions in the closure only come from the api package module or the Matrix module
-     */
-
-    def isValidInput(input: u.MethodSymbol): Boolean = {
-      DMLAPI.inputs.exists(input.returnType.finalResultType <:< _) || isPrimitive(input)
-    }
-
-    def isBuiltin(input: u.MethodSymbol): Boolean = {
-      DMLAPI.ops.contains(input)
-    }
-
-    def isApply(input: u.MethodSymbol): Boolean = {
-      input.name == u.TermName("apply")
-    }
-
-    def isPrimitive(input: u.MethodSymbol): Boolean = {
-      DMLAPI.primitives.exists(_ =:= input.returnType.finalResultType)
-    }
-
-    // TODO ensure that methods outside the macro can't be used inside the macro
-    // Except: builtins and references to dataframes, matrices, doubles, ints, references to Scala Predef functions
-
-    // validate the tree and collect macro inputs (DataFrame, Matrix, Double, Int)
-    val Attr.all(_, _, _, bindingRefs :: valdefs :: inputs :: defcalls :: HNil) = {
-      api.TopDown
-        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all def calls
-          case api.DefCall(Some(target), method, targs, args) if !(isBuiltin(method) || isApply(method)) => method
-      })
-        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect valid inputs to MLContext (def calls since they come from some other module)
-          case api.DefCall(Some(target), method, targs, args) if isValidInput(method) && !(isBuiltin(method) || isApply(method)) => method
-        })
-        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all valdefs
-          case api.ValDef(lhs, rhs) => lhs
-        })
-        .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all bindingrefs
-          case api.BindingRef(sym) => sym
-        })
-        .traverseAny(e.tree)
-    }
-
-    val closure = defcalls diff valdefs diff inputs
-
-    if (closure.nonEmpty)
-      abort(s"Illegal reference to outside scope of the macro: ${closure.mkString(", ")}")
-
-    val inputMap = inputs.map(x => x.name.decodedName.toString -> x).toMap
-    val bindingRefMap = bindingRefs.map(x => x.name.decodedName.toString -> x).toMap
 
     // generate the actual DML code
     val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))(new Environment(inputMap, bindingRefMap, 0))
@@ -212,6 +223,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
     val res = identity(typeCheck = true)(alg)
     println(showCode(res))
-    c.Expr[T]((removeShadowedThis)(res))
+    c.Expr[T](res)
   }
 }
