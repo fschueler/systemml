@@ -137,17 +137,16 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
           case api.ValDef(lhs, rhs) => lhs
         })
         .synthesize(Attr.collect[Set, u.TermSymbol] { // collect all bindingrefs
+          case api.ValRef(sym) => sym
+          case api.VarRef(sym) => sym
           case api.BindingRef(sym) => sym
+          case api.DefCall(Some(target), method, targs, args) => method
         })
         .traverseAny(e.tree)
     }
 
     // take the closure and remove all "legal" accesses
     val closure = defcalls diff valdefs diff inputs
-
-    // if the remaining closure is not empty, there are illegal accesses to the outside scope
-//    if (closure.nonEmpty)
-//      abort(s"Illegal reference to outside scope of the macro: ${closure.mkString(", ")}")
 
     // construct maps for all inputs to the MLContext and binding references
     val inputMap = inputs.map(x => x.name.decodedName.toString -> x).toMap
