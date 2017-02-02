@@ -462,8 +462,10 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 method.name.decodedName match {
                   case u.TermName(tn) if matrixFuncs.contains(tn) => s"$tn(${tgt(env)})"
                   case u.TermName(tn) if tn == "toDouble" => tgt(env) // this is a scala implicit conversion from Int to Double
-                  // case u.TermName(tn) if Seq("$line", "$read", "$iw", "INSTANCE").exists(tn.contains(_)) => tgt(env) // this is the case for accesses to vars and vals in the REPL/interpreter (classbased)
-                  case _ => method.name.decodedName.toString // here we catch references to outside values that might have names such as outer1.outer2.x
+//                  case u.TermName(tn) if Seq("$line", "$read", "$iw", "INSTANCE").exists(tn.contains(_)) => tgt(env) // this is the case for accesses to vars and vals in the REPL/interpreter (classbased)
+//                  case u.TermName(tn) => tgt(env) // here we catch references to outside values that might have names such as outer1.outer2.x
+//                  case _ => abort(s"Unable to translate to DML: Unsupported reference to target: $target, method: ${method.fullName}")
+                  case _ => method.name.decodedName.toString
                 }
               }
 

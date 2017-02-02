@@ -3,9 +3,10 @@ package org.apache.sysml.compiler
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.sysml.api.linalg.{Matrix, Vector}
 import org.apache.sysml.api.mlcontext.MLContext
+import org.emmalanguage.ast.AST
 import org.emmalanguage.compiler.Common
 
-trait DMLCommon extends Common {
+trait DMLCommon extends AST {
 
   class Environment(val inputs: Map[String, u.TermSymbol],
                     val bindingRefs: Map[String, u.TermSymbol],
@@ -18,9 +19,14 @@ trait DMLCommon extends Common {
   // --------------------------------------------------------------------------
   import universe._
 
-  override val rootPkg = "org.apache.sysml.api.linalg"
+  protected[sysml] object DMLAPI {
 
-  protected[sysml] object DMLAPI extends IRModule {
+    protected def op(name: String): u.MethodSymbol =
+      methodIn(module, name)
+
+    protected def methodIn(target: u.Symbol, name: String): u.MethodSymbol =
+      target.info.member(api.TermName(name)).asMethod
+
 
     val predefModuleSymbol      = api.Sym[scala.Predef.type].asModule
     val apiModuleSymbol         = api.Sym[org.apache.sysml.api.linalg.api.`package`.type].asModule

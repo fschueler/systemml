@@ -19,23 +19,18 @@ package org.apache.sysml.compiler.macros
 import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.compiler.lang.source.DML
 import org.emmalanguage.compiler.MacroCompiler
-import org.emmalanguage.util.Monoids
 import cats.std.all._
-import org.apache.spark.sql.{DataFrame, Dataset}
-import org.apache.sysml.api.linalg.Matrix
-import org.apache.sysml.api.mlcontext.MLContext
 import shapeless._
 
-import scala.Option
-import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
 
 class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
-
   import DML._
   import u._
+
+  override val rootPkg = "org.apache.sysml.api"
 
   ////////////////////////////////////////////////////////////////////////////////
   // PIPELINE
@@ -43,11 +38,12 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
-    removeShadowedThis,
+    //removeShadowedThis,
     fixSymbolTypes,
-    //stubTypeTrees,
+    stubTypeTrees,
     unQualifyStatics,
     normalizeStatements
+    // Source.normalize
   )
 
   /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */
@@ -195,14 +191,10 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     val out = if (outTypes.length == 1 && outParams.nonEmpty) q"out._1" else q"out"
 
     // Construct algorithm object
-    val alg = q"""
-      import org.apache.sysml.api.linalg.api.SystemMLAlgorithm
-      import org.apache.sysml.api.linalg.api._
+    val alg = q"""{
+      new _root_.org.apache.sysml.api.linalg.api.SystemMLAlgorithm[${u.weakTypeOf[T]}]  {
 
-      import org.apache.sysml.api.mlcontext.{Matrix => _, _}
-      import org.apache.sysml.api.mlcontext.ScriptFactory._
-
-      new SystemMLAlgorithm[${u.weakTypeOf[T]}]  {
+      import _root_.org.apache.sysml.api.mlcontext.ScriptFactory._
       import _root_.scala.reflect._
 
       def run(): ${u.weakTypeOf[T]} = {
@@ -212,17 +204,18 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         println(${formatted})
         println("=" * 80)
 
-        val ml = implicitly[MLContext]
+        val ml = implicitly[_root_.org.apache.sysml.api.mlcontext.MLContext]
         ml.setExplain(true)
+        println("Input parameters:" +  List(..${inParams}).mkString(", "))
         val script = dml($dmlString).in(Seq(..${inParams})).out(..${outParams})
         val res = ml.execute(script)
         val out = $result
         $out
       }
-    }"""
+    }}"""
 
-    val res = identity(typeCheck = true)(alg)
+    val res = dmlPipeline(typeCheck = true)()(alg)
     println(showCode(res))
-    c.Expr[T](res)
+    c.Expr[T]((removeShadowedThis andThen unTypeCheck)(res))
   }
 }

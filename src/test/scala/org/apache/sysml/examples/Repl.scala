@@ -31,6 +31,7 @@ object Repl extends App {
       |import org.apache.spark.SparkContext
       |import org.apache.spark.sql.SparkSession
       |import org.apache.sysml.api.mlcontext.MLContext
+      |import org.apache.spark.sql.DataFrame
       |
       |import org.apache.sysml.api.linalg._
       |import org.apache.sysml.api.linalg.api._
@@ -46,7 +47,7 @@ object Repl extends App {
 
   val crDF =
     """
-      |val df = spark.read.format("com.databricks.spark.csv").option("header", "true").load("/data/arxiv_abstracts/cs_abstracts.csv")
+      |val df: DataFrame = spark.read.format("com.databricks.spark.csv").option("header", "true").load("/data/arxiv_abstracts/cs_abstracts.csv")
     """.stripMargin
 
   // create a dataframe
@@ -55,7 +56,7 @@ object Repl extends App {
   val alg1 =
     """
       |val algorithm = parallelize {
-      |  val x = Matrix.fromDataFrame(df)
+      |  val x: Matrix = Matrix.fromDataFrame(df)
       |  val y = sum(x)
       |  y
       |}
@@ -64,10 +65,10 @@ object Repl extends App {
   // call macro and create algorithm instance
   repl.interpret(alg1)
 
-  val run1 =
-    """
-      |val res = algorithm.run()
-    """.stripMargin
-
-  repl.interpret(run1)
+//  val run1 =
+//    """
+//      |val res = algorithm.run()
+//    """.stripMargin
+//
+//  repl.interpret(run1)
 }
