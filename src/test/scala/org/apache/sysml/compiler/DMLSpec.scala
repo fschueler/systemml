@@ -183,7 +183,7 @@ class DMLSpec extends BaseCompilerSpec {
         val A = Matrix.fromDataFrame(df)
       }))
 
-      val exp = "" // the transformation code should be removed and the dataframe passed as input in MLContext
+      val exp = "A = df" // the transformation code should be removed and the dataframe passed as input in MLContext
 
       act shouldEqual exp
     }
