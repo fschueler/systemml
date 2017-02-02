@@ -18,11 +18,7 @@ package org.apache.sysml.compiler.lang.source
 
 import org.apache.sysml.api.linalg.Matrix
 import org.apache.sysml.compiler.DMLCommon
-import org.emmalanguage.compiler.Common
 import org.emmalanguage.compiler.lang.source.Source
-
-import scala.collection.mutable
-import scala.util.Random
 
 trait DML extends DMLCommon with DMLSourceValidate {
   this: Source =>
@@ -32,7 +28,6 @@ trait DML extends DMLCommon with DMLSourceValidate {
     lazy val toDML = (tree: u.Tree) => (env: Environment) =>  DMLTransform.generateDML(unQualifyStatics(tree), env)
 
     lazy val valid = DMLSourceValidate.valid
-
     lazy val validate = (tree: u.Tree) => valid(tree).isGood
 
     private[source] object DMLTransform {
@@ -41,38 +36,12 @@ trait DML extends DMLCommon with DMLSourceValidate {
       // semantic domain (env => string representation)
       val indent = 0
 
-      // the last seen lhs of a valdef
-      var currLhs: u.TermSymbol = _
-
       val generateDML: (u.Tree, Environment) => String = (tree: u.Tree, startingEnv: Environment) => {
-
-        val ops = Set('=', '+', '-', '*', '/', '%', '<', '>', '&', '|', '!', '?', '^', '\\', '@', '#', '~')
-
-        val booleanOps = Set(">", "<", "<=", ">=", "==", "!=")
 
         val matrixFuncs = Set("t", "nrow", "ncol")
 
-        val constructors = Set("zeros", "rand", "ones")
-
-        val builtins = Set("read", "write", "min", "max", "mean", "sum")
-
-        val printSym = (sym: u.Symbol) => {
-          val decName = sym.name.decodedName.toString.stripPrefix("unary_")
-          val encName = sym.name.encodedName.toString.stripPrefix("unary_")
-
-          decName
-          // TODO we have to make sure to transform invalid references into valid ones or raise an exception
-          //        if (decName == encName && !kws.contains(decName) || sym.isMethod && decName.forall(ops.contains)) decName
-          //        else s"`$decName`"
-        }
-
-        val isConstructor = (sym: u.MethodSymbol) =>
-          constructors.contains(sym.name.toString)
-
-        val isBuiltin = (sym: u.MethodSymbol) => {
-          val s = sym.name.decodedName.toString
-          builtins.contains(s)
-        }
+        val printSym = (sym: u.Symbol) =>
+          sym.name.decodedName.toString.stripPrefix("unary_")
 
         val isApply = (sym: u.MethodSymbol) =>
           sym.name == u.TermName("apply")
@@ -129,30 +98,6 @@ trait DML extends DMLCommon with DMLSourceValidate {
         val isUnary = (sym: u.MethodSymbol) =>
           sym.name.decodedName.toString.startsWith("unary_")
 
-        val printArgss = (argss: Seq[Seq[D]], env: Environment) =>
-          (argss map (args => (args map (arg => arg(env))).mkString("(", ", ", ")"))).mkString
-
-        val printParams = (params: Seq[D], env: Environment) =>
-          (params map (param => param(env))).mkString("(", ", ", ")")
-
-        val printParamss = (paramss: Seq[Seq[D]], env: Environment) =>
-          (paramss map (params => printParams(params, env))).mkString
-
-        def printTpe(tpe: u.Type): String = {
-          val tpeCons = tpe.typeConstructor
-          val tpeArgs = tpe.typeArgs
-          if (api.Sym.tuples contains tpeCons.typeSymbol) /* tuple type */ {
-            (tpe.typeArgs map printTpe).mkString("(", ", ", ")")
-          } else if (api.Sym.fun(Math.max(0, tpeArgs.size - 1)) == tpeCons.typeSymbol) /* function type */ {
-            s"(${(tpe.typeArgs.init map printTpe).mkString(", ")}) => ${printTpe(tpe.typeArgs.last)}"
-          } else if (tpeArgs.nonEmpty) /* applied higher-order type */ {
-            s"${printSym(tpeCons.typeSymbol)}[${(tpe.typeArgs map printTpe).mkString(", ")}]"
-          } else /* simple type */ {
-            printSym(tpeCons.typeSymbol)
-          }
-        }
-
-
         /**
           * Convert Scala types to SystemML types
           * @param arg the type argument
@@ -185,9 +130,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
           val lambda = args.map(x => x(env)).head
 
           val parts = lambda.split(" => ")
-
           val idx = parts(0).drop(1).dropRight(1) // remove braces
-
           // format the body with 2 spaces of indentation
           val body = indent(parts(1))
 
@@ -257,52 +200,6 @@ trait DML extends DMLCommon with DMLSourceValidate {
               s"$l = $r"
             }
           }
-
-//          def defDef(sym: u.MethodSymbol, tparams: Seq[u.TypeSymbol], paramss: Seq[Seq[D]], body: D): D = env => {
-//            if (tparams.length > 0) {
-//              abort(s"Type parameters are not supported: ${tparams}")
-//            }
-//
-//            udfRegistry.add(sym)
-//
-//            val name = sym.name.decodedName
-//            val block = body(env)
-//            val statements = indent(block.split("\n").dropRight(1).mkString("\n")) // drop last line
-//            val expression = block.split("\n").takeRight(1).head
-//
-//            val (inT, outT) = sym.typeSignature match { case u.MethodType(params, resulttype) => (params.map(_.typeSignature), List(resulttype))}
-//
-//            // transform scala types to systemml types
-//            val inputTypes = inT.flatMap(convertTypes(_))
-//            val inputNames = paramss.flatten.map(_(env))
-//
-//            val outputType = outT.flatMap(convertTypes(_))
-//            if (outputType.length > 1) {
-//              abort(s"Currently we only support function definitions with a single return value but we found ${outputType.length} values of type $outT")
-//            }
-//
-//            // TODO enable multiple return values
-//            // val rng = new Random()
-//            // val outputNames = List.fill(outputType.length)("_$x" + rng.nextString(3))
-//
-//            val inputs = inputTypes.zip(inputNames).map(tup => s"${tup._1} ${tup._2}").mkString(", ")
-//            val outputs = s"${outputType.head} x99"
-//
-//            if (statements != "  ") {
-//              s"""
-//                 |$name = function($inputs) return ($outputs) {
-//                 |$statements
-//                 |  x99 = $expression
-//                 |}
-//             """.stripMargin.trim
-//            } else {
-//              s"""
-//                 |$name = function($inputs) return ($outputs) {
-//                 |  x99 = $expression
-//                 |}
-//             """.stripMargin.trim
-//            }
-//          }
 
           // Other
 
@@ -406,30 +303,23 @@ trait DML extends DMLCommon with DMLSourceValidate {
                   else
                     s"as.scalar($module[$r + 1,$c + 1])"
                 }
-
-//                else
-//                  "case (Some(tgt), (x :: xs) :: Nil) if isApply(method)"
               }
 
               // matches apply methods with multiple arguments
               case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method) => {
                 val module = tgt(env)
 
-//                if (bindingRefs.contains(module)) {
-                  // update on matrix objects (left indexing): A[r, c] = v === A.update(r, c, v)
-                  val r = args(0) // rows
-                  val c = args(1) // columns
-                  val v = args(2) // value to update with
+                // update on matrix objects (left indexing): A[r, c] = v === A.update(r, c, v)
+                val r = args(0) // rows
+                val c = args(1) // columns
+                val v = args(2) // value to update with
 
-                  if (c == ":::")
-                    s"$module[$r + 1,] = $v"
-                  else if (r == ":::")
-                    s"$module[,$c + 1] = $v"
-                  else
-                    s"$module[$r + 1,$c + 1] = $v"
-//                }
-//                else
-//                  "case (Some(tgt), (x :: xs) :: Nil) if isUpdate(method)"
+                if (c == ":::")
+                  s"$module[$r + 1,] = $v"
+                else if (r == ":::")
+                  s"$module[,$c + 1] = $v"
+                else
+                  s"$module[$r + 1,$c + 1] = $v"
               }
 
               // matches methods with multiple arguments (e.g. zeros(3, 3), write)
@@ -462,9 +352,6 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 method.name.decodedName match {
                   case u.TermName(tn) if matrixFuncs.contains(tn) => s"$tn(${tgt(env)})"
                   case u.TermName(tn) if tn == "toDouble" => tgt(env) // this is a scala implicit conversion from Int to Double
-//                  case u.TermName(tn) if Seq("$line", "$read", "$iw", "INSTANCE").exists(tn.contains(_)) => tgt(env) // this is the case for accesses to vars and vals in the REPL/interpreter (classbased)
-//                  case u.TermName(tn) => tgt(env) // here we catch references to outside values that might have names such as outer1.outer2.x
-//                  case _ => abort(s"Unable to translate to DML: Unsupported reference to target: $target, method: ${method.fullName}")
                   case _ => method.name.decodedName.toString
                 }
               }
