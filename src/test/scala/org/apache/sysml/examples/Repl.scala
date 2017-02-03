@@ -65,10 +65,10 @@ object Repl extends App {
   // call macro and create algorithm instance
   repl.interpret(alg1)
 
-//  val run1 =
-//    """
-//      |val res = algorithm.run()
-//    """.stripMargin
-//
-//  repl.interpret(run1)
+  val run1 =
+    """
+      |val res = algorithm.run()
+    """.stripMargin
+
+  repl.interpret(run1)
 }
