@@ -23,7 +23,7 @@ import org.apache.spark
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.{Matrix, SystemMLAlgorithm}
 import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.mlcontext.{MLContext, Matrix => MLMatrix}
 import org.junit.runner.RunWith

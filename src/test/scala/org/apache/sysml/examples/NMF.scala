@@ -19,20 +19,15 @@
 
 package org.apache.sysml.examples
 
-import cats.kernel.Monoid
-import com.sun.tools.javac.code.TypeTag
-import org.apache.spark.ml.feature.{HashingTF, IDF, LabeledPoint, Tokenizer}
+import org.apache.spark.ml.feature.{HashingTF, IDF, Tokenizer}
 import org.apache.spark.ml.linalg.SparseVector
-import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.spark.sql.{Row, SQLContext, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.sysml.api.linalg._
-import org.apache.sysml.api.linalg.api.{SystemMLAlgorithm, _}
+import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.mlcontext.MLContext
 
-import scala.util.Random
 import org.apache.spark.sql.functions.udf
-import org.apache.spark.sql.functions.col
 
 object NMF extends App {
 
