@@ -47,21 +47,35 @@ trait DMLCommon extends AST {
     private def intOp(name: String) = methodIn(intSymbol, name)
     private def intOp(name: String, paramType: u.Type) = methodIn(intSymbol, name, paramType)
 
-    def methodIn(target: u.Symbol, name: String, paramTpe: u.Type): u.MethodSymbol = {
-      val alternatives = target.info.member(api.TermName(name)).alternatives
+    private def getAlternativesFor(target: u.Symbol, name: String): List[u.Symbol] = target.info.member(api.TermName(name)).alternatives
 
-      val res = alternatives.find { alternative =>
-        alternative.typeSignature.paramLists.flatten.headOption match {
-          case Some(tpe) => tpe.typeSignature.finalResultType =:= paramTpe
-          case None => false
-        }
+    /**
+      * Find the method alternative for overloaded methods that matches the parameter signature
+      *
+      * @param target the target module in which the method is defined
+      * @param name name of the method
+      * @param paramLists types in the parameter lists
+      * @return Symbol for the matching method definition
+      */
+    def methodIn(target: u.Symbol, name: String, paramLists: Seq[Seq[u.Type]]): u.MethodSymbol = {
+      val alternatives = getAlternativesFor(target, name)
+      val inParamLists = paramLists.flatten
+
+      val matching = for (alt <- alternatives) yield {
+        val altParamLists = alt.typeSignature.paramLists.flatten.map(_.typeSignature.finalResultType)
+        val matches = inParamLists.zip(altParamLists).forall { case (p1: u.Type, p2: u.Type) => p1 =:= p2 }
+
+        if (matches) Some(alt) else None
       }
 
-      res match {
-        case Some(sym) => sym.asMethod
-        case None => abort(s"Could not create method symbol for target: $target, name: $name, parameter type: $paramTpe")
+      matching.flatten match {
+        case Nil => abort(s"No method alternative found for method $name in module $target.")
+        case (x: u.MethodSymbol) :: Nil => x
+        case _ => abort(s"Multiple method alternatives found for method $name in module $target.")
       }
     }
+
+    def methodIn(target: u.Symbol, name: String, paramTpe: u.Type): u.MethodSymbol = methodIn(target, name, Seq(Seq(paramTpe)))
 
     // type constructors
     val MLContext   = api.Type[MLContext].typeConstructor
@@ -95,15 +109,6 @@ trait DMLCommon extends AST {
     val pmax      = methodIn(apiModuleSymbol, "pmax")
 
     // matrix operators
-    // FIXME this is a hack and should be solved in a more general way so that we can create method symbols for overloaded methods
-    val updateI          = matrixSymbol.info.member(api.TermName("update")).alternatives.find {alt =>
-      alt.typeSignature.paramLists.flatten.zip(List(Int, Int, Double)).forall(tup => tup._1.typeSignature.resultType =:= tup._2 )
-    }.headOption match {
-      case Some(sym) => sym.asMethod
-      case _ => abort("this didn't work!")
-    }
-
-    //val updateD          = matrixOp("update", Double)
     val nrow            = matrixOp("nrow")
     val ncol            = matrixOp("ncol")
     val pow             = matrixOp("^", Int)
@@ -117,6 +122,7 @@ trait DMLCommon extends AST {
     val divMatrix       = matrixOp("/", Matrix)
     val plusMatrix      = matrixOp("+", Matrix)
     val minusMatrix     = matrixOp("-", Matrix)
+    val updateI         = methodIn(matrixSymbol, "update", Seq(Seq(Int, Int, Double)))
 
     // Double/Double  operators
     val plusDD    = doubleOp("+", Double)
@@ -128,6 +134,17 @@ trait DMLCommon extends AST {
     val lessDD    = doubleOp("<", Double)
     val greaterDD = doubleOp(">", Double)
     val modDD     = doubleOp("%", Double)
+
+    // Double/Int  operators
+    val plusDI    = methodIn(doubleSymbol, "+", Int)
+    val minusDI   = methodIn(doubleSymbol, "-", Int)
+    val timesDI   = methodIn(doubleSymbol, "*", Int)
+    val divDI     = methodIn(doubleSymbol, "/", Int)
+    val geqDI     = methodIn(doubleSymbol, ">=", Int)
+    val leqDI     = methodIn(doubleSymbol, "<=", Int)
+    val lessDI    = methodIn(doubleSymbol, "<", Int)
+    val greaterDI = methodIn(doubleSymbol, ">", Int)
+    val modDI     = methodIn(doubleSymbol, "%", Int)
 
     // Double/Matrix
     val plusDM    = methodIn(matrixOpsSymbol, "+", Matrix)
@@ -151,12 +168,26 @@ trait DMLCommon extends AST {
     val greaterII = intOp(">", Int)
     val modII     = intOp("%", Int)
 
+    // Int/Double operators
+    val plusID    = intOp("+", Double)
+    val timesID   = intOp("*", Double)
+    val divID     = intOp("/", Double)
+    val minusID   = intOp("-", Double)
+    val geqID     = intOp(">=", Double)
+    val leqID     = intOp("<=", Double)
+    val lessID    = intOp("<", Double)
+    val greaterID = intOp(">", Double)
+    val modID     = intOp("%", Double)
+
 
     val sourceOps   = Set(zeros, ones, onesV, rand, randV, fromDataFrame)
     val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax)
     val matOps      = Set(updateI, pow, nrow, ncol, transpose, matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix)
-    val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD, plusDM, minusDM, timesDM, modDD, divDM)
-    val intOps      = Set(plusII, minusII, timesII, divII, geqII, leqII, lessII, greaterII, modII)
+    val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD,
+                          plusDI, minusDI, timesDI, divDI, geqDI, leqDI, lessDI, greaterDI,
+                          plusDM, minusDM, timesDM, modDD, divDM)
+    val intOps      = Set(plusII, minusII, timesII, divII, geqII, leqII, lessII, greaterII, modII,
+                          plusID, minusID, timesID, divID, geqID, leqID, lessID, greaterID, modID)
 
     val ops: Set[u.MethodSymbol] = sourceOps | builtinOps | matOps | doubleOps | intOps
 

@@ -88,6 +88,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
   private def isApply(input: u.MethodSymbol): Boolean = {
     input.name == u.TermName("apply")
+    input.name == u.TermName("toDouble")
   }
 
   private def isPrimitive(input: u.MethodSymbol): Boolean = {
@@ -106,7 +107,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     * The macro entry point to transform the tree and generate the DML Algorithm object
     * @param e the expression inside the parallelize macro
     * @tparam T type of the expression
-    * @return an [[SystemMLAlgorithm]] of type T that can execute the DML script and return the result of type T
+    * @return an [[org.apache.sysml.api.linalg.SystemMLAlgorithm]] of type T that can execute the DML script and return the result of type T
     */
   def impl[T: c.WeakTypeTag](e: u.Expr[T]) = {
 
@@ -191,10 +192,13 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
     // Construct algorithm object
     val alg = q"""{
-      new _root_.org.apache.sysml.api.linalg.api.SystemMLAlgorithm[${u.weakTypeOf[T]}]  {
+      new _root_.org.apache.sysml.api.linalg.SystemMLAlgorithm[${u.weakTypeOf[T]}]  {
 
       import _root_.org.apache.sysml.api.mlcontext.ScriptFactory._
       import _root_.scala.reflect._
+
+      val inputs = Seq(..${inParams})
+      val outputs = Seq(..${outParams})
 
       def run(): ${u.weakTypeOf[T]} = {
         println("=" * 80)
@@ -206,7 +210,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         val ml = implicitly[_root_.org.apache.sysml.api.mlcontext.MLContext]
         ml.setExplain(true)
         println("Input parameters:" +  List(..${inParams}).mkString(", "))
-        val script = dml($dmlString).in(Seq(..${inParams})).out(..${outParams})
+        val script = dml($dmlString).in(inputs).out(..${outParams})
         val res = ml.execute(script)
         val out = $result
         $out
