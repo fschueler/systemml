@@ -19,12 +19,7 @@
 
 package org.apache.sysml.api.linalg
 
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.sysml.api.mlcontext.MLContext
-import org.apache.sysml.api.mlcontext.{Matrix => MLMatrix}
 import org.apache.sysml.compiler.macros.RewriteMacros
-
 import scala.language.experimental.macros
 
 package object api {
@@ -33,10 +28,6 @@ package object api {
   /**
     * The entry point for the systemML macro
     */
-  trait SystemMLAlgorithm[T] {
-    def run(): T
-  }
-
   final def parallelize[T](e: T): SystemMLAlgorithm[T] = macro RewriteMacros.impl[T]
 
   object :::
