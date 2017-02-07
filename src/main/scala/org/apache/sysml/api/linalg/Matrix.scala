@@ -164,6 +164,9 @@ class Matrix protected(val impl: Array[Double],
   def toMatrixObject(): MatrixObject = matob
   def toBinaryBlockMatrix(): BinaryBlockMatrix = ???
   def toDF(): DataFrame = ???
+
+  override def equals(that: Any): Boolean = ???
+  override def hashCode(): Int = ???
 }
 
 object Matrix {
