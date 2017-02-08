@@ -47,7 +47,7 @@ trait DMLCommon extends AST {
     private def intOp(name: String) = methodIn(intSymbol, name)
     private def intOp(name: String, paramType: u.Type) = methodIn(intSymbol, name, paramType)
 
-    private def getAlternativesFor(target: u.Symbol, name: String): List[u.Symbol] = target.info.member(api.TermName(name)).alternatives
+    private def getMethodAlternativesFor(target: u.Symbol, name: String): List[u.Symbol] = target.info.member(api.TermName(name)).alternatives
 
     /**
       * Find the method alternative for overloaded methods that matches the parameter signature
@@ -58,7 +58,7 @@ trait DMLCommon extends AST {
       * @return Symbol for the matching method definition
       */
     def methodIn(target: u.Symbol, name: String, paramLists: Seq[Seq[u.Type]]): u.MethodSymbol = {
-      val alternatives = getAlternativesFor(target, name)
+      val alternatives = getMethodAlternativesFor(target, name)
       val inParamLists = paramLists.flatten
 
       val matching = for (alt <- alternatives) yield {
@@ -77,12 +77,44 @@ trait DMLCommon extends AST {
 
     def methodIn(target: u.Symbol, name: String, paramTpe: u.Type): u.MethodSymbol = methodIn(target, name, Seq(Seq(paramTpe)))
 
+    val applySeqDouble = {
+      val apply = matrixModuleSymbol.typeSignature.member(u.TermName("apply"))
+      val syms    = apply.alternatives.map(_.asMethod)
+      val sym     = syms.find { m =>
+        m.paramLists match {
+          case (arg :: xs) :: Nil
+            if arg.asTerm.typeSignature.erasure =:= u.typeOf[Seq[Any]] => true
+          case _ => false
+        }
+      } getOrElse abort(s"No generic apply method found: $syms")
+
+      sym
+    }
+
+
+    val applyArrayDouble = {
+      val apply = matrixModuleSymbol.typeSignature.member(u.TermName("apply"))
+      val syms    = apply.alternatives.map(_.asMethod)
+      val sym     = syms.find { m =>
+        m.paramLists match {
+          case (arg :: xs) :: Nil
+            if arg.asTerm.typeSignature.erasure =:= u.typeOf[Array[Double]] => true
+          case _ => false
+        }
+      } getOrElse abort(s"No generic apply method found: $syms")
+
+      sym
+    }
+
+
+
     // type constructors
     val MLContext   = api.Type[MLContext].typeConstructor
     val Matrix      = api.Type[Matrix].typeConstructor
     val DataFrame   = api.Type[DataFrame].typeConstructor
     val Double      = api.Type[Double].typeConstructor
     val Int         = api.Type[Int].typeConstructor
+    val SeqDouble   = api.Type[Seq[Double]].typeConstructor
 
     /**
       * This is a list of all supported operations both on primitives and our Matrix. There are things we can do and things
@@ -95,7 +127,11 @@ trait DMLCommon extends AST {
     val onesV               = methodIn(vectorModuleSymbol, "ones")
     val rand                = methodIn(matrixModuleSymbol, "rand")
     val randV               = methodIn(vectorModuleSymbol, "rand")
+    val diag                = methodIn(matrixModuleSymbol, "diag")
     val fromDataFrame       = methodIn(matrixModuleSymbol, "fromDataFrame")
+    val reshape             = methodIn(matrixModuleSymbol, "reshape")
+    val applySeq            = applySeqDouble
+    val applyArray          = applyArrayDouble
 
     // builtin functions
     val sum       = methodIn(apiModuleSymbol, "sum")
@@ -123,6 +159,7 @@ trait DMLCommon extends AST {
     val plusMatrix      = matrixOp("+", Matrix)
     val minusMatrix     = matrixOp("-", Matrix)
     val updateI         = methodIn(matrixSymbol, "update", Seq(Seq(Int, Int, Double)))
+
 
     // Double/Double  operators
     val plusDD    = doubleOp("+", Double)
@@ -180,7 +217,7 @@ trait DMLCommon extends AST {
     val modID     = intOp("%", Double)
 
 
-    val sourceOps   = Set(zeros, ones, onesV, rand, randV, fromDataFrame)
+    val sourceOps   = Set(zeros, ones, onesV, rand, randV, diag, fromDataFrame, applySeq, applyArray, reshape)
     val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax)
     val matOps      = Set(updateI, pow, nrow, ncol, transpose, matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix)
     val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD,

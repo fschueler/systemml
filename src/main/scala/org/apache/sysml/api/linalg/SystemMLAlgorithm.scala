@@ -6,3 +6,4 @@ trait SystemMLAlgorithm[T] {
 
   def run(): T
 }
+
