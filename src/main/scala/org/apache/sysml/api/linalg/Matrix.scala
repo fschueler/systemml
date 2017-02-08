@@ -142,27 +142,12 @@ class Matrix protected(val impl: Array[Double],
 
   def ^(n: Int): Matrix = ???
 
-  def map(f: Double => Double): Matrix = ???
-
-  // TODO: Should this return Either[Vector, Matrix] depending on if one dimension is 1?
-  /**
-    * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
-    *
-    * @param rows number of rows of the new matrix
-    * @param cols number of columns of the new matrix
-    * @param byRow if true, matrix is reshaped my row
-    * @return new matrix with the new dimensions and rearranged values
-    */
-  def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix = ???
-
-  def copy: Matrix = ???
-
   //////////////////////////////////////////
-  // Convenience Transformations
+  // Convenience Transformations (Only to be used outside the macro)
   //////////////////////////////////////////
 
-  def toMatrixObject(): MatrixObject = matob
   def toBinaryBlockMatrix(): BinaryBlockMatrix = ???
+  def toMatrixObject(): MatrixObject = matob
   def toDF(): DataFrame = ???
 
   override def equals(that: Any): Boolean = ???
@@ -205,6 +190,30 @@ object Matrix {
 
   /** generate matrix with the vector on the diagonal */
   def diag(value: Double, length: Int): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
+
+  /**
+    * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
+    *
+    * A matrix A of the form
+    *
+    * 1 3
+    * 2 4
+    *
+    * will be reshaped into
+    *
+    * 1
+    * 2
+    * 3
+    * 4
+    *
+    * by using Matrix.reshape(A, 4, 1)
+    *
+    * @param mat the matrix to be reshaped
+    * @param rows number of rows of the new matrix
+    * @param cols number of columns of the new matrix
+    * @return new matrix with the new dimensions and rearranged values
+    */
+  def reshape(mat: Matrix, rows: Int, cols: Int): Matrix = ???
 
 }
 
