@@ -34,7 +34,7 @@ import scala.util.Random
   *
   * Represents the matrix that will be translated to SystemML's matrix type.
   *
-  * @param impl the underlying breeze matrix to support numerical computations in Scala
+  * @param impl the underlying matrix to support numerical computations in Scala
   * @param nrow number of rows of the matrix
   * @param ncol number of columns of the matrix
   */
@@ -63,6 +63,10 @@ class Matrix protected(val impl: Array[Double],
   def apply(rows: :::.type, cols: Range.Inclusive): Matrix = ???
 
   def apply(rows: Range.Inclusive, cols: Range.Inclusive): Matrix = ???
+
+  def apply(rows: Range.Inclusive, cols: Int): Matrix = ???
+
+  def apply(rows: Int, cols: Range.Inclusive): Matrix = ???
 
   //////////////////////////////////////////
   // Left Indexing assignments
@@ -150,8 +154,25 @@ class Matrix protected(val impl: Array[Double],
   def toMatrixObject(): MatrixObject = matob
   def toDF(): DataFrame = ???
 
-  override def equals(that: Any): Boolean = ???
-  override def hashCode(): Int = ???
+  /**
+    * Returns the values of the matrix. If the matrix was evaluated in SystemML, it will be fetched.
+    */
+  lazy val getValues: Array[Double] = {
+    if (matob != null) {
+      val out = MLContextConversionUtil.matrixObjectTo2DDoubleArray(matob)
+      out.flatten
+    } else if (impl != null) {
+      impl
+    } else {
+      throw new RuntimeException("Matrix has no values!")
+    }
+  }
+
+  override def equals(that: Any): Boolean = that match {
+    case m: Matrix => this.getValues.sameElements(m.getValues) && this.nrow == m.nrow && this.ncol == m.ncol && this.isTransposed == m.isTransposed
+    case _ => false
+  }
+  override def hashCode(): Int = this.getValues.hashCode() + this.nrow + this.ncol
 }
 
 object Matrix {
@@ -173,23 +194,23 @@ object Matrix {
 
   def fromDataFrame(df: DataFrame): Matrix = ???
 
-//  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): Matrix = {
-//    require(rows * cols < Int.MaxValue)
-//    val array = new Array[Double](rows * cols)
-//    for (i <- 0 until rows; j <- 0 until cols) {
-//      array((i * cols) + j) = gen(i, j)
-//    }
-//    new Matrix(array, rows, cols)
-//  }
+  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): Matrix = {
+    require(rows * cols < Int.MaxValue)
+    val array = new Array[Double](rows * cols)
+    for (i <- 0 until rows; j <- 0 until cols) {
+      array((i * cols) + j) = gen(i, j)
+    }
+    new Matrix(array, rows, cols)
+  }
 
-  def zeros(rows: Int, cols: Int): Matrix = ??? // Matrix.fill(rows, cols)((i, j) => 0.0)
-  def ones(rows: Int, cols: Int): Matrix = ???
+  def zeros(rows: Int, cols: Int): Matrix = fill(rows, cols)((i, j) => 0.0)
+  def ones(rows: Int, cols: Int): Matrix = fill(rows, cols)((i, j) => 1.0)
 
   // TODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(rows: Int, cols: Int): Matrix = ??? //Matrix.fill(rows, cols)((i, j) => Random.nextDouble())
+  def rand(rows: Int, cols: Int): Matrix = fill(rows, cols)((i, j) => Random.nextDouble())
 
   /** generate matrix with the vector on the diagonal */
-  def diag(value: Double, length: Int): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
+  def diag(value: Double, length: Int): Matrix = fill(length, length)((i, j) => if (i == j) value else 0.0)
 
   /**
     * Reshapes the [[Matrix]] into a new format. cols * rows must equal the original number of elements.
