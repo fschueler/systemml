@@ -61,9 +61,11 @@ trait DML extends DMLCommon with DMLSourceValidate {
             case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=${args(0)}, cols=1)" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=${args(0)}, cols=1)" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
-            case u.TermName("apply") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
+            case u.TermName("apply") => if (isVector) {
+              val rows = args(0).split(" ").length
+              s"matrix(${args(0)}, rows=$rows, cols=1)"
+            } else s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
             case u.TermName("reshape") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
-
             /* Here we just remove the call to Matrix.fromDataFrame(ref) with ref. We will take care of setting the input
                to the MLContext so that the actual dataframe reference will be passed with the name "ref"
              */
@@ -225,8 +227,15 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 s"${printSym(method)}${tgt(env)}"
 
               /* matches apply methods with one argument */
-              case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
-                s"${tgt(env)}${printMethod(" ", method, " ")}${arg(env)}"
+              case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) => {
+                val module = tgt(env)
+
+                if (module == "Vector") { // Vector.apply(Array(...))
+                  printConstructor(method, argss, env, true)
+                } else {
+                  s"${tgt(env)}${printMethod(" ", method, " ")}${arg(env)}"
+                }
+              }
 
               /* matches methods with one argument (%*%, read) */
               case (Some(tgt), (arg :: Nil) :: Nil) => {
@@ -252,7 +261,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
                   val name = method.name.decodedName
 
                   name match {
-                    case u.TermName("println") => s"print(${arg(env)})"
+                    case u.TermName("println") | u.TermName("print") => s"print(${arg(env)})"
                     case u.TermName("intWrapper") => s"${arg(env)}"
                     case _ => abort(s"scala.predef.$name is not supported in DML", method.pos)
                   }
@@ -261,7 +270,8 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 // binary operators
                 else {
                   method.name.decodedName match {
-                    case u.TermName("to") | u.TermName("until") => s"${tgt(env)}:${arg(env)}"
+                    case u.TermName("to")    => s"${tgt(env)} + 1:${arg(env)} + 1"
+                    case u.TermName("until") => s"${tgt(env)} + 1:${arg(env)}"
                     case u.TermName("%") => s"($module %% ${args(0)})" // modulo in dml is %%
                     case u.TermName("&&") => s"($module & ${args(0)})" // && in dml is &
                     case u.TermName("||") => s"($module | ${args(0)})" // || in dml is |
@@ -293,16 +303,22 @@ trait DML extends DMLCommon with DMLSourceValidate {
                   "builtin"
                 }
 
+                  // apply as indexing - convert Scala 0-based to DML 1-based
                 else {
-                  val r = args(0) // rows
-                  val c = args(1) // columns
+                  val rows = args(0) // rows
+                  val cols = args(1) // columns
 
-                  if (c == ":::")
-                    s"$module[$r + 1,]"
-                  else if (r == ":::")
-                    s"$module[,$c + 1]"
-                  else
-                    s"as.scalar($module[$r + 1,$c + 1])"
+                  (rows, cols) match {
+                    case (":::", c) if c.contains(":")  => s"$module[,$c]"
+                    case (":::", c)                     => s"$module[,$c + 1]"
+                    case (r, ":::") if r.contains(":")  => s"$module[$r,]"
+                    case (r, ":::")                     => s"$module[$r + 1,]"
+                    case (r, c) if  r.contains(":") &&
+                                    c.contains(":")     => s"$module[$r,$c]"
+                    case (r, c) if r.contains(":")      => s"$module[$r, $c + 1]"
+                    case (r, c) if c.contains(":")      => s"$module[$r + 1, $c]"
+                    case (r, c)                         => s"as.scalar($module[$r + 1,$c + 1])"
+                  }
                 }
               }
 
