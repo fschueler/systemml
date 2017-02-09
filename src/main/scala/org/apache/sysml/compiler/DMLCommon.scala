@@ -1,6 +1,7 @@
 package org.apache.sysml.compiler
 
 import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.sysml.api.linalg.api.:::
 import org.apache.sysml.api.linalg.{Matrix, Vector}
 import org.apache.sysml.api.mlcontext.MLContext
 import org.emmalanguage.ast.AST
@@ -106,7 +107,21 @@ trait DMLCommon extends AST {
       sym
     }
 
+    def methodInMod(target: u.Symbol, name: String, paramTypes: List[u.Type]) = {
+      val method = target.typeSignature.member(u.TermName(name))
 
+      val syms    = method.alternatives.map(_.asMethod)
+      val sym     = syms.find { m =>
+        m.paramLists match {
+          case args :: Nil // only one parameter list
+            if args.map(_.asTerm.typeSignature).zip(paramTypes).forall { case (actual, should) => actual =:= should } => true
+          case _ => false
+        }
+      } getOrElse abort(s"No generic apply method found for target: $target, methods: $syms, parameter types: $paramTypes")
+
+      sym
+
+    }
 
     // type constructors
     val MLContext   = api.Type[MLContext].typeConstructor
@@ -123,6 +138,7 @@ trait DMLCommon extends AST {
 
     // Sources
     val zeros               = methodIn(matrixModuleSymbol, "zeros")
+    val zerosV              = methodIn(vectorModuleSymbol, "zeros")
     val ones                = methodIn(matrixModuleSymbol, "ones")
     val onesV               = methodIn(vectorModuleSymbol, "ones")
     val rand                = methodIn(matrixModuleSymbol, "rand")
@@ -130,8 +146,9 @@ trait DMLCommon extends AST {
     val diag                = methodIn(matrixModuleSymbol, "diag")
     val fromDataFrame       = methodIn(matrixModuleSymbol, "fromDataFrame")
     val reshape             = methodIn(matrixModuleSymbol, "reshape")
-    val applySeq            = applySeqDouble
+    val applySeq            = methodInMod(matrixModuleSymbol, "apply", List(u.typeOf[Seq[Double]], u.typeOf[Int], u.typeOf[Int]))
     val applyArray          = applyArrayDouble
+    val applyArrayV         = methodIn(vectorModuleSymbol, "apply")
 
     // builtin functions
     val sum       = methodIn(apiModuleSymbol, "sum")
@@ -149,6 +166,7 @@ trait DMLCommon extends AST {
     val ncol            = matrixOp("ncol")
     val pow             = matrixOp("^", Int)
     val transpose       = matrixOp("t")
+
     val matmult         = matrixOp("%*%")
     val timesDouble     = matrixOp("*", Double)
     val divDouble       = matrixOp("/", Double)
@@ -158,6 +176,17 @@ trait DMLCommon extends AST {
     val divMatrix       = matrixOp("/", Matrix)
     val plusMatrix      = matrixOp("+", Matrix)
     val minusMatrix     = matrixOp("-", Matrix)
+
+    val indexII         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[Int]))
+    val indexIR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[Range.Inclusive]))
+    val indexRI         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[Int]))
+    val indexRR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[Range.Inclusive]))
+    val indexIA         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[:::.type]))
+    val indexAI         = methodInMod(matrixSymbol, "apply", List(u.typeOf[:::.type], u.typeOf[Int]))
+    val indexRA         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[:::.type]))
+    val indexAR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[:::.type], u.typeOf[Range.Inclusive]))
+
+
     val updateI         = methodIn(matrixSymbol, "update", Seq(Seq(Int, Int, Double)))
 
 
@@ -217,9 +246,11 @@ trait DMLCommon extends AST {
     val modID     = intOp("%", Double)
 
 
-    val sourceOps   = Set(zeros, ones, onesV, rand, randV, diag, fromDataFrame, applySeq, applyArray, reshape)
+    val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applySeq, applyArray, applyArrayV, reshape)
     val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax)
-    val matOps      = Set(updateI, pow, nrow, ncol, transpose, matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix)
+    val matOps      = Set(updateI, pow, nrow, ncol, transpose,
+                          matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
+                          indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR)
     val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD,
                           plusDI, minusDI, timesDI, divDI, geqDI, leqDI, lessDI, greaterDI,
                           plusDM, minusDM, timesDM, modDD, divDM)
