@@ -117,10 +117,87 @@ class APISpec extends BaseAPISpec {
                            Matrix(Seq(1.0, 2.0, 3.0, 4.0), 4, 1),
                            Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2))
       }
+
+      "indexing" in {
+        mlctx = new MLContext(sc)
+
+        val algorithm = parallelize {
+          val A = Matrix.ones(3, 3)
+          val B = Matrix.ones(3, 3)
+          val C = Matrix.zeros(3, 3)
+          val D = Matrix.zeros(3, 3)
+
+          val a = A(0, 0) // (idx, idx)
+          val b = B(0, :::)  // (idx, :::)
+          val c = C(:::, 0) // (:::, idx)
+          val d = D(:::, 0 to 1) // (:::, range)
+          val e = A(0 to 1, :::) // (range, :::)
+          val f = B(0, 0 to 1) // (idx, range)
+          val g = C(0 to 1, 0) // (range, idx)
+          val h = D(0 to 1, 0 to 1) // (range, range)
+
+          (a, b, c, d, e, f, g, h)
+        }
+
+        algorithm.inputs shouldBe empty
+        algorithm.outputs shouldEqual Seq("a", "b", "c", "d", "e", "f", "g", "h")
+
+        val result = algorithm.run()
+
+        result shouldEqual(1.0,
+                           Matrix(Seq(1.0, 1.0, 1.0), 1, 3),
+                           Matrix(Seq(0.0, 0.0, 0.0), 3, 1),
+                           Matrix(Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 2),
+                           Matrix(Seq(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 2, 3),
+                           Matrix(Seq(1.0, 1.0), 1, 2),
+                           Matrix(Seq(0.0, 0.0), 2, 1),
+                           Matrix(Seq(0.0, 0.0, 0.0, 0.0), 2, 2))
+      }
+
+      "updating" in {
+
+      }
     }
 
     "Vector" - {
+      "apply" in {
+        mlctx = new MLContext(sc)
 
+        val algorithm = parallelize {
+          val v = Vector.apply(Array(1.0, 2.0, 3.0, 4.0))
+          val w = Vector.apply(Array(1.0, 2.0, 3.0, 4.0))
+
+          (v, w)
+        }
+
+        algorithm.inputs shouldBe empty
+        algorithm.outputs shouldEqual Seq("v", "w")
+
+        val result = algorithm.run()
+
+        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1),
+                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1))
+      }
+
+      "rand, ones, zeros" in {
+        mlctx = new MLContext(sc)
+
+        val algorithm = parallelize {
+          val v = Vector.rand(4)
+          val w = Vector.ones(4)
+          val x = Vector.zeros(4)
+
+          (v, w, x)
+        }
+
+        algorithm.inputs shouldBe empty
+        algorithm.outputs shouldEqual Seq("v", "w", "x")
+
+        val result = algorithm.run()
+
+        result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 4, 1)
+        result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 4, 1)
+      }
     }
   }
 
@@ -138,16 +215,15 @@ class APISpec extends BaseAPISpec {
           val C = A.nrow
           val D = A.ncol
 
-          (B, C)
+          (B, C, D)
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("B", "C")
+        algorithm.outputs shouldEqual Seq("B", "C", "D")
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Seq(1.0, 3.0, 2.0, 4.0), 2, 2),
-                           Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2))
+        result shouldEqual(Matrix(Seq(1.0, 3.0, 2.0, 4.0), 2, 2), 2, 2)
       }
     }
   }
