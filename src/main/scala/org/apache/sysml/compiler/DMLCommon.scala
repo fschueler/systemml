@@ -186,9 +186,14 @@ trait DMLCommon extends AST {
     val indexRA         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[:::.type]))
     val indexAR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[:::.type], u.typeOf[Range.Inclusive]))
 
-
-    val updateI         = methodIn(matrixSymbol, "update", Seq(Seq(Int, Int, Double)))
-
+    val updateII        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[Int], u.typeOf[Double]))
+    val updateIR        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[Range.Inclusive], u.typeOf[Matrix]))
+    val updateRI        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range.Inclusive], u.typeOf[Int], u.typeOf[Matrix]))
+    val updateRR        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range.Inclusive], u.typeOf[Range.Inclusive], u.typeOf[Matrix]))
+    val updateIA        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[:::.type ], u.typeOf[Matrix]))
+    val updateAI        = methodInMod(matrixSymbol, "update", List(u.typeOf[:::.type ], u.typeOf[Int], u.typeOf[Matrix]))
+    val updateRA        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range.Inclusive], u.typeOf[:::.type ], u.typeOf[Matrix]))
+    val updateAR        = methodInMod(matrixSymbol, "update", List(u.typeOf[:::.type], u.typeOf[Range.Inclusive], u.typeOf[Matrix]))
 
     // Double/Double  operators
     val plusDD    = doubleOp("+", Double)
@@ -248,9 +253,10 @@ trait DMLCommon extends AST {
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applySeq, applyArray, applyArrayV, reshape)
     val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax)
-    val matOps      = Set(updateI, pow, nrow, ncol, transpose,
+    val matOps      = Set(pow, nrow, ncol, transpose,
                           matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
-                          indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR)
+                          indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR,
+                          updateII, updateIR, updateRI, updateIA, updateAI, updateRA, updateAR, updateRR)
     val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD,
                           plusDI, minusDI, timesDI, divDI, geqDI, leqDI, lessDI, greaterDI,
                           plusDM, minusDM, timesDM, modDD, divDM)

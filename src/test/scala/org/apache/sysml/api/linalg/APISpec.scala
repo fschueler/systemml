@@ -155,7 +155,43 @@ class APISpec extends BaseAPISpec {
       }
 
       "updating" in {
+        mlctx = new MLContext(sc)
 
+        val algorithm = parallelize {
+          val A = Matrix.zeros(3, 3)
+          val B = Matrix.zeros(3, 3)
+          val C = Matrix.zeros(3, 3)
+          val D = Matrix.zeros(3, 3)
+          val E = Matrix.zeros(3, 3)
+          val F = Matrix.zeros(3, 3)
+          val G = Matrix.zeros(3, 3)
+          val H = Matrix.zeros(3, 3)
+
+          A(0, 0) = 1.0 // (idx, idx) = Double
+          B(0, :::) = Vector.ones(3).t // (idx, :::) = Matrix
+          C(:::, 0) = Vector.ones(3) // (:::, idx) = Matrix
+          D(0, 0 to 1) = Vector.ones(2).t // (idx, range) = Matrix
+          E(0 to 1, 0) = Vector.ones(2) // (range, idx) = Matrix
+          F(0 to 1, 0 to 1) = Matrix.ones(2, 2) // (range, range) = Matrix
+          G(0 to 1, :::) = Matrix.ones(2, 3) // (range, :::) = Matrix
+          H(:::, 0 to 1) = Matrix.ones(3, 2) // (:::, range) = Matrix
+
+          (A, B, C, D, E, F, G, H)
+        }
+
+        algorithm.inputs shouldBe empty
+        algorithm.outputs shouldEqual Seq("A", "B", "C", "D", "E", "F", "G", "H")
+
+        val result = algorithm.run()
+
+        result._1 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
+        result._2 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0), 3, 3)
+        result._3 shouldEqual Matrix(Seq(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
+        result._4 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
+        result._5 shouldEqual Matrix(Seq(1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
+        result._6 shouldEqual Matrix(Seq(1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
+        result._7 shouldEqual Matrix(Seq(1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0), 3, 3)
+        result._8 shouldEqual Matrix(Seq(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0), 3, 3)
       }
     }
 
