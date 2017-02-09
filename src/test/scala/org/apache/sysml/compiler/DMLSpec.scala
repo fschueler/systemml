@@ -454,14 +454,14 @@ class DMLSpec extends BaseCompilerSpec {
 
       "without closure modification" in {
         val act = toDML(dmlidPipeline(u.reify {
-          for (i <- 1 to 20) {
+          for (i <- 0 to 20) {
             println(i)
           }
         }))
 
         val exp =
           """
-            |for (i in 1:20) {
+            |for (i in 0 + 1:20 + 1) {
             |  print(i)
             |}
           """.
@@ -493,15 +493,15 @@ class DMLSpec extends BaseCompilerSpec {
 
       "with multiple generators without closure modification" in {
         val act = toDML(dmlidPipeline(u.reify {
-          for (i <- 1 to 10; j <- 90 to 99) {
+          for (i <- 0 to 10; j <- 90 to 99) {
             println(i + j)
           }
         }))
 
         val exp =
           """
-            |for (i in 1:10) {
-            |  for (j in 90:99) {
+            |for (i in 0 + 1:10 + 1) {
+            |  for (j in 90 + 1:99 + 1) {
             |    print((i + j))
             |  }
             |}
@@ -515,7 +515,7 @@ class DMLSpec extends BaseCompilerSpec {
         val act = toDML(dmlidPipeline(u.reify {
           var a = 5
           var b = 6
-          for (i <- 1 to 10; j <- 90 to 99) {
+          for (i <- 0 to 10; j <- 90 to 99) {
             a = a + i
             b = b + j
           }
@@ -525,8 +525,8 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |a = 5
             |b = 6
-            |for (i in 1:10) {
-            |  for (j in 90:99) {
+            |for (i in 0 + 1:10 + 1) {
+            |  for (j in 90 + 1:99 + 1) {
             |    a = (a + i)
             |    b = (b + j)
             |  }
