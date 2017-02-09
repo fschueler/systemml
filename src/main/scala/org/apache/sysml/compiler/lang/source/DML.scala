@@ -327,16 +327,21 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 val module = tgt(env)
 
                 // update on matrix objects (left indexing): A[r, c] = v === A.update(r, c, v)
-                val r = args(0) // rows
-                val c = args(1) // columns
-                val v = args(2) // value to update with
+                val rows = args(0) // rows
+                val cols = args(1) // columns
+                val value = args(2) // value to update with
 
-                if (c == ":::")
-                  s"$module[$r + 1,] = $v"
-                else if (r == ":::")
-                  s"$module[,$c + 1] = $v"
-                else
-                  s"$module[$r + 1,$c + 1] = $v"
+                (rows, cols) match {
+                  case (":::", c) if c.contains(":")  => s"$module[,$c] = $value"
+                  case (":::", c)                     => s"$module[,$c + 1] = $value"
+                  case (r, ":::") if r.contains(":")  => s"$module[$r,] = $value"
+                  case (r, ":::")                     => s"$module[$r + 1,] = $value"
+                  case (r, c) if  r.contains(":") &&
+                    c.contains(":")     => s"$module[$r,$c] = $value"
+                  case (r, c) if r.contains(":")      => s"$module[$r, $c + 1] = $value"
+                  case (r, c) if c.contains(":")      => s"$module[$r + 1, $c] = $value"
+                  case (r, c)                         => s"$module[$r + 1,$c + 1] = $value"
+                }
               }
 
               // matches methods with multiple arguments (e.g. zeros(3, 3), write)

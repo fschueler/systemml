@@ -85,6 +85,10 @@ class Matrix protected(val impl: Array[Double],
 
   def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: Matrix): Matrix = ???
 
+  def update(rows: Int, cols: Range.Inclusive, mat: Matrix): Matrix = ???
+
+  def update(rows: Range.Inclusive, cols: Int, mat: Matrix): Matrix = ???
+
   //////////////////////////////////////////
   // M o scalar
   //////////////////////////////////////////
@@ -169,10 +173,22 @@ class Matrix protected(val impl: Array[Double],
   }
 
   override def equals(that: Any): Boolean = that match {
-    case m: Matrix => this.getValues.sameElements(m.getValues) && this.nrow == m.nrow && this.ncol == m.ncol && this.isTransposed == m.isTransposed
+    case m: Matrix => this.getValues.sameElements(m.getValues) && this.nrow == m.nrow && this.ncol == m.ncol
     case _ => false
   }
   override def hashCode(): Int = this.getValues.hashCode() + this.nrow + this.ncol
+
+  override def toString: String = {
+    val n = 10
+    s"""
+       |first   $n
+       |values: [${getValues.take(10).mkString(", ")}]
+       |nrow:   $nrow
+       |ncol:   $ncol
+       |transp: $isTransposed
+       |hasMO:  ${matob != null}
+     """.stripMargin
+  }
 }
 
 object Matrix {
