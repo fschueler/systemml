@@ -549,7 +549,7 @@ class APISpec extends BaseAPISpec {
       mlctx = new MLContext(sc)
 
       val algorithm = systemml {
-        val A = Matrix(Array(1.0, -3.0, -4,
+        val A = Matrix(Array(1.0, -3.0, -4.0,
                              0.0, 0.0, 0.0,
                              1.0, -3.0, -4.0), 3, 3)
 
@@ -573,6 +573,115 @@ class APISpec extends BaseAPISpec {
       val result = algorithm.run()
 
       result shouldEqual (-4.0, 1.0, -10e5, 10e6, 0.0, 0.0)
+    }
+
+    "min(x, y), max(x, y)" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0,      -3.0, -4.0,        0.0,   0.0, 0.0, 1.0, -3.0, -4.0), 3, 3)
+
+        val B = Matrix(Array(9.999999, 10e6, -9.999999, -10e5, 0.0, 1.0, 5.0, -3.0, 10e-5), 3, 3)
+
+        val D = 5.0
+        val E = 10e-5
+
+        // matrix - matrix
+        val a = min(A, A)
+        val b = max(A, A)
+        val c = min(A, B)
+        val d = max(A, B)
+        val e = min(B, A)
+        val f = max(B, A)
+
+        // matrix - double
+        val g = min(A, D)
+        val h = max(A, D)
+        val i = min(B, E)
+        val j = max(B, E)
+
+        // double - double
+        val k = min(D, E)
+        val l = max(D, E)
+        val m = min(E, D)
+        val n = max(E, D)
+
+        (a, b, c, d, e, f, g, h, i, j, k, l, m, n)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n")
+
+      val result = algorithm.run()
+
+      result shouldEqual (
+        Matrix(Array(1.0, -3.0, -4.0, 0.0, 0.0, 0.0, 1.0, -3.0, -4.0), 3, 3),
+        Matrix(Array(1.0, -3.0, -4.0, 0.0, 0.0, 0.0, 1.0, -3.0, -4.0), 3, 3),
+        Matrix(Array(1.0, -3.0, -9.999999, -10e5, 0.0, 0.0, 1.0, -3.0, -4.0), 3, 3),
+        Matrix(Array(9.999999, 10e6, -4.0, 0.0, 0.0, 1.0, 5.0, -3.0, 10e-5), 3, 3),
+        Matrix(Array(1.0, -3.0, -9.999999, -10e5, 0.0, 0.0, 1.0, -3.0, -4.0), 3, 3),
+        Matrix(Array(9.999999, 10e6, -4.0, 0.0, 0.0, 1.0, 5.0, -3.0, 10e-5), 3, 3),
+        Matrix(Array(1.0, -3.0, -4.0, 0.0, 0.0, 0.0, 1.0, -3.0, -4.0), 3, 3),
+        Matrix(Array(5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0), 3, 3),
+        Matrix(Array(10e-5, 10e-5, -9.999999, -10e5, 0.0, 10e-5, 10e-5, -3.0, 10e-5), 3, 3),
+        Matrix(Array(9.999999, 10e6, 10e-5, 10e-5, 10e-5, 1.0, 5.0, 10e-5, 10e-5), 3, 3),
+        10e-5,
+        5.0,
+        10e-5,
+        5.0
+      )
+    }
+
+    "prod" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 1.0, 1.0, 1.0), 2, 2)
+        val B = Vector.zeros(3)
+        val C = Matrix(Array(-3.0, 1.0, -3.0, -2.0), 2, 2)
+
+        val a = prod(A)
+        val b = prod(B)
+        val c = prod(C)
+
+        (a, b, c)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c")
+
+      val result = algorithm.run()
+
+      result shouldEqual(1.0, 0.0, -18.0)
+    }
+
+    "rbind" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.zeros(2, 3)
+        val B = Matrix.ones(2, 3)
+        val v = Vector.ones(3)
+
+        val D = rbind(A, B)
+        val E = rbind(B, A)
+        val F = rbind(A, v)
+        val G = rbind(v, v)
+
+        (D, E, F, G)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("D", "E", "F", "G")
+
+      val result = algorithm.run()
+
+      result shouldEqual(
+        Matrix(Array(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 4, 3),
+        Matrix(Array(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 4, 3),
+        Matrix(Array(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0), 3, 3),
+        Matrix(Array(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 2, 3)
+      )
     }
   }
 }

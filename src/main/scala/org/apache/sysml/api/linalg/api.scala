@@ -67,6 +67,98 @@ package object api {
     */
   def cbind(mat1: Matrix, mat2: Matrix): Matrix = ???
 
+  /**
+    * Finds the smallest value in a matrix.
+    *
+    * @param mat Input matrix.
+    * @return Smallest value in input matrix.
+    */
+  def min(mat: Matrix): Double = ???
+
+  /**
+    * Finds the largest value in a matrix.
+    *
+    * @param mat Input matrix.
+    * @return Largest value in input matrix.
+    */
+  def max(mat: Matrix): Double = ???
+
+  /**
+    * Compares the values in corresponding matrix cells and returns a matrix containing the smaller values in this
+    * comparison. Example: min([1, 2, 3], [2, 1, 0]) = [1, 1, 0]
+    *
+    * @param matA Matrix.
+    * @param matB Matrix.
+    * @return Matrix containing the smaller values from cellwise comparison of matA and matB.
+    */
+  def min(matA: Matrix, matB: Matrix): Matrix = ???
+
+  /**
+    * Compares the values in corresponding matrix cells and returns a matrix containing the larger values in this
+    * comparison. Example: max([1, 2, 3], [2, 1, 0]) = [2, 2, 3]
+    *
+    * @param matA Matrix.
+    * @param matB Matrix.
+    * @return Matrix containing the larger values from cellwise comparison of matA and matB.
+    */
+  def max(matA: Matrix, matB: Matrix): Matrix = ???
+
+  /**
+    * Compares the values in the matrix to the given double value and returns a matrix containing the smaller value of
+    * this comparison. Example: min([1, 4, 2], 3) = [1, 3, 2]
+    *
+    * @param mat Matrix.
+    * @param b Double.
+    * @return Matrix containing the smaller values from cellwise comparison of matA and b.
+    */
+  def min(mat: Matrix, b: Double): Matrix = ???
+
+  /**
+    * Compares the values in the matrix to the given double value and returns a matrix containing the larger value of
+    * this comparison. Example: max([1, 4, 2], 3) = [3, 4, 3]
+    * @param mat Matrix.
+    * @param b Double.
+    * @return Matrix containing the larger values from cellwise comparison of matA and b.
+    */
+  def max(mat: Matrix, b: Double): Matrix = ???
+
+  /**
+    * Compares doubles a and b and returns the smaller value.
+    *
+    * @param a Double.
+    * @param b Double.
+    * @return a, if a < b, b else.
+    */
+  def min(a: Double, b: Double): Double = ???
+
+  /**
+    * Compares doubles a and b and returns the larger value.
+    * @param a Double.
+    * @param b Double.
+    * @return a, if a > b, b else.
+    */
+  def max(a: Double, b: Double): Double = ???
+
+  /**
+    * Computes the product of all cells in the matrix.
+    * Example: prod([1.0, 2.0, 3.0]) = 6.0
+    *
+    * @param mat Input Matrix.
+    * @return Product of all cells of the input matrix.
+    */
+  def prod(mat: Matrix): Double = ???
+
+  /**
+    * Row-wise matrix concatenation. Concatenates the second matrix as additional rows to the first matrix.
+    * Example: rbind([1, 2, 3], [4, 5, 6]) = [1, 2, 3]
+    *                                        [4, 5, 6]
+    *
+    * @param top Matrix of which the rows will be on the top.
+    * @param bottom Matrix of which the rows will be appended to the bottom of the top matrix.
+    * @return Matrix which consists of the rows of the bottom matrix appended to the top matrix.
+    */
+  def rbind(top: Matrix, bottom: Matrix): Matrix = ???
+
   def sum(mat: Matrix): Double = ???
 
   def rowSums(mat: Matrix): Matrix = ???
@@ -92,10 +184,6 @@ package object api {
   def pmax(mat: Matrix, s: Double): Matrix = ???
 
   def ppred(mat: Matrix, s: Double, op: String): Matrix = ???
-
-  def min(mat: Matrix): Double = ???
-
-  def max(Mat: Matrix): Double = ???
 
   ///////////////////////////////////
   // Implicit Matrix and Matrix Ops
