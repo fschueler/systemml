@@ -57,13 +57,13 @@ trait DML extends DMLCommon with DMLSourceValidate {
           val args = argss flatMap (args => args map (arg => arg(env)))
 
           sym.name match {
-            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
-            case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=${args(0)}, cols=1)" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
-            case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=${args(0)}, cols=1)" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
-            case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=${args(1)}))"
+            case u.TermName("rand")  => if (isVector) s"rand(rows=1, cols=${args(0)})" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
+            case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=1, cols=${args(0)})" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=1, cols=${args(0)})" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=1, cols=${args(1)}))"
             case u.TermName("apply") => if (isVector) {
-              val rows = args(0).split(" ").length
-              s"matrix(${args(0)}, rows=$rows, cols=1)"
+              val cols = args(0).split(" ").length
+              s"matrix(${args(0)}, rows=1, cols=$cols)"
             } else s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
             case u.TermName("reshape") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
             /* Here we just remove the call to Matrix.fromDataFrame(ref) with ref. We will take care of setting the input
@@ -232,7 +232,9 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
                 if (module == "Vector") { // Vector.apply(Array(...))
                   printConstructor(method, argss, env, true)
-                } else {
+                }
+
+                else {
                   s"${tgt(env)}${printMethod(" ", method, " ")}${arg(env)}"
                 }
               }
@@ -285,7 +287,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 val module = tgt(env)
                 val argString = args.mkString(" ")
 
-                if (module == "Seq" || module == "Array") {
+                if (module == "Array") {
                   // sequence/array constructors
                   s""""$argString""""
                 }
@@ -378,7 +380,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
                 }
               }
 
-              case (Some(tgt), _) => abort(s"Matching error, please report the following: case case (Some(tgt), _): target ${tgt(env)}")
+              case (Some(tgt), _) => abort(s"Matching error, please report the following: case case (Some(tgt), _): target ${tgt(env)}, method: $method")
 
               // matches functions that are not defined in a module or class (udfs)
               case (None, _) => {

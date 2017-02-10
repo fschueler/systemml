@@ -28,16 +28,46 @@ package object api {
   /**
     * The entry point for the systemML macro
     */
-  final def parallelize[T](e: T): SystemMLAlgorithm[T] = macro RewriteMacros.impl[T]
+  final def systemml[T](e: T): SystemMLAlgorithm[T] = macro RewriteMacros.impl[T]
 
+  // whole row/column selector
   object :::
 
+
+  ////////////////////////////////////////////////
+  // BUILTIN FUNCTIONS
+  ///////////////////////////////////////////////
+
+  /**
+    * Read a matrix from a file. Supported formats currently include csv and binary.
+    *
+    * @param path Path to the file on disk or hdfs.
+    * @param format File format (CSV, BINARY).
+    * @return Matrix that contains values read from the file.
+    */
   def read(path: String, format: FileFormat): Matrix = ???
 
+  /**
+    * Write matrix to disc in specified format. Supported formats currently include csv and binary.
+    *
+    * @param mat The matrix that should be written to disk or hdfs.
+    * @param path Path to write the matrix on disk or hdfs. Use file:// or hdfs:// to specify protocol.
+    * @param format File format to write matrix data.
+    */
   def write(mat: Matrix, path: String, format: Format.FileFormat): Unit = ???
 
-  def sum(mat: Matrix): Double = ???
+  /**
+    * Column-wise matrix concatenation. Concatenates the second matrix as additional columns to the first matrix.
+    * If the first matrix is of dimensions m x n, the second matrix must be of dimensions m x o, i.e. have the same
+    * number of rows as the first. The resulting matrix will be of dimensions m x (n + o).
+    *
+    * @param mat1 First (left) matrix m x n.
+    * @param mat2 Second (right) matrix m x o.
+    * @return Concatenated [left, right] matrix m x (n + o).
+    */
+  def cbind(mat1: Matrix, mat2: Matrix): Matrix = ???
 
+  def sum(mat: Matrix): Double = ???
 
   def rowSums(mat: Matrix): Matrix = ???
 

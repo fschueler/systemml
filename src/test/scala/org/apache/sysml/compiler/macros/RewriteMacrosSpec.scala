@@ -45,7 +45,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     object MatrixOutputTest extends App with Serializable {
       mlctx = new MLContext(sc)
 
-      val alg = parallelize {
+      val alg = systemml {
         val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
         val n = sum(m)
         (m, n)
@@ -62,7 +62,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     object MatrixMultiplication extends App with Serializable {
       mlctx = new MLContext(sc)
 
-      val alg = parallelize {
+      val alg = systemml {
         val A = Matrix.rand(5, 3)
         val B = Matrix.rand(3, 7)
         val C = A %*% B
@@ -81,7 +81,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     object LoopTest extends App with Serializable {
       mlctx = new MLContext(sc)
 
-      val loop = parallelize {
+      val loop = systemml {
         val A = Matrix.rand(3, 3)
         val B = Matrix.rand(3, 3)
         var C = Matrix.zeros(3, 3)
@@ -106,7 +106,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     object NMF extends App with Serializable {
       mlctx = new MLContext(sc)
 
-      val nmf: SystemMLAlgorithm[(Matrix, Matrix)] = parallelize {
+      val nmf: SystemMLAlgorithm[(Matrix, Matrix)] = systemml {
         val tfidf = Array(1.0, 2.0, 3.0, 4.0)
         // tfidf feature matrix coming from somewhere
         val k = 40
@@ -147,7 +147,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
       val schema = StructType((0 to numCols - 1).map { i => StructField("C" + i, DoubleType, true) })
       val df = spark.createDataFrame(data, schema)
 
-      val alg = parallelize {
+      val alg = systemml {
         /* this should take a dataframeand set it as input to the MLContext */
         val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
 
@@ -171,7 +171,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     object WhileLoop extends App with Serializable {
       mlctx = new MLContext(sc)
 
-      val alg = parallelize {
+      val alg = systemml {
         var x = 5
         var y = 100
 

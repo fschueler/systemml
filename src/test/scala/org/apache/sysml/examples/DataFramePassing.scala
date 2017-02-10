@@ -3,7 +3,7 @@ package org.apache.sysml.examples
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.sysml.api.linalg.Matrix
-import org.apache.sysml.api.linalg.api.{max, mean, min, parallelize}
+import org.apache.sysml.api.linalg.api.{max, mean, min, systemml}
 import org.apache.sysml.api.mlcontext.MLContext
 
 import scala.util.Random
@@ -23,7 +23,7 @@ object DataFramePassing extends App {
 
   val x = 5.0
 
-  val alg = parallelize {
+  val alg = systemml {
     /* this should take a dataframeand set it as input to the MLContext */
     val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
 
@@ -42,7 +42,7 @@ object DataFramePassing extends App {
 
   println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
 
-  val alg2 = parallelize {
+  val alg2 = systemml {
     val M = Matrix.rand(3, 3)
     val N = M %*% tr
 

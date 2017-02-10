@@ -54,7 +54,7 @@ object ALS extends App {
   //-----------------------------------------------------------------
   implicit val mlcontext = new MLContext(sc)
 
-  val script1 = parallelize {
+  val script1 = systemml {
     // parameters
     val r       = 5
     val reg     = "L2"

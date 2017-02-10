@@ -84,7 +84,7 @@ object NMF extends App {
 
   implicit val mlctx: MLContext = new MLContext(sc)
 
-  val nmf = parallelize {
+  val nmf = systemml {
     val V = Matrix.fromDataFrame(tfidf) // tfidf feature matrix coming from somewhere
     val k = 40
     val m, n = 100 // dimensions of tfidf

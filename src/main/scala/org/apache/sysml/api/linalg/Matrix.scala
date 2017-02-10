@@ -160,29 +160,53 @@ class Matrix protected(val impl: Array[Double],
 
   /**
     * Returns the values of the matrix. If the matrix was evaluated in SystemML, it will be fetched.
+    * NOTICE: this will always fetch the values again from the matrixObject!
     */
-  lazy val getValues: Array[Double] = {
-    if (matob != null) {
+  private def getValues: Array[Array[Double]] = {
+    if (matob != null) { // if matob and impl are != null, the most accurate should be matob
+      val rows = matob.getNumRows.toInt
+      val cols = matob.getNumColumns.toInt
       val out = MLContextConversionUtil.matrixObjectTo2DDoubleArray(matob)
-      out.flatten
+      out
     } else if (impl != null) {
-      impl
+      to2D(impl)
     } else {
       throw new RuntimeException("Matrix has no values!")
     }
   }
 
+  /**
+    * Convert a 1D row-major order array to a 2D array.
+    *
+    * @param values The Array to be converted.
+    * @return The same values reorganized into a 2D Array of rows.
+    */
+  private def to2D(values: Array[Double]): Array[Array[Double]] = {
+    val out = Array.fill(this.nrow, this.ncol)(0.0)
+    for (i <- 0 until nrow; j <- 0 until ncol) {
+      out(i)(j) = values(i* ncol + j)
+    }
+    out
+  }
+
+
   override def equals(that: Any): Boolean = that match {
-    case m: Matrix => this.getValues.sameElements(m.getValues) && this.nrow == m.nrow && this.ncol == m.ncol
+    case m: Matrix => {
+      val zipped = this.getValues.zip(m.getValues)
+      val sameElems = zipped.map(x => x._1.sameElements(x._2)).fold(true)(_ && _)
+      sameElems && this.nrow == m.nrow && this.ncol == m.ncol
+    }
     case _ => false
   }
   override def hashCode(): Int = this.getValues.hashCode() + this.nrow + this.ncol
 
   override def toString: String = {
+    val m = 3
     val n = 10
     s"""
-       |first   $n
-       |values: [${getValues.take(10).mkString(", ")}]
+       |Printing first $m rows, $n cols:
+       |values:
+       |${getValues.map(_.take(n).mkString(", ")).take(m).mkString("\n")}
        |nrow:   $nrow
        |ncol:   $ncol
        |transp: $isTransposed
@@ -194,19 +218,17 @@ class Matrix protected(val impl: Array[Double],
 object Matrix {
 
   /**
-    * This should be the primary way of constructing a [[Matrix]] from a sequence of values.
-    * The [[Matrix]] is constructed column-major order, i.e. the [[Array]] (1, 2, 1, 2) with dimensions (2,2) will
+    * This should be the primary way of constructing a [[Matrix]] from an [[Array]] of values.
+    * The [[Matrix]] is constructed row-major order, i.e. the [[Array]] (1, 2, 1, 2) with dimensions (2,2) will
     * generate the [[Matrix]]
-    *   1 1
-    *   2 2
-    * @param impl the values that will be assignmed to the cells of the matrix in column-major order
-    * @param rows number of rows of the generated matrix
-    * @param cols number of columns of the generated matrix
+    *   1 2
+    *   1 2
+    * @param impl The values that will be assignmed to the cells of the matrix in row-major order
+    * @param rows Number of rows that the matrix should have.
+    * @param cols Number of columns that the matrix should have. Note that rows * cols must be equal to impl.length.
     * @return a [[Matrix]] with values as cell entries and dimensionality (rows, cols)
     */
   def apply(impl: Array[Double], rows: Int, cols: Int): Matrix = new Matrix(impl, rows, cols)
-
-  def apply(values: Seq[Double], rows: Int, cols: Int): Matrix = apply(values.toArray, rows, cols)
 
   def fromDataFrame(df: DataFrame): Matrix = ???
 
