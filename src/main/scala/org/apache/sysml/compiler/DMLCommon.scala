@@ -78,34 +78,34 @@ trait DMLCommon extends AST {
 
     def methodIn(target: u.Symbol, name: String, paramTpe: u.Type): u.MethodSymbol = methodIn(target, name, Seq(Seq(paramTpe)))
 
-    val applySeqDouble = {
-      val apply = matrixModuleSymbol.typeSignature.member(u.TermName("apply"))
-      val syms    = apply.alternatives.map(_.asMethod)
-      val sym     = syms.find { m =>
-        m.paramLists match {
-          case (arg :: xs) :: Nil
-            if arg.asTerm.typeSignature.erasure =:= u.typeOf[Seq[Any]] => true
-          case _ => false
-        }
-      } getOrElse abort(s"No generic apply method found: $syms")
-
-      sym
-    }
-
-
-    val applyArrayDouble = {
-      val apply = matrixModuleSymbol.typeSignature.member(u.TermName("apply"))
-      val syms    = apply.alternatives.map(_.asMethod)
-      val sym     = syms.find { m =>
-        m.paramLists match {
-          case (arg :: xs) :: Nil
-            if arg.asTerm.typeSignature.erasure =:= u.typeOf[Array[Double]] => true
-          case _ => false
-        }
-      } getOrElse abort(s"No generic apply method found: $syms")
-
-      sym
-    }
+//    val applySeqDouble = {
+//      val apply = matrixModuleSymbol.typeSignature.member(u.TermName("apply"))
+//      val syms    = apply.alternatives.map(_.asMethod)
+//      val sym     = syms.find { m =>
+//        m.paramLists match {
+//          case (arg :: xs) :: Nil
+//            if arg.asTerm.typeSignature.erasure =:= u.typeOf[Seq[Any]] => true
+//          case _ => false
+//        }
+//      } getOrElse abort(s"No generic apply method found: $syms")
+//
+//      sym
+//    }
+//
+//
+//    val applyArrayDouble = {
+//      val apply = matrixModuleSymbol.typeSignature.member(u.TermName("apply"))
+//      val syms    = apply.alternatives.map(_.asMethod)
+//      val sym     = syms.find { m =>
+//        m.paramLists match {
+//          case (arg :: xs) :: Nil
+//            if arg.asTerm.typeSignature.erasure =:= u.typeOf[Array[Double]] => true
+//          case _ => false
+//        }
+//      } getOrElse abort(s"No generic apply method found: $syms")
+//
+//      sym
+//    }
 
     def methodInMod(target: u.Symbol, name: String, paramTypes: List[u.Type]) = {
       val method = target.typeSignature.member(u.TermName(name))
@@ -146,20 +146,8 @@ trait DMLCommon extends AST {
     val diag                = methodIn(matrixModuleSymbol, "diag")
     val fromDataFrame       = methodIn(matrixModuleSymbol, "fromDataFrame")
     val reshape             = methodIn(matrixModuleSymbol, "reshape")
-    val applySeq            = methodInMod(matrixModuleSymbol, "apply", List(u.typeOf[Seq[Double]], u.typeOf[Int], u.typeOf[Int]))
-    val applyArray          = applyArrayDouble
+    val applyArray1D        = methodInMod(matrixModuleSymbol, "apply", List(u.typeOf[Array[Double]], u.typeOf[Int], u.typeOf[Int]))
     val applyArrayV         = methodIn(vectorModuleSymbol, "apply")
-
-    // builtin functions
-    val sum       = methodIn(apiModuleSymbol, "sum")
-    val mean      = methodIn(apiModuleSymbol, "mean")
-    val min       = methodIn(apiModuleSymbol, "min")
-    val max       = methodIn(apiModuleSymbol, "max")
-    val read      = methodIn(apiModuleSymbol, "read")
-    val ppred     = methodIn(apiModuleSymbol, "ppred")
-    val colMeans  = methodIn(apiModuleSymbol, "colMeans")
-    val rowSums   = methodIn(apiModuleSymbol, "rowSums")
-    val pmax      = methodIn(apiModuleSymbol, "pmax")
 
     // matrix operators
     val nrow            = matrixOp("nrow")
@@ -250,9 +238,21 @@ trait DMLCommon extends AST {
     val greaterID = intOp(">", Double)
     val modID     = intOp("%", Double)
 
+    // builtin functions
+    val sum       = methodIn(apiModuleSymbol, "sum")
+    val mean      = methodIn(apiModuleSymbol, "mean")
+    val min       = methodIn(apiModuleSymbol, "min")
+    val max       = methodIn(apiModuleSymbol, "max")
+    val read      = methodIn(apiModuleSymbol, "read")
+    val ppred     = methodIn(apiModuleSymbol, "ppred")
+    val colMeans  = methodIn(apiModuleSymbol, "colMeans")
+    val rowSums   = methodIn(apiModuleSymbol, "rowSums")
+    val pmax      = methodIn(apiModuleSymbol, "pmax")
+    val cbind     = methodIn(apiModuleSymbol, "cbind")
 
-    val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applySeq, applyArray, applyArrayV, reshape)
-    val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax)
+
+    val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
+    val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax, cbind)
     val matOps      = Set(pow, nrow, ncol, transpose,
                           matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
                           indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR,

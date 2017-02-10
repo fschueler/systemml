@@ -24,7 +24,7 @@ class APISpec extends BaseAPISpec {
       "ones, zeros, rand, diag" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
+        val algorithm = systemml {
           val A = Matrix.ones(2, 2)
           val B = Matrix.zeros(2, 2)
           val C = Matrix.rand(2, 2)
@@ -34,14 +34,14 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("A", "B", "C", "D")
+        algorithm.outputs shouldEqual Array("A", "B", "C", "D")
 
         val result = algorithm.run()
 
-        result._1 shouldEqual Matrix(Seq(1.0, 1.0, 1.0, 1.0), 2, 2)
-        result._2 shouldEqual Matrix(Seq(0.0, 0.0, 0.0, 0.0), 2, 2)
+        result._1 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 2, 2)
+        result._2 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 2, 2)
 
-        result._4 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 1.0), 2, 2)
+        result._4 shouldEqual Matrix(Array(1.0, 0.0, 0.0, 1.0), 2, 2)
       }
 
       "fromDataFrame" in {
@@ -52,11 +52,11 @@ class APISpec extends BaseAPISpec {
           val numRows = 10
           val numCols = 7
 
-          val data = sc.parallelize(0 to numRows - 1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
+          val data = sc.parallelize(0 to numRows - 1).map { _ => Row.fromSeq(Array.fill(numCols)(Random.nextDouble)) }
           val schema = StructType((0 to numCols - 1).map { i => StructField("C" + i, DoubleType, true) })
           val df = spark.createDataFrame(data, schema)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val A = Matrix.fromDataFrame(df)
             val B = Matrix.fromDataFrame(df)
 
@@ -71,7 +71,7 @@ class APISpec extends BaseAPISpec {
         }
         dfName shouldEqual "df"
 
-        dfTest.algorithm.outputs shouldEqual Seq("A", "B")
+        dfTest.algorithm.outputs shouldEqual Array("A", "B")
 
         val result = dfTest.algorithm.run()
 
@@ -81,27 +81,27 @@ class APISpec extends BaseAPISpec {
       "apply" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
-          val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val algorithm = systemml {
+          val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
           val B = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
 
           (A, B)
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("A", "B")
+        algorithm.outputs shouldEqual Array("A", "B")
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2),
-                           Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2))
+        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2),
+                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2))
       }
 
       "reshape" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
-          val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val algorithm = systemml {
+          val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
           val B = Matrix.reshape(A, 4, 1)
           val C = Matrix.reshape(B, 2, 2)
 
@@ -109,19 +109,19 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("A", "B", "C")
+        algorithm.outputs shouldEqual Array("A", "B", "C")
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2),
-                           Matrix(Seq(1.0, 2.0, 3.0, 4.0), 4, 1),
-                           Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2))
+        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2),
+                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1),
+                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2))
       }
 
       "indexing" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
+        val algorithm = systemml {
           val A = Matrix.ones(3, 3)
           val B = Matrix.ones(3, 3)
           val C = Matrix.zeros(3, 3)
@@ -140,58 +140,66 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("a", "b", "c", "d", "e", "f", "g", "h")
+        algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f", "g", "h")
 
         val result = algorithm.run()
 
         result shouldEqual(1.0,
-                           Matrix(Seq(1.0, 1.0, 1.0), 1, 3),
-                           Matrix(Seq(0.0, 0.0, 0.0), 3, 1),
-                           Matrix(Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 2),
-                           Matrix(Seq(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 2, 3),
-                           Matrix(Seq(1.0, 1.0), 1, 2),
-                           Matrix(Seq(0.0, 0.0), 2, 1),
-                           Matrix(Seq(0.0, 0.0, 0.0, 0.0), 2, 2))
+                           Matrix(Array(1.0, 1.0, 1.0), 1, 3),
+                           Matrix(Array(0.0, 0.0, 0.0), 3, 1),
+                           Matrix(Array(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 2),
+                           Matrix(Array(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 2, 3),
+                           Matrix(Array(1.0, 1.0), 1, 2),
+                           Matrix(Array(0.0, 0.0), 2, 1),
+                           Matrix(Array(0.0, 0.0, 0.0, 0.0), 2, 2))
       }
 
       "updating" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
-          val A = Matrix.zeros(3, 3)
-          val B = Matrix.zeros(3, 3)
-          val C = Matrix.zeros(3, 3)
-          val D = Matrix.zeros(3, 3)
-          val E = Matrix.zeros(3, 3)
-          val F = Matrix.zeros(3, 3)
-          val G = Matrix.zeros(3, 3)
-          val H = Matrix.zeros(3, 3)
+        val algorithm = systemml {
+          val A = Matrix.zeros(2, 3)
+          val B = Matrix.zeros(2, 3)
+          val C = Matrix.zeros(2, 3)
+          val D = Matrix.zeros(2, 3)
+          val E = Matrix.zeros(2, 3)
+          val F = Matrix.zeros(2, 3)
+          val G = Matrix.zeros(2, 3)
+          val H = Matrix.zeros(2, 3)
 
           A(0, 0) = 1.0 // (idx, idx) = Double
-          B(0, :::) = Vector.ones(3).t // (idx, :::) = Matrix
-          C(:::, 0) = Vector.ones(3) // (:::, idx) = Matrix
-          D(0, 0 to 1) = Vector.ones(2).t // (idx, range) = Matrix
-          E(0 to 1, 0) = Vector.ones(2) // (range, idx) = Matrix
+          B(0, :::) = Vector.ones(3) // (idx, :::) = Matrix
+          C(:::, 0) = Vector.ones(2).t // (:::, idx) = Matrix
+          D(0, 0 to 1) = Vector.ones(2) // (idx, range) = Matrix
+          E(0 to 1, 1) = Vector.ones(2).t // (range, idx) = Matrix
           F(0 to 1, 0 to 1) = Matrix.ones(2, 2) // (range, range) = Matrix
           G(0 to 1, :::) = Matrix.ones(2, 3) // (range, :::) = Matrix
-          H(:::, 0 to 1) = Matrix.ones(3, 2) // (:::, range) = Matrix
+          H(:::, 1 to 2) = Matrix.ones(2, 2) // (:::, range) = Matrix
 
           (A, B, C, D, E, F, G, H)
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("A", "B", "C", "D", "E", "F", "G", "H")
+        algorithm.outputs shouldEqual Array("A", "B", "C", "D", "E", "F", "G", "H")
 
         val result = algorithm.run()
 
-        result._1 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
-        result._2 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0), 3, 3)
-        result._3 shouldEqual Matrix(Seq(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
-        result._4 shouldEqual Matrix(Seq(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
-        result._5 shouldEqual Matrix(Seq(1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
-        result._6 shouldEqual Matrix(Seq(1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
-        result._7 shouldEqual Matrix(Seq(1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0), 3, 3)
-        result._8 shouldEqual Matrix(Seq(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0), 3, 3)
+        result._1 shouldEqual Matrix(Array(1.0, 0.0, 0.0,
+                                           0.0, 0.0, 0.0), 2, 3)
+        result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0,
+                                           0.0, 0.0, 0.0), 2, 3)
+        result._3 shouldEqual Matrix(Array(1.0, 0.0, 0.0,
+                                           1.0, 0.0, 0.0), 2, 3)
+        result._4 shouldEqual Matrix(Array(1.0, 1.0, 0.0,
+                                           0.0, 0.0, 0.0), 2, 3)
+        result._5 shouldEqual Matrix(Array(0.0, 1.0, 0.0,
+                                           0.0, 1.0, 0.0), 2, 3)
+        result._6 shouldEqual Matrix(Array(1.0, 1.0, 0.0,
+                                           1.0, 1.0, 0.0), 2, 3)
+        result._7 shouldEqual Matrix(Array(1.0, 1.0, 1.0,
+                                           1.0, 1.0, 1.0), 2, 3)
+        result._8 shouldEqual Matrix(Array(0.0, 1.0, 1.0,
+                                           0.0, 1.0, 1.0), 2, 3)
       }
     }
 
@@ -199,7 +207,7 @@ class APISpec extends BaseAPISpec {
       "apply" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
+        val algorithm = systemml {
           val v = Vector.apply(Array(1.0, 2.0, 3.0, 4.0))
           val w = Vector.apply(Array(1.0, 2.0, 3.0, 4.0))
 
@@ -207,18 +215,18 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("v", "w")
+        algorithm.outputs shouldEqual Array("v", "w")
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1),
-                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1))
+        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 1, 4),
+                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 1, 4))
       }
 
       "rand, ones, zeros" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
+        val algorithm = systemml {
           val v = Vector.rand(4)
           val w = Vector.ones(4)
           val x = Vector.zeros(4)
@@ -227,12 +235,12 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("v", "w", "x")
+        algorithm.outputs shouldEqual Array("v", "w", "x")
 
         val result = algorithm.run()
 
-        result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 4, 1)
-        result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 4, 1)
+        result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 1, 4)
+        result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 1, 4)
       }
     }
   }
@@ -244,8 +252,8 @@ class APISpec extends BaseAPISpec {
       ".t, .ncol, .nrow" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
-          val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val algorithm = systemml {
+          val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
 
           val B = A.t
           val C = A.nrow
@@ -255,11 +263,11 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("B", "C", "D")
+        algorithm.outputs shouldEqual Array("B", "C", "D")
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Seq(1.0, 3.0, 2.0, 4.0), 2, 2), 2, 2)
+        result shouldEqual(Matrix(Array(1.0, 3.0, 2.0, 4.0), 2, 2), 2, 2)
       }
     }
   }
@@ -272,7 +280,7 @@ class APISpec extends BaseAPISpec {
         "Double - Double" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val a = 5.0
             val b = 2.0
 
@@ -285,7 +293,7 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("c", "d", "e", "f")
+          algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
           val result = algorithm.run()
 
@@ -295,7 +303,7 @@ class APISpec extends BaseAPISpec {
         "Int - Int" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val a = 5
             val b = 2
 
@@ -308,7 +316,7 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("c", "d", "e", "f")
+          algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
           val result = algorithm.run()
 
@@ -318,7 +326,7 @@ class APISpec extends BaseAPISpec {
         "Double - Int" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val a = 5.0
             val b = 2
 
@@ -331,7 +339,7 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("c", "d", "e", "f")
+          algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
           val result = algorithm.run()
 
@@ -341,7 +349,7 @@ class APISpec extends BaseAPISpec {
         "Int - Double" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val a = 5
             val b = 2.0
 
@@ -354,7 +362,7 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("c", "d", "e", "f")
+          algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
           val result = algorithm.run()
 
@@ -368,7 +376,7 @@ class APISpec extends BaseAPISpec {
         "Matrix - Double" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val A = Matrix.ones(2, 2)
             val b = 5.0
 
@@ -381,20 +389,20 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("C", "D", "E", "F")
+          algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
           val result = algorithm.run()
 
-          result shouldEqual(Matrix(Seq(6.0, 6.0, 6.0, 6.0), 2, 2),
-            Matrix(Seq(-4.0, -4.0, -4.0, -4.0), 2, 2),
-            Matrix(Seq(5.0, 5.0, 5.0, 5.0), 2, 2),
-            Matrix(Seq(0.2, 0.2, 0.2, 0.2), 2, 2))
+          result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
+            Matrix(Array(-4.0, -4.0, -4.0, -4.0), 2, 2),
+            Matrix(Array(5.0, 5.0, 5.0, 5.0), 2, 2),
+            Matrix(Array(0.2, 0.2, 0.2, 0.2), 2, 2))
         }
 
         "Matrix - Int" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val A = Matrix.ones(2, 2)
             val b = 5
 
@@ -407,20 +415,20 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("C", "D", "E", "F")
+          algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
           val result = algorithm.run()
 
-          result shouldEqual(Matrix(Seq(6.0, 6.0, 6.0, 6.0), 2, 2),
-            Matrix(Seq(-4.0, -4.0, -4.0, -4.0), 2, 2),
-            Matrix(Seq(5.0, 5.0, 5.0, 5.0), 2, 2),
-            Matrix(Seq(0.2, 0.2, 0.2, 0.2), 2, 2))
+          result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
+            Matrix(Array(-4.0, -4.0, -4.0, -4.0), 2, 2),
+            Matrix(Array(5.0, 5.0, 5.0, 5.0), 2, 2),
+            Matrix(Array(0.2, 0.2, 0.2, 0.2), 2, 2))
         }
 
         "Double - Matrix" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val A = 5.0
             val b = Matrix.ones(2, 2)
 
@@ -433,20 +441,20 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("C", "D", "E", "F")
+          algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
           val result = algorithm.run()
 
-          result shouldEqual(Matrix(Seq(6.0, 6.0, 6.0, 6.0), 2, 2),
-            Matrix(Seq(4.0, 4.0, 4.0, 4.0), 2, 2),
-            Matrix(Seq(5.0, 5.0, 5.0, 5.0), 2, 2),
-            Matrix(Seq(5.0, 5.0, 5.0, 5.0), 2, 2))
+          result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
+            Matrix(Array(4.0, 4.0, 4.0, 4.0), 2, 2),
+            Matrix(Array(5.0, 5.0, 5.0, 5.0), 2, 2),
+            Matrix(Array(5.0, 5.0, 5.0, 5.0), 2, 2))
         }
 
         "Int - Matrix" in {
           mlctx = new MLContext(sc)
 
-          val algorithm = parallelize {
+          val algorithm = systemml {
             val A = 5
             val b = Matrix.ones(2, 2)
 
@@ -459,14 +467,14 @@ class APISpec extends BaseAPISpec {
           }
 
           algorithm.inputs shouldBe empty
-          algorithm.outputs shouldEqual Seq("C", "D", "E", "F")
+          algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
           val result = algorithm.run()
 
-          result shouldEqual(Matrix(Seq(6.0, 6.0, 6.0, 6.0), 2, 2),
-            Matrix(Seq(4.0, 4.0, 4.0, 4.0), 2, 2),
-            Matrix(Seq(5.0, 5.0, 5.0, 5.0), 2, 2),
-            Matrix(Seq(5.0, 5.0, 5.0, 5.0), 2, 2))
+          result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
+            Matrix(Array(4.0, 4.0, 4.0, 4.0), 2, 2),
+            Matrix(Array(5.0, 5.0, 5.0, 5.0), 2, 2),
+            Matrix(Array(5.0, 5.0, 5.0, 5.0), 2, 2))
         }
       }
     }
@@ -475,7 +483,7 @@ class APISpec extends BaseAPISpec {
       "+, -, *, /, %*%" in {
         mlctx = new MLContext(sc)
 
-        val algorithm = parallelize {
+        val algorithm = systemml {
           val A = Matrix.ones(2, 2)
           val B = Matrix.ones(2, 2)
 
@@ -489,20 +497,82 @@ class APISpec extends BaseAPISpec {
         }
 
         algorithm.inputs shouldBe empty
-        algorithm.outputs shouldEqual Seq("C", "D", "E", "F", "G")
+        algorithm.outputs shouldEqual Array("C", "D", "E", "F", "G")
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Seq(2.0, 2.0, 2.0, 2.0), 2, 2),
-          Matrix(Seq(0.0, 0.0, 0.0, 0.0), 2, 2),
-          Matrix(Seq(1.0, 1.0, 1.0, 1.0), 2, 2),
-          Matrix(Seq(1.0, 1.0, 1.0, 1.0), 2, 2),
-          Matrix(Seq(2.0, 2.0, 2.0, 2.0), 2, 2))
+        result shouldEqual(Matrix(Array(2.0, 2.0, 2.0, 2.0), 2, 2),
+          Matrix(Array(0.0, 0.0, 0.0, 0.0), 2, 2),
+          Matrix(Array(1.0, 1.0, 1.0, 1.0), 2, 2),
+          Matrix(Array(1.0, 1.0, 1.0, 1.0), 2, 2),
+          Matrix(Array(2.0, 2.0, 2.0, 2.0), 2, 2))
       }
     }
   }
 
   "Builtin functions" - {
 
+    "cbind" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.zeros(3, 3)
+        val B = Matrix.ones(3, 2)
+        val v = Vector.ones(3).t
+
+        val C = cbind(A, B)
+        val D = cbind(B, A)
+        val E = cbind(A, v)
+
+        (C, D, E)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("C", "D", "E")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 1.0, 1.0,
+                                         0.0, 0.0, 0.0, 1.0, 1.0,
+                                         0.0, 0.0, 0.0, 1.0, 1.0), 3, 5)
+
+      result._2 shouldEqual Matrix(Array(1.0, 1.0, 0.0, 0.0, 0.0,
+                                         1.0, 1.0, 0.0, 0.0, 0.0,
+                                         1.0, 1.0, 0.0, 0.0, 0.0), 3, 5)
+
+      result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 1.0,
+                                         0.0, 0.0, 0.0, 1.0,
+                                         0.0, 0.0, 0.0, 1.0), 3, 4)
+    }
+
+    "min(x), max(x)" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, -3.0, -4,
+                             0.0, 0.0, 0.0,
+                             1.0, -3.0, -4.0), 3, 3)
+
+        val B = Matrix(Array(9.999999, 10e6, -9.999999, -10e5), 2, 2)
+
+        val C = Matrix.zeros(10, 10)
+
+        val a = min(A)
+        val b = max(A)
+        val c = min(B)
+        val d = max(B)
+        val e = min(C)
+        val f = max(C)
+
+        (a, b, c, d, e, f)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
+
+      val result = algorithm.run()
+
+      result shouldEqual (-4.0, 1.0, -10e5, 10e6, 0.0, 0.0)
+    }
   }
 }

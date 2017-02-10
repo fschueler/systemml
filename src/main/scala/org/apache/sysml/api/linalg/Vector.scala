@@ -2,7 +2,7 @@ package org.apache.sysml.api.linalg
 
 object Vector {
   /**
-    * Create a Matrix with one column
+    * Create a Matrix with one row
     * @param values
     * @return
     */
