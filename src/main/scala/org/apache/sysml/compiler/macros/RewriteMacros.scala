@@ -157,10 +157,11 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     /** extract the return type that has to be retained from mlcontext */
     val (outType: u.Type, outNames: List[u.Tree]) = e.tree match {
       case u.Block(_, expr) => expr match {
-        case l: u.Literal => (l.tpe, List(l.value))
+        case l: u.Literal if !(expr.tpe =:= u.typeOf[Unit]) => (l.tpe, List(l.value))
         case a: u.Apply if a.symbol.name == u.TermName("apply") => (a.tpe, a.args)
         case _ if expr.tpe =:= u.typeOf[Unit] =>
-          (expr.tpe, List())
+          //(expr.tpe, List())
+          abort("Return type can not be unit.")
         case _ =>
           (expr.tpe, List(expr))
       }

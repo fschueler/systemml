@@ -114,7 +114,8 @@ trait DMLCommon extends AST {
       val sym     = syms.find { m =>
         m.paramLists match {
           case args :: Nil // only one parameter list
-            if args.map(_.asTerm.typeSignature).zip(paramTypes).forall { case (actual, should) => actual =:= should } => true
+            if args.length == paramTypes.length &&
+              args.map(_.asTerm.typeSignature).zip(paramTypes).forall { case (actual, should) => actual =:= should } => true
           case _ => false
         }
       } getOrElse abort(s"No generic apply method found for target: $target, methods: $syms, parameter types: $paramTypes")
@@ -241,18 +242,26 @@ trait DMLCommon extends AST {
     // builtin functions
     val sum       = methodIn(apiModuleSymbol, "sum")
     val mean      = methodIn(apiModuleSymbol, "mean")
-    val min       = methodIn(apiModuleSymbol, "min")
-    val max       = methodIn(apiModuleSymbol, "max")
     val read      = methodIn(apiModuleSymbol, "read")
     val ppred     = methodIn(apiModuleSymbol, "ppred")
     val colMeans  = methodIn(apiModuleSymbol, "colMeans")
     val rowSums   = methodIn(apiModuleSymbol, "rowSums")
     val pmax      = methodIn(apiModuleSymbol, "pmax")
     val cbind     = methodIn(apiModuleSymbol, "cbind")
+    val minm      = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix]))
+    val minmm     = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix], u.typeOf[Matrix]))
+    val minmd     = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix], Double))
+    val mindd     = methodInMod(apiModuleSymbol, "min", List(Double, Double))
+    val maxm      = methodInMod(apiModuleSymbol, "max", List(u.typeOf[Matrix]))
+    val maxmm     = methodInMod(apiModuleSymbol, "max", List(u.typeOf[Matrix], u.typeOf[Matrix]))
+    val maxmd     = methodInMod(apiModuleSymbol, "max", List(u.typeOf[Matrix], Double))
+    val maxdd     = methodInMod(apiModuleSymbol, "max", List(Double, Double))
+    val prod      = methodIn(apiModuleSymbol, "prod")
+    val rbind     = methodIn(apiModuleSymbol, "rbind")
 
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
-    val builtinOps  = Set(sum, mean, min, max, read, ppred, colMeans, rowSums, pmax, cbind)
+    val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, sum, mean, read, ppred, colMeans, rowSums, pmax)
     val matOps      = Set(pow, nrow, ncol, transpose,
                           matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
                           indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR,
