@@ -258,10 +258,13 @@ trait DMLCommon extends AST {
     val maxdd     = methodInMod(apiModuleSymbol, "max", List(Double, Double))
     val prod      = methodIn(apiModuleSymbol, "prod")
     val rbind     = methodIn(apiModuleSymbol, "rbind")
+    val removeEmpty = methodIn(apiModuleSymbol, "removeEmpty")
+    val replace   = methodIn(apiModuleSymbol, "replace")
+    val reverse   = methodIn(apiModuleSymbol, "rev")
 
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
-    val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, sum, mean, read, ppred, colMeans, rowSums, pmax)
+    val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty, replace, reverse, sum, mean, read, ppred, colMeans, rowSums, pmax)
     val matOps      = Set(pow, nrow, ncol, transpose,
                           matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
                           indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR,
