@@ -133,6 +133,7 @@ package object api {
 
   /**
     * Compares doubles a and b and returns the larger value.
+    *
     * @param a Double.
     * @param b Double.
     * @return a, if a > b, b else.
@@ -159,6 +160,41 @@ package object api {
     */
   def rbind(top: Matrix, bottom: Matrix): Matrix = ???
 
+  /**
+    * Removes all empty rows or columns from the input matrix target X according to the specified margin.
+    * Also, allows to apply a filter F before removing the empty rows/cols.
+    *
+    */
+  def removeEmpty(target: Matrix, margin: Margin.MarginSelector, select: Boolean) = ???
+  // TODO add test
+
+  /**
+    * Replace values that equal the pattern with the respective replacement value.
+    * Example: pattern NaN can be replaced by another Double value.
+    *
+    * @param target The input matrix.
+    * @param pattern Cell values that will be replaced.
+    * @param replacement Replacement value for matching pattern values.
+    * @return The input matrix with cell values equal to the pattern value replaced by the replacement value.
+    */
+  def replace(target: Matrix, pattern: Double, replacement: Double): Matrix = ???
+
+  /**
+    * Reverses the columns in a matrix.
+    * Example: reverse([1, 2, 3]    [4, 5, 6]
+    *                  [4, 5, 6]) = [1, 2, 3]
+    *
+    * @param target Input matrix.
+    * @return Input matrix with reversed rows.
+    */
+  def rev(target: Matrix): Matrix = ???
+
+  /**
+    * Computes the sum of all elements in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Sum of all elements in the matrix.
+    */
   def sum(mat: Matrix): Double = ???
 
   def rowSums(mat: Matrix): Matrix = ???
@@ -204,5 +240,11 @@ package object api {
     sealed trait FileFormat
     case object CSV extends FileFormat
     case object BINARY extends FileFormat
+  }
+
+  object Margin {
+    sealed trait MarginSelector
+    case object Rows extends MarginSelector
+    case object Cols extends MarginSelector
   }
 }

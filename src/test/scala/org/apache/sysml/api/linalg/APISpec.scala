@@ -683,5 +683,90 @@ class APISpec extends BaseAPISpec {
         Matrix(Array(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 2, 3)
       )
     }
+
+    "removeEmpty" in {
+      fail("todo")
+    }
+
+    "replace" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, Double.NaN, 1.0, Double.NaN, Double.NaN, 1.0), 2, 3)
+        val B = Matrix(Array(0.0, -2.0, Double.MaxValue, 0.0, Double.MinPositiveValue, 0.0), 2, 3)
+        val C = Matrix(Array(0.0, Double.PositiveInfinity, Double.NegativeInfinity, 0.0, 0.01, 0.0), 2, 3)
+
+        val D = replace(A, Double.NaN, -1.0)
+        val E = replace(B, Double.MaxValue, Double.MinPositiveValue)
+        val F = replace(B, Double.MinPositiveValue, Double.MaxValue)
+        val G = replace(C, Double.PositiveInfinity, 10e6)
+        val H = replace(C, Double.NegativeInfinity, -10e6)
+
+        (D, E, F, G, H)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("D", "E", "F", "G", "H")
+
+      val result = algorithm.run()
+
+      result shouldEqual(
+        Matrix(Array(1.0, -1.0, 1.0, -1.0, -1.0, 1.0), 2, 3),
+        Matrix(Array(0.0, -2.0, Double.MinPositiveValue, 0.0, Double.MinPositiveValue), 2, 3),
+        Matrix(Array(0.0, -2.0, Double.MaxValue, 0.0, Double.MaxValue, 0.0), 2, 3),
+        Matrix(Array(0.0, 10e6, Double.NegativeInfinity, 0.0, 0.01, 0.0), 2, 3),
+        Matrix(Array(0.0, Double.PositiveInfinity, -10e6, 0.0, 0.01, 0.0), 2, 3)
+      )
+    }
+
+    "rev" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Vector(Array(1.0, 2.0, 3.0, 4.0))
+        val B = Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 2, 3)
+        val C = Matrix(Array(1.0, 1.0, 1.0, 0.0), 2, 2)
+
+        val D = rev(A.t)
+        val E = rev(B)
+        val F = rev(C)
+
+        (D, E, F)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("D", "E", "F")
+
+      val result = algorithm.run()
+
+      result shouldEqual(
+        Matrix(Array(4.0, 3.0, 2.0, 1.0), 4, 1),
+        Matrix(Array(4.0, 5.0, 6.0, 1.0, 2.0, 3.0), 2, 3),
+        Matrix(Array(1.0, 0.0, 1.0, 1.0), 2, 2)
+      )
+    }
+
+    "sum" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.ones(3, 3)
+        val B = Matrix.zeros(3, 3)
+        val C = Matrix(Array(1.0, -1.0, 2.0, -2.0), 2, 2)
+
+        val a = sum(A)
+        val b = sum(B)
+        val c = sum(C)
+
+        (a, b, c)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c")
+
+      val result = algorithm.run()
+
+      result shouldEqual(9.0, 0.0, 0.0)
+    }
   }
 }
