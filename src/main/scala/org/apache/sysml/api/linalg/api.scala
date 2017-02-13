@@ -251,11 +251,33 @@ package object api {
     */
   def rowIndexMax(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute the mean of all values in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Mean value over all cells of the input matrix.
+    */
+  def mean(mat: Matrix): Double = ???
+
+  /**
+    * Compute the sample variance over all cells in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Variance of all values in the matrix.
+    */
+  def variance(mat: Matrix): Double = ???
+
+  /**
+    * Conpute the sample standard deviation over all cells in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Standard deviance of all values in the matrix.
+    */
+  def sd(mat: Matrix): Double = ???
+
   def rowSums(mat: Matrix): Matrix = ???
 
   def colSums(mat: Matrix): Matrix = ???
-
-  def mean(mat: Matrix): Double = ???
 
   def rowMeans(mat: Matrix): Matrix = ???
 

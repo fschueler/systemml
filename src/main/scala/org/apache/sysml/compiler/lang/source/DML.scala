@@ -89,6 +89,8 @@ trait DML extends DMLCommon with DMLSourceValidate {
               s"write(${args(0)}, ${args(1)}, $format)"
             }
 
+            case u.TermName("variance") => s"var(${args.mkString(", ")})"
+
             case u.TermName(fname) if fname == "MatrixOps" => args.head.toString
 
             case u.TermName(fname) => s"$fname(${args.mkString(", ")})"
