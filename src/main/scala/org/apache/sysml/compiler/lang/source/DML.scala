@@ -58,12 +58,12 @@ trait DML extends DMLCommon with DMLSourceValidate {
 
           sym.name match {
             case u.TermName("rand")  => if (isVector) s"rand(rows=1, cols=${args(0)})" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
-            case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=1, cols=${args(0)})" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
-            case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=1, cols=${args(0)})" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=${args(0)}, cols=1)" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
+            case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=${args(0)}, cols=1)" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=1))"
             case u.TermName("apply") => if (isVector) {
-              val cols = args(0).split(" ").length
-              s"matrix(${args(0)}, rows=1, cols=$cols)"
+              val rows = args(0).split(" ").length
+              s"matrix(${args(0)}, rows=$rows, cols=1)"
             } else s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
             case u.TermName("reshape") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
             /* Here we just remove the call to Matrix.fromDataFrame(ref) with ref. We will take care of setting the input
