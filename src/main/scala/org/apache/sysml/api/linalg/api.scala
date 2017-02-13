@@ -268,12 +268,31 @@ package object api {
   def variance(mat: Matrix): Double = ???
 
   /**
-    * Conpute the sample standard deviation over all cells in the matrix.
+    * Compute the sample standard deviation over all cells in the matrix.
     *
     * @param mat Input matrix.
     * @return Standard deviance of all values in the matrix.
     */
   def sd(mat: Matrix): Double = ???
+
+  /**
+    * Compute the k-th central moment of the values of a column vector.
+    *
+    * @param mat Input matrix, must be n x 1 (column vector).
+    * @param k Moment to compute, k element of [2, 3, 4].
+    * @return K-th central moment for values of the input matrix.
+    */
+  def moment(mat: Matrix, k: Int): Double = ???
+
+  /**
+    * Compute the k-th central moment of the values in a column-vector weighted by a weight matrix.
+    *
+    * @param mat Input matrix, must be n x 1 (column vector).
+    * @param weights Weight matrix of the same dimension as the input matrix (n x 1).
+    * @param k Moment to compute, k element of [2, 3, 4].
+    * @return K-th central moment for values of the input matrix weighted by the weight matrix.
+    */
+  def moment(mat: Matrix, weights: Matrix, k: Int): Double = ???
 
   def rowSums(mat: Matrix): Matrix = ???
 
