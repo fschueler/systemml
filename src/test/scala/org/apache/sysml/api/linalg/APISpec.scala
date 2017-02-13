@@ -821,5 +821,58 @@ class APISpec extends BaseAPISpec {
       result._3 shouldEqual Matrix(Array(1.0, 2.0), 2, 1)
       result._4 shouldEqual Matrix(Array(2.0, 1.0), 2, 1)
     }
+
+    "mean" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.zeros(3, 3)
+        val B = Matrix.ones(3, 3)
+        val C = Matrix.diag(1.0, 3)
+        val D = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
+
+        val a = mean(A)
+        val b = mean(B)
+        val c = mean(C)
+        val d = mean(D)
+
+        (a, b, c, d)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d")
+
+      val result = algorithm.run()
+
+      result shouldEqual(0.0, 1.0, 3.0/9.0, 2.5)
+    }
+
+    "var, sd" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.ones(3, 3)
+        val B = Matrix.diag(6.0, 3)
+        val C = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
+
+        val a = variance(A)
+        val b = sd(A)
+        val c = variance(B)
+        val d = sd(B)
+        val e = variance(C)
+        val f = sd(C)
+
+        (a, b, c, d, e, f)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
+
+      val result = algorithm.run()
+
+      result shouldEqual(0.0, 0.0, 9.0, 3.0, 5.0/3.0, Math.sqrt(5.0/3.0))
+    }
+
+    
   }
 }
