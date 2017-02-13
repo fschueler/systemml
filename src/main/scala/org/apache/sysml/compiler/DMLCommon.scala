@@ -268,13 +268,15 @@ trait DMLCommon extends AST {
     val rowIndexMax = methodIn(apiModuleSymbol, "rowIndexMax")
     val variance  = methodIn(apiModuleSymbol, "variance")
     val sd        = methodIn(apiModuleSymbol, "sd")
+    val moment    = methodInMod(apiModuleSymbol, "moment", List(u.typeOf[Matrix], Int))
+    val momentw   = methodInMod(apiModuleSymbol, "moment", List(u.typeOf[Matrix], u.typeOf[Matrix], Int))
 
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
     val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty,
                           replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, rowIndexMin, rowIndexMax, mean,
-                          variance, sd, read, ppred, colMeans, rowSums)
+                          variance, sd, moment, momentw, read, ppred, colMeans, rowSums)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,

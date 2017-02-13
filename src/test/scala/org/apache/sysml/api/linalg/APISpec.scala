@@ -168,10 +168,10 @@ class APISpec extends BaseAPISpec {
           val H = Matrix.zeros(2, 3)
 
           A(0, 0) = 1.0 // (idx, idx) = Double
-          B(0, :::) = Vector.ones(3) // (idx, :::) = Matrix
-          C(:::, 0) = Vector.ones(2).t // (:::, idx) = Matrix
-          D(0, 0 to 1) = Vector.ones(2) // (idx, range) = Matrix
-          E(0 to 1, 1) = Vector.ones(2).t // (range, idx) = Matrix
+          B(0, :::) = Vector.ones(3).t // (idx, :::) = Matrix
+          C(:::, 0) = Vector.ones(2) // (:::, idx) = Matrix
+          D(0, 0 to 1) = Vector.ones(2).t // (idx, range) = Matrix
+          E(0 to 1, 1) = Vector.ones(2) // (range, idx) = Matrix
           F(0 to 1, 0 to 1) = Matrix.ones(2, 2) // (range, range) = Matrix
           G(0 to 1, :::) = Matrix.ones(2, 3) // (range, :::) = Matrix
           H(:::, 1 to 2) = Matrix.ones(2, 2) // (:::, range) = Matrix
@@ -219,8 +219,8 @@ class APISpec extends BaseAPISpec {
 
         val result = algorithm.run()
 
-        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 1, 4),
-                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 1, 4))
+        result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1),
+                           Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1))
       }
 
       "rand, ones, zeros" in {
@@ -239,8 +239,8 @@ class APISpec extends BaseAPISpec {
 
         val result = algorithm.run()
 
-        result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 1, 4)
-        result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 1, 4)
+        result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 4, 1)
+        result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 4, 1)
       }
     }
   }
@@ -518,7 +518,7 @@ class APISpec extends BaseAPISpec {
       val algorithm = systemml {
         val A = Matrix.zeros(3, 3)
         val B = Matrix.ones(3, 2)
-        val v = Vector.ones(3).t
+        val v = Vector.ones(3)
 
         val C = cbind(A, B)
         val D = cbind(B, A)
@@ -661,7 +661,7 @@ class APISpec extends BaseAPISpec {
       val algorithm = systemml {
         val A = Matrix.zeros(2, 3)
         val B = Matrix.ones(2, 3)
-        val v = Vector.ones(3)
+        val v = Vector.ones(3).t
 
         val D = rbind(A, B)
         val E = rbind(B, A)
@@ -727,7 +727,7 @@ class APISpec extends BaseAPISpec {
         val B = Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 2, 3)
         val C = Matrix(Array(1.0, 1.0, 1.0, 0.0), 2, 2)
 
-        val D = rev(A.t)
+        val D = rev(A)
         val E = rev(B)
         val F = rev(C)
 
@@ -873,6 +873,30 @@ class APISpec extends BaseAPISpec {
       result shouldEqual(0.0, 0.0, 9.0, 3.0, 5.0/3.0, Math.sqrt(5.0/3.0))
     }
 
-    
+    "moment" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Vector(Array(1.0, 2.0, 3.0, 4.0))
+        val B = Vector.ones(4)
+
+        val a = moment(A, 2)
+        val b = moment(A, 3)
+        val c = moment(A, 4)
+
+        val d = moment(A, B, 2)
+        val e = moment(A, B, 3)
+        val f = moment(A, B, 4)
+
+        (a, b, c, d, e, f)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
+
+      val result = algorithm.run()
+
+      result shouldEqual(1.25, 0.0, 2.5625, 1.25, 0.0, 2.5625)
+    }
   }
 }
