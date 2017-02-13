@@ -233,6 +233,24 @@ package object api {
     */
   def pmax(matA: Matrix, value: Double): Matrix = ???
 
+  /**
+    * Find the column index of the smallest value in each row.
+    * NOTE: Since DML is 1-based, the returned indices will be 1-based!
+    *
+    * @param mat Input Matrix.
+    * @return Column vector containing the column-indices of the minimum value of each row.
+    */
+  def rowIndexMin(mat: Matrix): Matrix = ???
+
+  /**
+    * Find the column index of the largest value in each row.
+    * NOTE: Since DML is 1-based, the returned indices will be 1-based!
+    *
+    * @param mat Input Matrix.
+    * @return Column vector containing the column-indices of the minimum value of each row.
+    */
+  def rowIndexMax(mat: Matrix): Matrix = ???
+
   def rowSums(mat: Matrix): Matrix = ???
 
   def colSums(mat: Matrix): Matrix = ???
@@ -250,8 +268,6 @@ package object api {
   def abs(x: Double): Double = ???
 
   def exp(b: Matrix): Matrix = ???
-
-  def rowIndexMax(mat: Matrix): Matrix = ???
 
   def ppred(mat: Matrix, s: Double, op: String): Matrix = ???
 

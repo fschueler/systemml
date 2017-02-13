@@ -796,6 +796,30 @@ class APISpec extends BaseAPISpec {
       result._4 shouldEqual Matrix(Array(1.0, -1.0, 5.0, -1.0, 10e5, 0.0, Double.MaxValue, Double.PositiveInfinity, -1.0), 3, 3)
     }
 
-    
+    "rowIndexMin, rowIndexMax" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(0.0, -1.0, 1.0, Double.NegativeInfinity, Double.PositiveInfinity, 0.0), 3, 2)
+        val B = Matrix(Array(-1.0, 0.0, 1.0, 0.0), 2, 2)
+
+        val C = rowIndexMin(A)
+        val D = rowIndexMax(A)
+        val E = rowIndexMin(B)
+        val F = rowIndexMax(B)
+
+        (C, D, E, F)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("C", "D", "E", "F")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(2.0, 2.0, 2.0), 3, 1)
+      result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0), 3, 1)
+      result._3 shouldEqual Matrix(Array(1.0, 2.0), 2, 1)
+      result._4 shouldEqual Matrix(Array(2.0, 1.0), 2, 1)
+    }
   }
 }
