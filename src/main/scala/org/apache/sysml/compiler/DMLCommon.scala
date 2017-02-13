@@ -264,12 +264,14 @@ trait DMLCommon extends AST {
     val pminmm    = methodInMod(apiModuleSymbol, "pmin", List(u.typeOf[Matrix], u.typeOf[Matrix]))
     val pmaxmd    = methodInMod(apiModuleSymbol, "pmax", List(u.typeOf[Matrix], Double))
     val pmaxmm    = methodInMod(apiModuleSymbol, "pmax", List(u.typeOf[Matrix], u.typeOf[Matrix]))
+    val rowIndexMin = methodIn(apiModuleSymbol, "rowIndexMin")
+    val rowIndexMax = methodIn(apiModuleSymbol, "rowIndexMax")
 
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
     val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty,
-                          replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, mean, read, ppred, colMeans, rowSums)
+                          replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, rowIndexMin, rowIndexMax, mean, read, ppred, colMeans, rowSums)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
