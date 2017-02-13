@@ -768,5 +768,34 @@ class APISpec extends BaseAPISpec {
 
       result shouldEqual(9.0, 0.0, 0.0)
     }
+
+    "pmin, pmax" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.ones(3, 3)
+        val B = Matrix(Array(1.0, -1.0, 5.0, -10e5, 10e5, 0.0, Double.MaxValue, Double.PositiveInfinity, Double.NegativeInfinity), 3, 3)
+        val s = -1.0
+
+        val D = pmin(A, B)
+        val E = pmax(A, B)
+        val F = pmin(B, s)
+        val G = pmax(B, s)
+
+        (D, E, F, G)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("D", "E", "F", "G")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(1.0, -1.0, 1.0, -10e5, 1.0, 0.0, 1.0, 1.0, Double.NegativeInfinity), 3, 3)
+      result._2 shouldEqual Matrix(Array(1.0, 1.0, 5.0, 1.0, 10e5, 1.0, Double.MaxValue, Double.PositiveInfinity, 1.0), 3, 3)
+      result._3 shouldEqual Matrix(Array(-1.0, -1.0, -1.0, -10e5, -1.0, -1.0, -1.0, -1.0, Double.NegativeInfinity), 3, 3)
+      result._4 shouldEqual Matrix(Array(1.0, -1.0, 5.0, -1.0, 10e5, 0.0, Double.MaxValue, Double.PositiveInfinity, -1.0), 3, 3)
+    }
+
+    
   }
 }

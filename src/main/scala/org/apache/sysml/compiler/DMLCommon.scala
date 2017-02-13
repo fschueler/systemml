@@ -246,7 +246,6 @@ trait DMLCommon extends AST {
     val ppred     = methodIn(apiModuleSymbol, "ppred")
     val colMeans  = methodIn(apiModuleSymbol, "colMeans")
     val rowSums   = methodIn(apiModuleSymbol, "rowSums")
-    val pmax      = methodIn(apiModuleSymbol, "pmax")
     val cbind     = methodIn(apiModuleSymbol, "cbind")
     val minm      = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix]))
     val minmm     = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix], u.typeOf[Matrix]))
@@ -261,17 +260,26 @@ trait DMLCommon extends AST {
     val removeEmpty = methodIn(apiModuleSymbol, "removeEmpty")
     val replace   = methodIn(apiModuleSymbol, "replace")
     val reverse   = methodIn(apiModuleSymbol, "rev")
+    val pminmd    = methodInMod(apiModuleSymbol, "pmin", List(u.typeOf[Matrix], Double))
+    val pminmm    = methodInMod(apiModuleSymbol, "pmin", List(u.typeOf[Matrix], u.typeOf[Matrix]))
+    val pmaxmd    = methodInMod(apiModuleSymbol, "pmax", List(u.typeOf[Matrix], Double))
+    val pmaxmm    = methodInMod(apiModuleSymbol, "pmax", List(u.typeOf[Matrix], u.typeOf[Matrix]))
 
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
-    val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty, replace, reverse, sum, mean, read, ppred, colMeans, rowSums, pmax)
-    val matOps      = Set(pow, nrow, ncol, transpose,
-                          matmult, timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
+
+    val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty,
+                          replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, mean, read, ppred, colMeans, rowSums)
+
+    val matOps      = Set(pow, nrow, ncol, transpose, matmult,
+                          timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
                           indexII, indexIR, indexRI, indexIA, indexAI, indexRA, indexAR, indexRR,
                           updateII, updateIR, updateRI, updateIA, updateAI, updateRA, updateAR, updateRR)
+
     val doubleOps   = Set(plusDD, minusDD, timesDD, divDD, geqDD, leqDD, lessDD, greaterDD,
                           plusDI, minusDI, timesDI, divDI, geqDI, leqDI, lessDI, greaterDI,
                           plusDM, minusDM, timesDM, modDD, divDM)
+
     val intOps      = Set(plusII, minusII, timesII, divII, geqII, leqII, lessII, greaterII, modII,
                           plusID, minusID, timesID, divID, geqID, leqID, lessID, greaterID, modID)
 
@@ -282,7 +290,5 @@ trait DMLCommon extends AST {
     // Set of valid inputs to the macro
     val inputs = Set(Matrix, DataFrame, MLContext)
     val primitives = Set(Double, Int)
-
-
   }
 }

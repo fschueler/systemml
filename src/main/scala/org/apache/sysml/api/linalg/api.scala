@@ -197,6 +197,42 @@ package object api {
     */
   def sum(mat: Matrix): Double = ???
 
+  /**
+    * Parallel minimum. Computes cell-wise minimum between the cells of matrix A and B.
+    *
+    * @param matA Left input matrix.
+    * @param matB Right input matrix.
+    * @return Matrix containing the smaller values of the cell comparisons.
+    */
+  def pmin(matA: Matrix, matB: Matrix): Matrix = ???
+
+  /**
+    * Parallel minimum. Computes cell-wise minimum between the cells of matrix A and a double value.
+    *
+    * @param matA Input matrix.
+    * @param value Input value.
+    * @return Cell-wise minimum between cell entries of the input matrix and the provided value.
+    */
+  def pmin(matA: Matrix, value: Double): Matrix = ???
+
+  /**
+    * Parallel maximum. Computes cell-wise maximum between cells of matrix A and B.
+    *
+    * @param matA Left input matrix.
+    * @param matB Right input matrix.
+    * @return Matrix containing the larger values of the cell comparisons.
+    */
+  def pmax(matA: Matrix, matB: Matrix): Matrix = ???
+
+  /**
+    * Parallel maximum. Computes cell-wise maximum between the cells of matrix A and a double value.
+    *
+    * @param matA Input matrix.
+    * @param value Input value.
+    * @return Cell-wise maximum between cell entries of the input matrix and the provided value.
+    */
+  def pmax(matA: Matrix, value: Double): Matrix = ???
+
   def rowSums(mat: Matrix): Matrix = ???
 
   def colSums(mat: Matrix): Matrix = ???
@@ -216,8 +252,6 @@ package object api {
   def exp(b: Matrix): Matrix = ???
 
   def rowIndexMax(mat: Matrix): Matrix = ???
-
-  def pmax(mat: Matrix, s: Double): Matrix = ???
 
   def ppred(mat: Matrix, s: Double, op: String): Matrix = ???
 
