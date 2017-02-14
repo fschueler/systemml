@@ -342,6 +342,46 @@ package object api {
     */
   def colMins(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute the covariance between two column vectors of the same dimension.
+    *
+    * @param matA Left input vector of size n x 1.
+    * @param matB Right input vector of size n x 1.
+    * @return Covariance of both vectors.
+    */
+  def cov(matA: Matrix, matB: Matrix): Double = ???
+
+  /**
+    * Compute the covariance between two column vectors of the same dimension with extra weighting.
+    *
+    * @param matA Left input vector of size n x 1.
+    * @param matB Right input vector of size n x 1.
+    * @param weights Weight vector of size n x 1.
+    * @return Weighted covariance of both vectors.
+    */
+  def cov(matA: Matrix, matB: Matrix, weights: Matrix): Double = ???
+
+  /**
+    * Compute the contingency table of two vectors A and B. The resulting table consists of max(A) rows and max(B)
+    * columns. For the output F it holds that F[i,j] = |{ k | A[k] = i and B[k] = j, 1 ≤ k ≤ n }|
+    *
+    * @param matA Left input vector.
+    * @param matB Right input vector.
+    * @return Contingency table F.
+    */
+  def table(matA: Matrix, matB: Matrix): Matrix = ???
+
+  /**
+    * Compute the contingency table of two vectors A and B. The resulting table consists of max(A) rows and max(B)
+    * columns. The weights are incorporated in the following way: F[i,j] = ∑kC[k], where A[k] = i and B[k] = j (1 ≤ k ≤ n)
+    *
+    * @param matA Left input vector.
+    * @param matB Right input vector.
+    * @param weights Weight vector of same dimensions as input.
+    * @return Contingency table F.
+    */
+  def table(matA: Matrix, matB: Matrix, weights: Matrix): Matrix = ???
+
   def rowSums(mat: Matrix): Matrix = ???
 
   def rowMeans(mat: Matrix): Matrix = ???
