@@ -294,13 +294,57 @@ package object api {
     */
   def moment(mat: Matrix, weights: Matrix, k: Int): Double = ???
 
-  def rowSums(mat: Matrix): Matrix = ???
-
+  /**
+    * Compute the sum over all values (rows) in each column.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (1 x n) containing the sums over all values in each column.
+    */
   def colSums(mat: Matrix): Matrix = ???
 
-  def rowMeans(mat: Matrix): Matrix = ???
-
+  /**
+    * Compute the mean over all values (rows) in each column.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (1 x n) containing the mean over all values in each column.
+    */
   def colMeans(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the sample variance over all values (rows) in each column.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (1 x n) containing the variance over all values in each column.
+    */
+  def colVars(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the sample standard deviation over all values (rows) in each column.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (1 x n) containing the sample standard deviation over all values in each column.
+    */
+  def colSds(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the largest value over all values (rows) in each column.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (1 x n) containing the largest value of all values in each column.
+    */
+  def colMaxs(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the smallest value over all values (rows) in each column.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (1 x n) containing the smallest value of all values in each column.
+    */
+  def colMins(mat: Matrix): Matrix = ???
+
+  def rowSums(mat: Matrix): Matrix = ???
+
+  def rowMeans(mat: Matrix): Matrix = ???
 
   def log(x: Double): Double = ???
 

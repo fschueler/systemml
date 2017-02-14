@@ -898,5 +898,34 @@ class APISpec extends BaseAPISpec {
 
       result shouldEqual(1.25, 0.0, 2.5625, 1.25, 0.0, 2.5625)
     }
+
+    "colSums, colMeans, colVars, colSds, colMaxs, colMins" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0), 3, 3)
+
+        val a = colSums(A)
+        val b = colMeans(A)
+        val c = colVars(A)
+        val d = colSds(A)
+        val e = colMins(A)
+        val f = colMaxs(A)
+
+        (a, b, c, d, e, f)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(12.0, 15.0, 18.0), 1, 3)
+      result._2 shouldEqual Matrix(Array(4.0, 5.0, 6.0), 1, 3)
+      result._3 shouldEqual Matrix(Array(9.0, 9.0, 9.0), 1, 3)
+      result._4 shouldEqual Matrix(Array(3.0, 3.0, 3.0), 1, 3)
+      result._5 shouldEqual Matrix(Array(1.0, 2.0, 3.0), 1, 3)
+      result._6 shouldEqual Matrix(Array(7.0, 8.0, 9.0), 1, 3)
+    }
   }
 }
