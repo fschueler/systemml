@@ -927,5 +927,51 @@ class APISpec extends BaseAPISpec {
       result._5 shouldEqual Matrix(Array(1.0, 2.0, 3.0), 1, 3)
       result._6 shouldEqual Matrix(Array(7.0, 8.0, 9.0), 1, 3)
     }
+
+    "cov" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Vector(Array(1.0, 5.5, 7.8, 4.2, -2.7, -5.4, 8.9))
+        val B = Vector(Array(0.1, 1.5, 0.8, -4.2, 2.7, -9.4, -1.9))
+        val W = Vector.ones(7)
+
+        val C = cov(A, B)
+        val D = cov(A, B, W)
+
+        (C, D)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("C", "D")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual 8.697380952380952
+      result._2 shouldEqual 8.697380952380952
+    }
+
+    "table" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Vector(Array(1.0, 2.0, 3.0))
+        val B = Vector(Array(1.0, 2.0, 3.0))
+        val W = Vector(Array(2.0, 3.0, 4.0))
+
+        val D = table(A, B)
+        val E = table(A, B, W)
+
+        (D, E)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("D", "E")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), 3, 3)
+      result._2 shouldEqual Matrix(Array(2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0), 3, 3)
+    }
   }
 }
