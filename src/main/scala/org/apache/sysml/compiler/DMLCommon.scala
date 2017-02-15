@@ -243,7 +243,6 @@ trait DMLCommon extends AST {
     val sum         = methodIn(apiModuleSymbol, "sum")
     val read        = methodIn(apiModuleSymbol, "read")
     val ppred       = methodIn(apiModuleSymbol, "ppred")
-    val rowSums     = methodIn(apiModuleSymbol, "rowSums")
     val cbind       = methodIn(apiModuleSymbol, "cbind")
     val minm        = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix]))
     val minmm       = methodInMod(apiModuleSymbol, "min", List(u.typeOf[Matrix], u.typeOf[Matrix]))
@@ -288,13 +287,21 @@ trait DMLCommon extends AST {
     val quantilem   = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix]))
     val quantilew   = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix], Double))
     val quantilewm  = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix], u.typeOf[Matrix]))
+    val rowSums     = methodIn(apiModuleSymbol, "rowSums")
+    val rowMeans     = methodIn(apiModuleSymbol, "rowMeans")
+    val rowVars     = methodIn(apiModuleSymbol, "rowVars")
+    val rowSds     = methodIn(apiModuleSymbol, "rowSds")
+    val rowMaxs     = methodIn(apiModuleSymbol, "rowMaxs")
+    val rowMins     = methodIn(apiModuleSymbol, "rowMins")
+
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
     val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty,
                           replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, rowIndexMin, rowIndexMax, mean,
                           variance, sd, moment, momentw, read, ppred, colSums, colMeans, colVars, colSds, colMaxs,
-                          colMins, cov, covw, table, tablew, interqm, interqmw, quantile, quantilem, quantilew, quantilewm, rowSums)
+                          colMins, cov, covw, table, tablew, interqm, interqmw, quantile, quantilem, quantilew,
+                          quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
