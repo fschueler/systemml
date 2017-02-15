@@ -491,6 +491,54 @@ package object api {
     */
   def rowMins(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute the cumulative sum over columns of a matrix.
+    *
+    * Example:       ([1 2])   [1  2]
+    *          cumsum([3 4]) = [4  6]
+    *                ([5 6])   [9 12]
+    *
+    * @param mat Input matrix.
+    * @return Matrix of same dimension as input matrix containing the cumulative sum over the columns of the input.
+    */
+  def cumsum(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the cumulative product over columns of a matrix.
+    *
+    * Example:        ([1 2])   [ 1  2]
+    *          cumprod([3 4]) = [ 3  8]
+    *                 ([5 6])   [15 48]
+    *
+    * @param mat Input matrix.
+    * @return Matrix of same dimension as input matrix containing the cumulative product over the columns of the input.
+    */
+  def cumprod(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the cumulative minimum over columns of a matrix.
+    *
+    * Example:        ([1 2])   [1 2]
+    *           cummin([3 4]) = [1 2]
+    *                 ([5 6])   [1 2]
+    *
+    * @param mat Input matrix.
+    * @return Matrix of same dimension as input matrix containing the cumulative minimum over the columns of the input.
+    */
+  def cummin(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the cumulative maximum over columns of a matrix.
+    *
+    * Example:        ([1 2])   [1 2]
+    *           cummax([3 4]) = [3 4]
+    *                 ([5 6])   [4 6]
+    *
+    * @param mat Input matrix.
+    * @return Matrix of same dimension as input matrix containing the cumulative maximum over the columns of the input.
+    */
+  def cummax(mat: Matrix): Matrix = ???
+
   def log(x: Double): Double = ???
 
   def log(mat: Matrix): Matrix = ???

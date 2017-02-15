@@ -1067,5 +1067,30 @@ class APISpec extends BaseAPISpec {
       result._5 shouldEqual Matrix(Array(1.0, 2.0, 3.0), 3, 1)
       result._6 shouldEqual Matrix(Array(7.0, 8.0, 9.0), 3, 1)
     }
+
+    "cumsum, cumprod, cummin, cummax" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 3, 2)
+
+        val B = cumsum(A)
+        val C = cumprod(A)
+        val D = cummin(A)
+        val E = cummax(A)
+
+        (B, C, D, E)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("B", "C", "D", "E")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(1.0, 2.0, 4.0, 6.0, 9.0, 12.0), 3, 2)
+      result._2 shouldEqual Matrix(Array(1.0, 2.0, 3.0, 8.0, 15.0, 48.0), 3, 2)
+      result._3 shouldEqual Matrix(Array(1.0, 2.0, 1.0, 2.0, 1.0, 2.0), 3, 2)
+      result._4 shouldEqual Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 3, 2)
+    }
   }
 }

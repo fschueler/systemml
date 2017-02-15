@@ -288,12 +288,15 @@ trait DMLCommon extends AST {
     val quantilew   = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix], Double))
     val quantilewm  = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix], u.typeOf[Matrix]))
     val rowSums     = methodIn(apiModuleSymbol, "rowSums")
-    val rowMeans     = methodIn(apiModuleSymbol, "rowMeans")
+    val rowMeans    = methodIn(apiModuleSymbol, "rowMeans")
     val rowVars     = methodIn(apiModuleSymbol, "rowVars")
-    val rowSds     = methodIn(apiModuleSymbol, "rowSds")
+    val rowSds      = methodIn(apiModuleSymbol, "rowSds")
     val rowMaxs     = methodIn(apiModuleSymbol, "rowMaxs")
     val rowMins     = methodIn(apiModuleSymbol, "rowMins")
-
+    val cumsum      = methodIn(apiModuleSymbol, "cumsum")
+    val cumprod     = methodIn(apiModuleSymbol, "cumprod")
+    val cummin      = methodIn(apiModuleSymbol, "cummin")
+    val cummax      = methodIn(apiModuleSymbol, "cummax")
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
@@ -301,7 +304,8 @@ trait DMLCommon extends AST {
                           replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, rowIndexMin, rowIndexMax, mean,
                           variance, sd, moment, momentw, read, ppred, colSums, colMeans, colVars, colSds, colMaxs,
                           colMins, cov, covw, table, tablew, interqm, interqmw, quantile, quantilem, quantilew,
-                          quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins)
+                          quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins, cumsum, cumprod, cummax,
+                          cummin)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
