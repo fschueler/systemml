@@ -46,7 +46,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
       mlctx = new MLContext(sc)
 
       val alg = systemml {
-        val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
+        val m = Matrix(Array(11.0, 22.0, 33.0, 44.0), 2, 2)
         val n = sum(m)
         (m, n)
       }

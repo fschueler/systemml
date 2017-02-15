@@ -160,8 +160,8 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         case l: u.Literal if !(expr.tpe =:= u.typeOf[Unit]) => (l.tpe, List(l.value))
         case a: u.Apply if a.symbol.name == u.TermName("apply") => (a.tpe, a.args)
         case _ if expr.tpe =:= u.typeOf[Unit] =>
-          //(expr.tpe, List())
-          abort("Return type can not be unit.")
+          (u.typeOf[Unit], List())
+          //abort("Return type can not be unit.")
         case _ =>
           (expr.tpe, List(expr))
       }
