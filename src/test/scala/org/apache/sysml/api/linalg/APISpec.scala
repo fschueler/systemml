@@ -1038,5 +1038,34 @@ class APISpec extends BaseAPISpec {
         Matrix(Array(0.2, 0.5, 0.8), 3, 1),
         Matrix(Array(0.1, 0.3, 0.6), 3, 1))
     }
+
+    "rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0), 3, 3).t
+
+        val a = rowSums(A)
+        val b = rowMeans(A)
+        val c = rowVars(A)
+        val d = rowSds(A)
+        val e = rowMins(A)
+        val f = rowMaxs(A)
+
+        (a, b, c, d, e, f)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
+
+      val result = algorithm.run()
+
+      result._1 shouldEqual Matrix(Array(12.0, 15.0, 18.0), 3, 1)
+      result._2 shouldEqual Matrix(Array(4.0, 5.0, 6.0), 3, 1)
+      result._3 shouldEqual Matrix(Array(9.0, 9.0, 9.0), 3, 1)
+      result._4 shouldEqual Matrix(Array(3.0, 3.0, 3.0), 3, 1)
+      result._5 shouldEqual Matrix(Array(1.0, 2.0, 3.0), 3, 1)
+      result._6 shouldEqual Matrix(Array(7.0, 8.0, 9.0), 3, 1)
+    }
   }
 }

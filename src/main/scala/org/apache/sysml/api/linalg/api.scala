@@ -443,9 +443,53 @@ package object api {
     */
   def quantile(mat: Matrix, weights: Matrix, p: Matrix): Matrix = ???
 
+  /**
+    * Compute the sum over all values (colums) in each row.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (n x 1) containing the sums over all values in each row.
+    */
   def rowSums(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute the sample mean over all values (colums) in each row.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (n x 1) containing the sample mean over all values in each row.
+    */
   def rowMeans(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the sample variance over all values (colums) in each row.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (n x 1) containing the sample variance over all values in each row.
+    */
+  def rowVars(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the sample standard deviation over all values (colums) in each row.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (n x 1) containing the sample standard deviation over all values in each row.
+    */
+  def rowSds(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the largest value over all values (colums) in each row.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (n x 1) containing the largest value of all values in each row.
+    */
+  def rowMaxs(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the smallest value over all values (colums) in each row.
+    *
+    * @param mat Input matrix.
+    * @return Output matrix of size (n x 1) containing the smallest value of all values in each row.
+    */
+  def rowMins(mat: Matrix): Matrix = ???
 
   def log(x: Double): Double = ???
 
