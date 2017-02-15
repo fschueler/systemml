@@ -279,13 +279,22 @@ trait DMLCommon extends AST {
     val covw        = methodInMod(apiModuleSymbol, "cov", List(u.typeOf[Matrix], u.typeOf[Matrix], u.typeOf[Matrix]))
     val table       = methodInMod(apiModuleSymbol, "table", List(u.typeOf[Matrix], u.typeOf[Matrix]))
     val tablew      = methodInMod(apiModuleSymbol, "table", List(u.typeOf[Matrix], u.typeOf[Matrix], u.typeOf[Matrix]))
+    // cdf
+    // icdf
+    // aggregate
+    val interqm     = methodInMod(apiModuleSymbol, "interQuartileMean", List(u.typeOf[Matrix]))
+    val interqmw    = methodInMod(apiModuleSymbol, "interQuartileMean", List(u.typeOf[Matrix], u.typeOf[Matrix]))
+    val quantile    = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], Double))
+    val quantilem   = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix]))
+    val quantilew   = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix], Double))
+    val quantilewm  = methodInMod(apiModuleSymbol, "quantile", List(u.typeOf[Matrix], u.typeOf[Matrix], u.typeOf[Matrix]))
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
     val builtinOps  = Set(cbind, minm, minmm, minmd, mindd, maxm, maxmm, maxmd, maxdd, prod, rbind, removeEmpty,
                           replace, reverse, sum, pminmd, pminmm, pmaxmd, pmaxmm, rowIndexMin, rowIndexMax, mean,
                           variance, sd, moment, momentw, read, ppred, colSums, colMeans, colVars, colSds, colMaxs,
-                          colMins, cov, covw, table, tablew, rowSums)
+                          colMins, cov, covw, table, tablew, interqm, interqmw, quantile, quantilem, quantilew, quantilewm, rowSums)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
