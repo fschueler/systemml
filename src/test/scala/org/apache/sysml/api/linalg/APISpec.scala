@@ -973,5 +973,70 @@ class APISpec extends BaseAPISpec {
       result._1 shouldEqual Matrix(Array(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), 3, 3)
       result._2 shouldEqual Matrix(Array(2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0), 3, 3)
     }
+
+    "cdf" in {
+      fail("todo")
+    }
+
+    "icdf" in {
+      fail("todo")
+    }
+
+    "aggregate" in {
+      fail("todo")
+    }
+
+    "interQuartileMean" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Vector(Array(0.0, 1.0, 2.0, 1.0, 0.0))
+        val W = Vector(Array(0.0, 0.5, 1.0, 0.5, 0.0))
+
+        val a = interQuartileMean(A)
+        val b = interQuartileMean(A, W)
+
+        (a, b)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b")
+
+      val result = algorithm.run()
+
+      result shouldEqual(4.0/3.0, 1.0)
+    }
+
+    "quantile" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Vector(Array(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0))
+        val W = Vector(Array(2.0, 2.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+        val P = Vector(Array(0.25, 0.5, 0.75))
+
+        val a = quantile(A, 0.25)
+        val b = quantile(A, 0.5)
+        val c = quantile(A, 0.75)
+        val d = quantile(A, W, 0.25)
+        val e = quantile(A, W, 0.5)
+        val f = quantile(A, W, 0.75)
+
+        val G = quantile(A, P)
+        val H = quantile(A, W, P)
+
+        (a, b, c, d, e, f, G, H)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f", "G", "H")
+
+      val result = algorithm.run()
+
+      result shouldEqual(
+        0.2, 0.5, 0.8, 0.1, 0.3, 0.6,
+        Matrix(Array(0.2, 0.5, 0.8), 3, 1),
+        Matrix(Array(0.1, 0.3, 0.6), 3, 1))
+    }
   }
 }

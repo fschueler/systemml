@@ -62,7 +62,7 @@ class DMLSpec extends BaseCompilerSpec {
 //        case act@src.Lit(_) => toDML(act)
 //      }
 
-      val exps = Seq(
+      val exps = Array(
         "42", "42", "3.14", "3.14", "100000.0", "\"c\"", "\"string\""
       )
 
@@ -86,7 +86,7 @@ class DMLSpec extends BaseCompilerSpec {
           case act@src.Ref(_) => toDML(act)
         }
 
-        val exps = Seq(
+        val exps = Array(
           "x", "y", "*", "p$^s", "⋈", "foo and bar"
         )
 
@@ -161,7 +161,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "construction from sequence" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val x$01 = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
       }))
 
       val exp =
@@ -175,7 +175,7 @@ class DMLSpec extends BaseCompilerSpec {
     "construction from DataFrame" in {
       val numRows = 100
       val numCols = 100
-      val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
+      val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Array.fill(numCols)(Random.nextDouble)) }
       val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
       val df = sqlContext.createDataFrame(data, schema)
 
@@ -190,7 +190,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "right indexing columnwise" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val x$01 = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val y = x$01(1, :::)
       }))
 
@@ -205,7 +205,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "right indexing rowwise" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val x$01 = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val y = x$01(:::, 1)
       }))
 
@@ -220,7 +220,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "right indexing elementwise" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val x$01 = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val y = x$01(1, 1)
       }))
 
@@ -235,7 +235,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "left indexing columnwise" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val b = Vector.rand(2)
         A(:::, 1) = b
       }))
@@ -252,7 +252,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "left indexing rowwise" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val b = Vector.rand(2)
         A(1, :::) = b.t
       }))
@@ -269,7 +269,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "left indexing elementwise" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val b = 5.0
         A(1, 1) = b
       }))
@@ -286,7 +286,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "left indexing elementwise with complex indexing" in {
       val act = toDML(dmlidPipeline(u.reify {
-        val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
         val b = 5.0
         A(2 / 1, 1) = b
       }))

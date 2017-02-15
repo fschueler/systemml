@@ -382,6 +382,67 @@ package object api {
     */
   def table(matA: Matrix, matB: Matrix, weights: Matrix): Matrix = ???
 
+  // TODO cdf
+
+  // TODO icdf
+
+  // TODO aggregate
+
+  /**
+    * Computes the mean of all x in X such that x > quantile(X, 0.25) and x < quartile(X, 0.75).
+    *
+    * @param vec Input vector of dimensionality n x 1.
+    * @return Interquartile mean.
+    */
+  def interQuartileMean(vec: Matrix): Double = ???
+
+  /**
+    * Computes the weighted mean of all x in X such that x > quantile(X, 0.25) and x < quartile(X, 0.75).
+    *
+    * @param vec Input vector of dimensionality n x 1.
+    * @param weights Weight vector of dinemsionality n x 1.
+    * @return Weighted interquartile mean.
+    */
+  def interQuartileMean(vec: Matrix, weights: Matrix): Double = ???
+
+  /**
+    * Computes the p-th quantile for input Vector X.
+    *
+    * @param mat Input vector of dimension n x 1.
+    * @param p The requested p-quantile.
+    * @return Value that represents the p-th quantile in X.
+    */
+  def quantile(mat: Matrix, p: Double): Double = ???
+
+  /**
+    * Computes a vector of p-quantiles for input Vector X.
+    *
+    * @param mat Input vector of dimension n x 1.
+    * @param p The requested p-quantiles in a vector of dimension n x 1.
+    * @return Values that represent the requested p-quantiles in X.
+    */
+  def quantile(mat: Matrix, p: Matrix): Matrix = ???
+
+  /**
+    * Computes the p-th quantile for input Vector X weighted by a weight vector of dimension n x 1.
+    *
+    * @param mat Input vector of dimension n x 1.
+    * @param weights Weight vector of dimension n x 1.
+    * @param p The requested p-quantile.
+    * @return Value that represents the p-th quantile in X.
+    */
+  def quantile(mat: Matrix, weights: Matrix, p: Double): Double = ???
+
+  /**
+    * Computes a vector of p-quantiles for input Vector X weighted by a weight vector of dimension n x 1.
+    *
+    * @param mat Input vector of dimension n x 1.
+    * @param weights Weight vector of dimension n x 1.
+    * @param p The requested p-quantiles in a vector of dimension n x 1.
+    * @return Values that represent the requested p-quantiles in X.
+    */
+  def quantile(mat: Matrix, weights: Matrix, p: Matrix): Matrix = ???
+
   def rowSums(mat: Matrix): Matrix = ???
 
   def rowMeans(mat: Matrix): Matrix = ???
