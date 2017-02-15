@@ -539,15 +539,140 @@ package object api {
     */
   def cummax(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute the natural logarithm with base e.
+    *
+    * @param x Input value.
+    * @return log(x, e)
+    */
   def log(x: Double): Double = ???
 
+  /**
+    * compute the natural logarithm with base e for every cell in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Matrix where each cell contains the natural logarithm of each corresponding cell in the input matrix.
+    */
   def log(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute logarithm with respect to a given base.
+    *
+    * @param x Input value.
+    * @param base Base for computing the logarithm.
+    * @return Logarithm with respect to provided base.
+    */
+  def log(x: Double, base: Double): Double = ???
+
+  /**
+    * Compute logarithm with respect to a given base.
+    *
+    * @param mat Input matrix.
+    * @param base Base for computing the logarithm.
+    * @return Matrix containing the logarithm for each cell value with respect to provided base.
+    */
+  def log(mat: Matrix, base: Double): Matrix = ???
+
+  /**
+    * Compute absolute value of provided input.
+    *
+    * @param x Input value.
+    * @return Absolute value.
+    */
   def abs(x: Double): Double = ???
 
-  def exp(b: Matrix): Matrix = ???
+  /**
+    * Compute absolute value of provided input.
+    *
+    * @param mat Input value.
+    * @return Matrix of absolute values for each cell.
+    */
+  def abs(mat: Matrix): Matrix = ???
 
-  def ppred(mat: Matrix, s: Double, op: String): Matrix = ???
+  /**
+    * Compute the exponential of x, pow(e, x).
+    *
+    * @param x
+    * @return
+    */
+  def exp(x: Double): Double = ???
+
+  /**
+    * Compute the exponential values of all cells x in a matrix X, pow(e, x).
+    *
+    * @param mat
+    * @return
+    */
+  def exp(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute the square-root of the input value.
+    *
+    * @param x Input value.
+    * @return Square-root of input value.
+    */
+  def sqrt(x: Double): Double = ???
+
+  /**
+    * Compute the square-root for each value in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Matrix of square-roots for each value.
+    */
+  def sqrt(mat: Matrix): Matrix = ???
+
+  /**
+    * Round the double value to the next integer. If (x >= 0.5) 1.0 else 0.0
+    *
+    * @param x Input value.
+    * @return Input value rounded to next integer number.
+    */
+  def round(x: Double): Double = ???
+
+  /**
+    * Round each value in the matrix to the next integer value. If (x >= 0.5) 1.0 else 0.0
+    *
+    * @param mat Input matrix.
+    * @return Matrix containing rounded values of the input matrix.
+    */
+  def round(mat: Matrix): Matrix = ???
+
+  /**
+    * Round input value to the next lower integer value.
+    * Examples: floor(0.9) = 0.0; floor(0.1) = 0.0
+    *
+    * @param x Input value.
+    * @return Input value rounded to the next lower integer value.
+    */
+  def floor(x: Double): Double = ???
+
+  /**
+    * Round each value in the input matrix to the next lower integer value.
+    *
+    * @param mat Input matrix.
+    * @return Matrix where each value is the next lower integer value of the input matrix.
+    */
+  def floor(mat: Matrix): Matrix = ???
+
+  /**
+    * Round input value to the next largest integer value.
+    * Examples: ceil(0.1) = 1.0; ceil(0.9) = 1.0
+    *
+    * @param x Input value.
+    * @return Input value rounded to the next larger integer value.
+    */
+  def ceil(x: Double): Double = ???
+
+  /**
+    * Round each value in the input matrix to the next larger integer value.
+    *
+    * @param mat Input matrix.
+    * @return Matrix where each value is the next larger integer value of the input matrix.
+    */
+  def ceil(mat: Matrix): Matrix = ???
+
+  @deprecated
+  def ppred(mat: Matrix, x: Double, op: String): Matrix = ???
 
   ///////////////////////////////////
   // Implicit Matrix and Matrix Ops

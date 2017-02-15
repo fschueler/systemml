@@ -297,6 +297,22 @@ trait DMLCommon extends AST {
     val cumprod     = methodIn(apiModuleSymbol, "cumprod")
     val cummin      = methodIn(apiModuleSymbol, "cummin")
     val cummax      = methodIn(apiModuleSymbol, "cummax")
+    val lognd       = methodInMod(apiModuleSymbol, "log", List(Double))
+    val lognm       = methodInMod(apiModuleSymbol, "log", List(u.typeOf[Matrix]))
+    val logbd       = methodInMod(apiModuleSymbol, "log", List(Double, Double))
+    val logbm       = methodInMod(apiModuleSymbol, "log", List(u.typeOf[Matrix], Double))
+    val absd        = methodInMod(apiModuleSymbol, "abs", List(Double))
+    val absdm       = methodInMod(apiModuleSymbol, "abs", List(u.typeOf[Matrix]))
+    val expd        = methodInMod(apiModuleSymbol, "exp", List(Double))
+    val expm        = methodInMod(apiModuleSymbol, "exp", List(u.typeOf[Matrix]))
+    val sqrtd       = methodInMod(apiModuleSymbol, "sqrt", List(Double))
+    val sqrtm       = methodInMod(apiModuleSymbol, "sqrt", List(u.typeOf[Matrix]))
+    val roundd      = methodInMod(apiModuleSymbol, "round", List(Double))
+    val roundm      = methodInMod(apiModuleSymbol, "round", List(u.typeOf[Matrix]))
+    val floord      = methodInMod(apiModuleSymbol, "floor", List(Double))
+    val floorm      = methodInMod(apiModuleSymbol, "floor", List(u.typeOf[Matrix]))
+    val ceild       = methodInMod(apiModuleSymbol, "ceil", List(Double))
+    val ceilm       = methodInMod(apiModuleSymbol, "ceil", List(u.typeOf[Matrix]))
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
@@ -305,7 +321,8 @@ trait DMLCommon extends AST {
                           variance, sd, moment, momentw, read, ppred, colSums, colMeans, colVars, colSds, colMaxs,
                           colMins, cov, covw, table, tablew, interqm, interqmw, quantile, quantilem, quantilew,
                           quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins, cumsum, cumprod, cummax,
-                          cummin)
+                          cummin, absd, absdm, lognd, lognm, logbd, logbm, expd, expm, sqrtd, sqrtm, roundd, roundm,
+                          floord, floorm, ceild, ceilm)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
