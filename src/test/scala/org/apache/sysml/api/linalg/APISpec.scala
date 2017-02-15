@@ -1092,5 +1092,40 @@ class APISpec extends BaseAPISpec {
       result._3 shouldEqual Matrix(Array(1.0, 2.0, 1.0, 2.0, 1.0, 2.0), 3, 2)
       result._4 shouldEqual Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 3, 2)
     }
+
+    "exp, log, abs, sqrt, round, floor, ceil" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val a = 0.5
+        val b = -0.5
+        val A = Matrix(Array(0.3, 0.5, 0.7, 1.0), 2, 2)
+        val B = Matrix(Array(-0.3, -0.5, -0.7, -1.0), 2, 2)
+
+        val c = exp(a)
+        val C = exp(A)
+        val d = log(a)
+        val D = log(A)
+        val e = log(a, 10.0)
+        val E = log(A, 10.0)
+        val f = abs(b)
+        val F = abs(B)
+        val g = sqrt(a)
+        val G = sqrt(A)
+        val h = round(a)
+        val H = round(A)
+        val i = floor(a)
+        val I = floor(A)
+        val j = ceil(a)
+        val J = ceil(A)
+
+        (c, d, e, f, g, h, i, j, C, D, E, F, G, H, I, J)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("c", "d", "e", "f", "g", "h", "i", "j", "C", "D", "E", "F", "G", "H", "I", "J")
+
+      val result = algorithm.run()
+    }
   }
 }
