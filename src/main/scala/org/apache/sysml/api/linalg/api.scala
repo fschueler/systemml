@@ -792,6 +792,14 @@ package object api {
     */
   def cholesky(mat: Matrix): Matrix = ???
 
+  /**
+    * Create a vector from the diagonal of a square input matrix.
+    *
+    * @param mat Square input matrix.
+    * @return Vector containing the diagonal elements of the suqare input matrix.
+    */
+  def diag(mat: Matrix): Matrix = ???
+
   @deprecated
   def ppred(mat: Matrix, x: Double, op: String): Matrix = ???
 
