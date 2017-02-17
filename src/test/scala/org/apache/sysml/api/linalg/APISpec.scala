@@ -131,10 +131,10 @@ class APISpec extends BaseAPISpec {
           val b = B(0, :::)  // (idx, :::)
           val c = C(:::, 0) // (:::, idx)
           val d = D(:::, 0 to 1) // (:::, range)
-          val e = A(0 to 1, :::) // (range, :::)
-          val f = B(0, 0 to 1) // (idx, range)
+          val e = A(0 until 2, :::) // (range, :::)
+          val f = B(0, 0 until 2) // (idx, range)
           val g = C(0 to 1, 0) // (range, idx)
-          val h = D(0 to 1, 0 to 1) // (range, range)
+          val h = D(0 until 2, 0 to 1) // (range, range)
 
           (a, b, c, d, e, f, g, h)
         }
@@ -171,10 +171,10 @@ class APISpec extends BaseAPISpec {
           B(0, :::) = Vector.ones(3).t // (idx, :::) = Matrix
           C(:::, 0) = Vector.ones(2) // (:::, idx) = Matrix
           D(0, 0 to 1) = Vector.ones(2).t // (idx, range) = Matrix
-          E(0 to 1, 1) = Vector.ones(2) // (range, idx) = Matrix
-          F(0 to 1, 0 to 1) = Matrix.ones(2, 2) // (range, range) = Matrix
+          E(0 until 2, 1) = Vector.ones(2) // (range, idx) = Matrix
+          F(0 until 2, 0 to 1) = Matrix.ones(2, 2) // (range, range) = Matrix
           G(0 to 1, :::) = Matrix.ones(2, 3) // (range, :::) = Matrix
-          H(:::, 1 to 2) = Matrix.ones(2, 2) // (:::, range) = Matrix
+          H(:::, 1 until 3) = Matrix.ones(2, 2) // (:::, range) = Matrix
 
           (A, B, C, D, E, F, G, H)
         }
@@ -1202,6 +1202,25 @@ class APISpec extends BaseAPISpec {
       val result = algorithm.run()
 
       result shouldEqual Matrix(Array(2.0, 0.0, 0.0, 6.0, 1.0, 0.0, -8.0, 5.0, 3.0), 3, 3)
+    }
+
+    "diag" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix.diag(5.0, 4)
+
+        val B = diag(A)
+
+        B
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("B")
+
+      val result = algorithm.run()
+
+      result shouldEqual Matrix(Array(5.0, 5.0, 5.0, 5.0), 4, 1)
     }
   }
 }
