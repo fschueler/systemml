@@ -59,7 +59,7 @@ class ReplTest extends FreeSpec with Matchers {
     "compile and run" in {
       val alg1 =
         """
-          |val algorithm = parallelize {
+          |val algorithm = systemml {
           |  val x = Matrix.rand(3, 3)
           |  val y = Matrix.rand(3, 3)
           |  val z = x + y
@@ -92,7 +92,7 @@ class ReplTest extends FreeSpec with Matchers {
 
       val alg1 =
         """
-          |val algorithm = parallelize {
+          |val algorithm = systemml {
           |  val x = Matrix.fromDataFrame(df)
           |  val y = sum(x)
           |  y
