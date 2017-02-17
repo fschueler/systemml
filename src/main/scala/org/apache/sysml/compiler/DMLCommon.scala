@@ -325,6 +325,9 @@ trait DMLCommon extends AST {
     val acosm       = methodInMod(apiModuleSymbol, "acos", List(u.typeOf[Matrix]))
     val atand       = methodInMod(apiModuleSymbol, "atan", List(Double))
     val atanm       = methodInMod(apiModuleSymbol, "atan", List(u.typeOf[Matrix]))
+//    val signd       = methodInMod(apiModuleSymbol, "sign", List(Double))
+    val signm       = methodInMod(apiModuleSymbol, "sign", List(u.typeOf[Matrix]))
+    val cholesky    = methodIn(apiModuleSymbol, "cholesky")
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
@@ -335,7 +338,7 @@ trait DMLCommon extends AST {
                           quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins, cumsum, cumprod, cummax,
                           cummin, absd, absdm, lognd, lognm, logbd, logbm, expd, expm, sqrtd, sqrtm, roundd, roundm,
                           floord, floorm, ceild, ceilm, sind, sinm, cosd, cosm, tand, tanm, asind, asinm, acosd, acosm,
-                          atand, atanm)
+                          atand, atanm, signm, cholesky)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
