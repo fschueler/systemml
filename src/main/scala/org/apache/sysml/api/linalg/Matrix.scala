@@ -58,15 +58,15 @@ class Matrix protected(val impl: Array[Double],
 
   def apply(row: :::.type, col: Int): Matrix = ???
 
-  def apply(rows: Range.Inclusive, cols: :::.type): Matrix = ???
+  def apply(rows: Range, cols: :::.type): Matrix = ???
 
-  def apply(rows: :::.type, cols: Range.Inclusive): Matrix = ???
+  def apply(rows: :::.type, cols: Range): Matrix = ???
 
-  def apply(rows: Range.Inclusive, cols: Range.Inclusive): Matrix = ???
+  def apply(rows: Range, cols: Range): Matrix = ???
 
-  def apply(rows: Range.Inclusive, cols: Int): Matrix = ???
+  def apply(rows: Range, cols: Int): Matrix = ???
 
-  def apply(rows: Int, cols: Range.Inclusive): Matrix = ???
+  def apply(rows: Int, cols: Range): Matrix = ???
 
   //////////////////////////////////////////
   // Left Indexing assignments
@@ -79,15 +79,15 @@ class Matrix protected(val impl: Array[Double],
 
   def update(row: :::.type, col: Int, vec: Matrix): Matrix = ???
 
-  def update(rows: Range.Inclusive, cols: :::.type, mat: Matrix): Matrix = ???
+  def update(rows: Range, cols: :::.type, mat: Matrix): Matrix = ???
 
-  def update(rows: :::.type, cols: Range.Inclusive, mat: Matrix): Matrix = ???
+  def update(rows: :::.type, cols: Range, mat: Matrix): Matrix = ???
 
-  def update(rows: Range.Inclusive, cols: Range.Inclusive, mat: Matrix): Matrix = ???
+  def update(rows: Range, cols: Range, mat: Matrix): Matrix = ???
 
-  def update(rows: Int, cols: Range.Inclusive, mat: Matrix): Matrix = ???
+  def update(rows: Int, cols: Range, mat: Matrix): Matrix = ???
 
-  def update(rows: Range.Inclusive, cols: Int, mat: Matrix): Matrix = ???
+  def update(rows: Range, cols: Int, mat: Matrix): Matrix = ???
 
   //////////////////////////////////////////
   // M o scalar
