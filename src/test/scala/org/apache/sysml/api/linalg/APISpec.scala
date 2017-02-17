@@ -1160,5 +1160,48 @@ class APISpec extends BaseAPISpec {
 
       // TODO add correctness test
     }
+
+    "sign" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val a = -1.0
+        val b = 1.0
+        val A = Matrix(Array(-10e5, 10.0, -0.1, 0.0), 2, 2)
+
+       // val c = sign(a)
+       // val d = sign(b)
+        val B = sign(A)
+
+        //(c, d, B)
+        B
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("B")
+
+      val result = algorithm.run()
+
+      result shouldEqual Matrix(Array(-1.0, 1.0, -1.0, 0.0), 2, 2)
+    }
+
+    "cholesky" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(4.0, 12.0, -16.0, 12.0, 37.0, -43.0, -16.0, -43.0, 98.0), 3, 3)
+
+        val B = cholesky(A)
+
+        B
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("B")
+
+      val result = algorithm.run()
+
+      result shouldEqual Matrix(Array(2.0, 0.0, 0.0, 6.0, 1.0, 0.0, -8.0, 5.0, 3.0), 3, 3)
+    }
   }
 }

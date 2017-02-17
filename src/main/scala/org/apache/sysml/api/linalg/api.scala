@@ -767,6 +767,31 @@ package object api {
     */
   def atan(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute the sign of the input value.
+    *
+    * @param x Input value.
+    * @return 1.0 if x > 0, 0.0 if x == 0, -1.0 else
+    */
+  def sign(x: Double): Double = ???
+
+  /**
+    * Compute the sign for every value in the matrix.
+    *
+    * @param mat Input matrix.
+    * @return Matrix of signs for each value in the input matrix. Signs are computed in the following way:
+    *         1.0 if x > 0, 0.0 if x == 0, -1.0 else
+    */
+  def sign(mat: Matrix): Matrix = ???
+
+  /**
+    * Computethe Cholesky decomposition of the symmetric input matrix.
+    *
+    * @param mat Symmetric input matrix.
+    * @return Cholesky factorization of input matrix.
+    */
+  def cholesky(mat: Matrix): Matrix = ???
+
   @deprecated
   def ppred(mat: Matrix, x: Double, op: String): Matrix = ???
 
