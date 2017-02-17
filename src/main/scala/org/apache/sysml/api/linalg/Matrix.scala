@@ -41,7 +41,6 @@ import scala.util.Random
 class Matrix protected(val impl: Array[Double],
                        val nrow: Int,
                        val ncol: Int,
-                       var isTransposed: Boolean = false,
                        val matob: MatrixObject = null) {
 
   //////////////////////////////////////////
@@ -143,10 +142,7 @@ class Matrix protected(val impl: Array[Double],
   // M operation
   //////////////////////////////////////////
 
-  def t: Matrix = {
-    isTransposed = ! isTransposed
-    this
-  }
+  def t: Matrix = ???
 
   def ^(n: Int): Matrix = ???
 
@@ -209,7 +205,6 @@ class Matrix protected(val impl: Array[Double],
        |${getValues.map(_.take(n).mkString(", ")).take(m).mkString("\n")}
        |nrow:   $nrow
        |ncol:   $ncol
-       |transp: $isTransposed
        |hasMO:  ${matob != null}
      """.stripMargin
   }
