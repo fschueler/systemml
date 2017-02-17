@@ -313,6 +313,18 @@ trait DMLCommon extends AST {
     val floorm      = methodInMod(apiModuleSymbol, "floor", List(u.typeOf[Matrix]))
     val ceild       = methodInMod(apiModuleSymbol, "ceil", List(Double))
     val ceilm       = methodInMod(apiModuleSymbol, "ceil", List(u.typeOf[Matrix]))
+    val sind        = methodInMod(apiModuleSymbol, "sin", List(Double))
+    val sinm        = methodInMod(apiModuleSymbol, "sin", List(u.typeOf[Matrix]))
+    val cosd        = methodInMod(apiModuleSymbol, "cos", List(Double))
+    val cosm        = methodInMod(apiModuleSymbol, "cos", List(u.typeOf[Matrix]))
+    val tand        = methodInMod(apiModuleSymbol, "tan", List(Double))
+    val tanm        = methodInMod(apiModuleSymbol, "tan", List(u.typeOf[Matrix]))
+    val asind       = methodInMod(apiModuleSymbol, "asin", List(Double))
+    val asinm       = methodInMod(apiModuleSymbol, "asin", List(u.typeOf[Matrix]))
+    val acosd       = methodInMod(apiModuleSymbol, "acos", List(Double))
+    val acosm       = methodInMod(apiModuleSymbol, "acos", List(u.typeOf[Matrix]))
+    val atand       = methodInMod(apiModuleSymbol, "atan", List(Double))
+    val atanm       = methodInMod(apiModuleSymbol, "atan", List(u.typeOf[Matrix]))
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
@@ -322,7 +334,8 @@ trait DMLCommon extends AST {
                           colMins, cov, covw, table, tablew, interqm, interqmw, quantile, quantilem, quantilew,
                           quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins, cumsum, cumprod, cummax,
                           cummin, absd, absdm, lognd, lognm, logbd, logbm, expd, expm, sqrtd, sqrtm, roundd, roundm,
-                          floord, floorm, ceild, ceilm)
+                          floord, floorm, ceild, ceilm, sind, sinm, cosd, cosm, tand, tanm, asind, asinm, acosd, acosm,
+                          atand, atanm)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,

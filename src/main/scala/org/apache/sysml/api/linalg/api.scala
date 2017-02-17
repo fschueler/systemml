@@ -671,6 +671,102 @@ package object api {
     */
   def ceil(mat: Matrix): Matrix = ???
 
+  /**
+    * Compute sin(x).
+    *
+    * @param x Input value.
+    * @return Sin(x).
+    */
+  def sin(x: Double): Double = ???
+
+  /**
+    * Compute sin(X) for input matrix X.
+    *
+    * @param mat Input matrix.
+    * @return Sin(x).
+    */
+  def sin(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute cos(x).
+    *
+    * @param x Input value.
+    * @return Cos(x).
+    */
+  def cos(x: Double): Double = ???
+
+  /**
+    * Compute cos(X) for input matrix X.
+    *
+    * @param mat Input matrix.
+    * @return Cos(X).
+    */
+  def cos(mat: Matrix): Double = ???
+
+  /**
+    * Compute tan(x).
+    *
+    * @param x Input value.
+    * @return Tan(x).
+    */
+  def tan(x: Double): Double = ???
+
+  /**
+    * Compute tan(X) for input matrix X.
+    *
+    * @param mat Input matrix.
+    * @return Tan(X).
+    */
+  def tan(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute asin(x).
+    *
+    * @param x Input value.
+    * @return Asin(x).
+    */
+  def asin(x: Double): Double = ???
+
+  /**
+    * Compute asin(X) for input matrix X.
+    *
+    * @param mat Input matrix.
+    * @return Asin(X).
+    */
+  def asin(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute acos(x).
+    *
+    * @param x Input value.
+    * @return Acos(x).
+    */
+  def acos(x: Double): Double = ???
+
+  /**
+    * Compute acos(X) for input matrix X.
+    *
+    * @param mat Input matrix.
+    * @return Acos(X).
+    */
+  def acos(mat: Matrix): Matrix = ???
+
+  /**
+    * Compute atan(x).
+    *
+    * @param x Input value.
+    * @return Atan(x).
+    */
+  def atan(x: Double): Double = ???
+
+  /**
+    * Compute atan(X) for input matrix X.
+    *
+    * @param mat Input matrix.
+    * @return Atan(X).
+    */
+  def atan(mat: Matrix): Matrix = ???
+
   @deprecated
   def ppred(mat: Matrix, x: Double, op: String): Matrix = ???
 

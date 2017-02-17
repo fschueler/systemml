@@ -1126,6 +1126,39 @@ class APISpec extends BaseAPISpec {
       algorithm.outputs shouldEqual Array("c", "d", "e", "f", "g", "h", "i", "j", "C", "D", "E", "F", "G", "H", "I", "J")
 
       val result = algorithm.run()
+
+      // TODO add correctness test
+    }
+
+    "sin, cos, tan, asin, acos, atan" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val a = 0.5
+        val A = Matrix(Array(0.3, 0.5, 0.7, 1.0), 2, 2)
+
+        val c = sin(a)
+        val C = sin(A)
+        val d = cos(a)
+        val D = cos(A)
+        val e = tan(a)
+        val E = tan(A)
+        val f = asin(a)
+        val F = asin(A)
+        val g = acos(a)
+        val G = acos(A)
+        val h = atan(a)
+        val H = atan(A)
+
+        (c, d, e, f, g, h, C, D, E, F, G, H)
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("c", "d", "e", "f", "g", "h", "C", "D", "E", "F", "G", "H")
+
+      val result = algorithm.run()
+
+      // TODO add correctness test
     }
   }
 }
