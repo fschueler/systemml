@@ -167,22 +167,22 @@ trait DMLCommon extends AST {
     val minusMatrix     = matrixOp("-", Matrix)
 
     val indexII         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[Int]))
-    val indexIR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[Range.Inclusive]))
-    val indexRI         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[Int]))
-    val indexRR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[Range.Inclusive]))
+    val indexIR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[Range]))
+    val indexRI         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range], u.typeOf[Int]))
+    val indexRR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range], u.typeOf[Range]))
     val indexIA         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Int], u.typeOf[:::.type]))
     val indexAI         = methodInMod(matrixSymbol, "apply", List(u.typeOf[:::.type], u.typeOf[Int]))
-    val indexRA         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range.Inclusive], u.typeOf[:::.type]))
-    val indexAR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[:::.type], u.typeOf[Range.Inclusive]))
+    val indexRA         = methodInMod(matrixSymbol, "apply", List(u.typeOf[Range], u.typeOf[:::.type]))
+    val indexAR         = methodInMod(matrixSymbol, "apply", List(u.typeOf[:::.type], u.typeOf[Range]))
 
     val updateII        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[Int], u.typeOf[Double]))
-    val updateIR        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[Range.Inclusive], u.typeOf[Matrix]))
-    val updateRI        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range.Inclusive], u.typeOf[Int], u.typeOf[Matrix]))
-    val updateRR        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range.Inclusive], u.typeOf[Range.Inclusive], u.typeOf[Matrix]))
+    val updateIR        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[Range], u.typeOf[Matrix]))
+    val updateRI        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range], u.typeOf[Int], u.typeOf[Matrix]))
+    val updateRR        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range], u.typeOf[Range], u.typeOf[Matrix]))
     val updateIA        = methodInMod(matrixSymbol, "update", List(u.typeOf[Int], u.typeOf[:::.type ], u.typeOf[Matrix]))
     val updateAI        = methodInMod(matrixSymbol, "update", List(u.typeOf[:::.type ], u.typeOf[Int], u.typeOf[Matrix]))
-    val updateRA        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range.Inclusive], u.typeOf[:::.type ], u.typeOf[Matrix]))
-    val updateAR        = methodInMod(matrixSymbol, "update", List(u.typeOf[:::.type], u.typeOf[Range.Inclusive], u.typeOf[Matrix]))
+    val updateRA        = methodInMod(matrixSymbol, "update", List(u.typeOf[Range], u.typeOf[:::.type ], u.typeOf[Matrix]))
+    val updateAR        = methodInMod(matrixSymbol, "update", List(u.typeOf[:::.type], u.typeOf[Range], u.typeOf[Matrix]))
 
     // Double/Double  operators
     val plusDD    = doubleOp("+", Double)
@@ -328,6 +328,7 @@ trait DMLCommon extends AST {
 //    val signd       = methodInMod(apiModuleSymbol, "sign", List(Double))
     val signm       = methodInMod(apiModuleSymbol, "sign", List(u.typeOf[Matrix]))
     val cholesky    = methodIn(apiModuleSymbol, "cholesky")
+    val diagm       = methodIn(apiModuleSymbol, "diag")
 
     val sourceOps   = Set(zeros, zerosV, ones, onesV, rand, randV, diag, fromDataFrame, applyArray1D, applyArrayV, reshape)
 
@@ -338,7 +339,7 @@ trait DMLCommon extends AST {
                           quantilewm, rowSums, rowMeans, rowVars, rowSds, rowMaxs, rowMins, cumsum, cumprod, cummax,
                           cummin, absd, absdm, lognd, lognm, logbd, logbm, expd, expm, sqrtd, sqrtm, roundd, roundm,
                           floord, floorm, ceild, ceilm, sind, sinm, cosd, cosm, tand, tanm, asind, asinm, acosd, acosm,
-                          atand, atanm, signm, cholesky)
+                          atand, atanm, signm, cholesky, diagm)
 
     val matOps      = Set(pow, nrow, ncol, transpose, matmult,
                           timesDouble, timesMatrix, divDouble, divMatrix, plusDouble, plusMatrix, minusDouble, minusMatrix,
