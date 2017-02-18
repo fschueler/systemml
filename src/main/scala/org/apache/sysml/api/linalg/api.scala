@@ -812,6 +812,14 @@ package object api {
     */
   def solve(A: Matrix, b: Matrix): Matrix = ???
 
+  /**
+    * Computes the trace of a matrix. The trace of a matrix is defined as the sum of the elements on the diagonal.
+    *
+    * @param mat Square input matrix.
+    * @return Sum of the elements on the diagonal.
+    */
+  def trace(mat: Matrix): Double = ???
+
   @deprecated
   def ppred(mat: Matrix, x: Double, op: String): Matrix = ???
 
