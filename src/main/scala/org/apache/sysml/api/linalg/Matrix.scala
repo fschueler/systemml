@@ -19,30 +19,31 @@
 
 package org.apache.sysml.api.linalg
 
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContextConversionUtil}
+import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContext, MLContextConversionUtil}
+import org.apache.sysml.parser.Expression.ValueType
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
+import org.apache.sysml.runtime.controlprogram.context.SparkExecutionContext
+import org.apache.sysml.runtime.matrix.data.MatrixBlock
 
 import scala.util.Random
-
-// TODO: sparsity
-// TODO: make matrix generic? what are possible value types?
 
 /**
   * Matrix class for SystemML
   *
   * Represents the matrix that will be translated to SystemML's matrix type.
   *
-  * @param impl the underlying matrix to support numerical computations in Scala
   * @param nrow number of rows of the matrix
   * @param ncol number of columns of the matrix
   */
-class Matrix protected(val impl: Array[Double],
-                       val nrow: Int,
+class Matrix protected(val nrow: Int,
                        val ncol: Int,
-                       val matob: MatrixObject = null) {
-
+                       private val matob: Option[MatrixObject] = None,
+                       private val sec: Option[SparkExecutionContext] = None,
+                       private val localImpl: Option[Array[Double]] = None) {
   //////////////////////////////////////////
   // Constructors
   //////////////////////////////////////////
@@ -150,24 +151,40 @@ class Matrix protected(val impl: Array[Double],
   // Convenience Transformations (Only to be used outside the macro)
   //////////////////////////////////////////
 
-  def toBinaryBlockMatrix(): BinaryBlockMatrix = ???
-  def toMatrixObject(): MatrixObject = matob
-  def toDF(): DataFrame = ???
+  protected[sysml] def toBinaryBlockMatrix(): BinaryBlockMatrix = (matob, sec) match {
+    case (Some(mo), Some(ctx)) => MLContextConversionUtil.matrixObjectToBinaryBlockMatrix(mo, ctx)
+    case _ => throw new RuntimeException("Matrix has not been evaluated in SystemML - can not create BinaryBlockMatrix")
+  }
 
-  /**
-    * Returns the values of the matrix. If the matrix was evaluated in SystemML, it will be fetched.
-    * NOTICE: this will always fetch the values again from the matrixObject!
-    */
-  private def getValues: Array[Array[Double]] = {
-    if (matob != null) { // if matob and impl are != null, the most accurate should be matob
-      val rows = matob.getNumRows.toInt
-      val cols = matob.getNumColumns.toInt
-      val out = MLContextConversionUtil.matrixObjectTo2DDoubleArray(matob)
-      out
-    } else if (impl != null) {
-      to2D(impl)
-    } else {
-      throw new RuntimeException("Matrix has no values!")
+  protected[sysml] def toMatrixObject(): MatrixObject = matob match {
+    case Some(mo) => mo
+    case _ => throw new RuntimeException("Matrix has not been evaluated in SystemML - can not create MatrixObject")
+  }
+
+  def toDF(): Dataset[Row] = (matob, sec) match {
+    case (Some(mo), Some(ctx)) =>
+      MLContextConversionUtil.matrixObjectToDataFrame(mo, ctx, false)
+    case _ =>
+      throw new RuntimeException("Matrix has not been evaluated in SystemML - can not create DataFrame.")
+      // TODO this should return Option[DataFrame] or create a DataFrame from the raw values.
+//    {
+//      val mlctx = implicitly[MLContext]
+//      val spark = SparkSession.builder().getOrCreate()
+//
+//      val block: Array[Array[Double]] = to2D(matob.acquireRead().getDenseBlock)
+//      val rows: Array[Row] = block.map(row => Row.fromSeq(row))
+//      val rdd: RDD[Row] = mlctx.getSparkContext.parallelize(rows)
+//      val schema = StructType((0 until this.ncol).map { i => StructField("C" + i, DoubleType, true) })
+//      spark.createDataFrame(rdd, schema)
+//    }
+  }
+
+  // FIXME this should not be here but instead we should allow to create MatrixObjects from Double Arrays
+  def getValues(): Array[Array[Double]] = matob match {
+    case Some(mo) => MLContextConversionUtil.matrixObjectTo2DDoubleArray(mo)
+    case None     => localImpl match {
+      case Some(impl) => to2D(impl)
+      case None => throw new RuntimeException("Matrix has no underlying values.")
     }
   }
 
@@ -185,7 +202,6 @@ class Matrix protected(val impl: Array[Double],
     out
   }
 
-
   override def equals(that: Any): Boolean = that match {
     case m: Matrix => {
       val zipped = this.getValues.zip(m.getValues)
@@ -194,6 +210,7 @@ class Matrix protected(val impl: Array[Double],
     }
     case _ => false
   }
+
   override def hashCode(): Int = this.getValues.hashCode() + this.nrow + this.ncol
 
   override def toString: String = {
@@ -223,7 +240,9 @@ object Matrix {
     * @param cols Number of columns that the matrix should have. Note that rows * cols must be equal to impl.length.
     * @return a [[Matrix]] with values as cell entries and dimensionality (rows, cols)
     */
-  def apply(impl: Array[Double], rows: Int, cols: Int): Matrix = new Matrix(impl, rows, cols)
+  def apply(impl: Array[Double], rows: Int, cols: Int): Matrix = {
+    new Matrix(rows, cols, None, None, Some(impl))
+  }
 
   def fromDataFrame(df: DataFrame): Matrix = ???
 
@@ -233,7 +252,7 @@ object Matrix {
     for (i <- 0 until rows; j <- 0 until cols) {
       array((i * cols) + j) = gen(i, j)
     }
-    new Matrix(array, rows, cols)
+    Matrix(array, rows, cols)
   }
 
   def zeros(rows: Int, cols: Int): Matrix = fill(rows, cols)((i, j) => 0.0)
