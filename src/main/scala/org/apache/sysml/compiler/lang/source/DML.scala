@@ -57,7 +57,7 @@ trait DML extends DMLCommon with DMLSourceValidate {
           val args = argss flatMap (args => args map (arg => arg(env)))
 
           sym.name match {
-            case u.TermName("rand")  => if (isVector) s"rand(rows=1, cols=${args(0)})" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
+            case u.TermName("rand")  => if (isVector) s"rand(rows=${args(0)}, cols=1)" else s"""rand(rows=${args(0)}, cols=${args(1)})"""
             case u.TermName("zeros") => if (isVector) s"matrix(0.0, rows=${args(0)}, cols=1)" else s"matrix(0.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("ones")  => if (isVector) s"matrix(1.0, rows=${args(0)}, cols=1)" else s"matrix(1.0, rows=${args(0)}, cols=${args(1)})"
             case u.TermName("diag")  => s"diag(matrix(${args(0)}, rows=${args(1)}, cols=1))"
