@@ -1224,6 +1224,14 @@ class APISpec extends BaseAPISpec {
 
     }
 
+    "lu" ignore {
+
+    }
+
+    "qr" ignore {
+
+    }
+
     "solve" in {
       mlctx = new MLContext(sc)
 
@@ -1242,6 +1250,43 @@ class APISpec extends BaseAPISpec {
       val result = algorithm.run()
 
       result shouldEqual Matrix(Array(4.0, 3.0, -2.0), 3, 1)
+    }
+
+    "transpose" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2)
+        val B = A.t
+
+        B
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("B")
+
+      val result = algorithm.run()
+
+      result shouldEqual Matrix(Array(1.0, 3.0, 2.0, 4.0), 2, 2)
+    }
+
+    "trace" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0), 3, 3)
+
+        val a = trace(A)
+
+        a
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("a")
+
+      val result = algorithm.run()
+
+      result shouldEqual 15.0
     }
   }
 }
