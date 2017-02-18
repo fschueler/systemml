@@ -229,11 +229,11 @@ public class GNMFTest extends AutomatedTestBase
 				JavaRDD<String> javaRDDStringIJV = results.getJavaRDDStringIJV("W");
 				JavaRDD<MatrixEntry> matRDD = javaRDDStringIJV.map(new StringToMatrixEntry());
 				Matrix matrix = results.getMatrix("W");
-//				MatrixCharacteristics mcW = matrix.getMatrixMetadata().asMatrixCharacteristics();
+				MatrixCharacteristics mcW = matrix.getMatrixMetadata().asMatrixCharacteristics();
 
-//				CoordinateMatrix coordinateMatrix = new CoordinateMatrix(matRDD.rdd(), mcW.getRows(), mcW.getCols());
-//				JavaPairRDD<MatrixIndexes, MatrixBlock> binaryRDD = RDDConverterUtilsExt.coordinateMatrixToBinaryBlock(sc, coordinateMatrix, mcW, true);
-//				JavaRDD<String> wOut = RDDConverterUtils.binaryBlockToTextCell(binaryRDD, mcW);
+				CoordinateMatrix coordinateMatrix = new CoordinateMatrix(matRDD.rdd(), mcW.getRows(), mcW.getCols());
+				JavaPairRDD<MatrixIndexes, MatrixBlock> binaryRDD = RDDConverterUtilsExt.coordinateMatrixToBinaryBlock(sc, coordinateMatrix, mcW, true);
+				JavaRDD<String> wOut = RDDConverterUtils.binaryBlockToTextCell(binaryRDD, mcW);
 
 				String fName = output("w");
 				try {
@@ -241,7 +241,7 @@ public class GNMFTest extends AutomatedTestBase
 				} catch (IOException e) {
 					throw new DMLRuntimeException("Error: While deleting file on HDFS");
 				}
-//				wOut.saveAsTextFile(fName);
+				wOut.saveAsTextFile(fName);
 			}
 
 			runRScript(true);

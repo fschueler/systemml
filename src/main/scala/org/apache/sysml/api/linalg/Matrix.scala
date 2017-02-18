@@ -23,7 +23,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 import org.apache.sysml.api.linalg.api.:::
-import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContext, MLContextConversionUtil}
+import org.apache.sysml.api.mlcontext.{BinaryBlockMatrix, MLContext, MLContextConversionUtil, MatrixMetadata}
 import org.apache.sysml.parser.Expression.ValueType
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject
 import org.apache.sysml.runtime.controlprogram.context.SparkExecutionContext
@@ -159,6 +159,13 @@ class Matrix protected(val nrow: Int,
   protected[sysml] def toMatrixObject(): MatrixObject = matob match {
     case Some(mo) => mo
     case _ => throw new RuntimeException("Matrix has not been evaluated in SystemML - can not create MatrixObject")
+  }
+
+  protected[sysml] def getMatrixMetadata(): MatrixMetadata = {
+    matob match {
+      case Some(mo) => mo.getMetaData.asInstanceOf[MatrixMetadata]
+      case None     => throw new RuntimeException("Matrix has not been evaluated in SystemML - can not create MatrixMetaData")
+    }
   }
 
   def toDF(): Dataset[Row] = (matob, sec) match {
