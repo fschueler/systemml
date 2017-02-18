@@ -400,7 +400,7 @@ package object api {
     * Computes the weighted mean of all x in X such that x > quantile(X, 0.25) and x < quartile(X, 0.75).
     *
     * @param vec Input vector of dimensionality n x 1.
-    * @param weights Weight vector of dinemsionality n x 1.
+    * @param weights Weight vector of dinemsionality n x 1. Note that the weights must be whole Doubles (no fractions)
     * @return Weighted interquartile mean.
     */
   def interQuartileMean(vec: Matrix, weights: Matrix): Double = ???
@@ -799,6 +799,18 @@ package object api {
     * @return Vector containing the diagonal elements of the suqare input matrix.
     */
   def diag(mat: Matrix): Matrix = ???
+
+  /***
+    * Computes the least squares solution for system of linear equations A %*% x = b
+    * It finds x such that ||A%*%x – b|| is minimized. The solution vector x is computed using a QR decomposition of A.
+    *
+    * Note: only for data that fits in the driver memory, not distributed!
+    *
+    * @param A Coefficient matrix.
+    * @param b Right hand side of the equation.
+    * @return Solution for the unknowns of the equation.
+    */
+  def solve(A: Matrix, b: Matrix): Matrix = ???
 
   @deprecated
   def ppred(mat: Matrix, x: Double, op: String): Matrix = ???

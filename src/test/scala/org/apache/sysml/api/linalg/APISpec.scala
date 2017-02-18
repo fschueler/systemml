@@ -684,8 +684,8 @@ class APISpec extends BaseAPISpec {
       )
     }
 
-    "removeEmpty" in {
-      fail("todo")
+    "removeEmpty" ignore {
+
     }
 
     "replace" in {
@@ -974,24 +974,21 @@ class APISpec extends BaseAPISpec {
       result._2 shouldEqual Matrix(Array(2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0), 3, 3)
     }
 
-    "cdf" in {
-      fail("todo")
+    "cdf" ignore {
     }
 
-    "icdf" in {
-      fail("todo")
+    "icdf" ignore {
     }
 
-    "aggregate" in {
-      fail("todo")
+    "aggregate" ignore {
     }
 
     "interQuartileMean" in {
       mlctx = new MLContext(sc)
 
       val algorithm = systemml {
-        val A = Vector(Array(0.0, 1.0, 2.0, 1.0, 0.0))
-        val W = Vector(Array(0.0, 0.5, 1.0, 0.5, 0.0))
+        val A = Vector(Array(5.0, 8.0, 4.0, 38.0, 8.0, 6.0, 9.0, 7.0, 7.0, 3.0, 1.0, 6.0))
+        val W = Vector(Array(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0))
 
         val a = interQuartileMean(A)
         val b = interQuartileMean(A, W)
@@ -1004,7 +1001,7 @@ class APISpec extends BaseAPISpec {
 
       val result = algorithm.run()
 
-      result shouldEqual(4.0/3.0, 1.0)
+      result shouldEqual(6.5, 6.5)
     }
 
     "quantile" in {
@@ -1221,6 +1218,30 @@ class APISpec extends BaseAPISpec {
       val result = algorithm.run()
 
       result shouldEqual Matrix(Array(5.0, 5.0, 5.0, 5.0), 4, 1)
+    }
+
+    "eigen" ignore {
+
+    }
+
+    "solve" in {
+      mlctx = new MLContext(sc)
+
+      val algorithm = systemml {
+        val A = Matrix(Array(1.0, 1.0, 1.0, 0.0, 2.0, 5.0, 2.0, 5.0, -1.0), 3, 3)
+        val b = Vector(Array(6.0, -4.0, 27.0))
+
+        val X = solve(A, b)
+
+        X
+      }
+
+      algorithm.inputs shouldBe empty
+      algorithm.outputs shouldEqual Array("X")
+
+      val result = algorithm.run()
+
+      result shouldEqual Matrix(Array(4.0, 3.0, -2.0), 3, 1)
     }
   }
 }
