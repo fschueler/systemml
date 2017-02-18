@@ -1064,13 +1064,13 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.systemml</groupId>
-			<artifactId>systemml</artifactId>
-			<version>0.13.0-incubating-SNAPSHOT</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.apache.systemml</groupId>-->
+			<!--<artifactId>systemml</artifactId>-->
+			<!--<version>0.13.0-incubating-SNAPSHOT</version>-->
+			<!--<type>test-jar</type>-->
+			<!--<scope>test</scope>-->
+		<!--</dependency>-->
 	
 		<!-- For GPU backend
 			Use org.mystic:mavenized-jcuda until Alan puts org.jcuda:*
