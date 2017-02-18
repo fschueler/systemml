@@ -34,6 +34,7 @@ import org.apache.sysml.runtime.matrix.data.InputInfo;
 import org.apache.sysml.runtime.matrix.data.MatrixBlock;
 import org.apache.sysml.runtime.matrix.data.OutputInfo;
 import org.apache.sysml.runtime.util.DataConverter;
+import scala.deprecated;
 
 /**
  * Class to represent the matrix input type
@@ -41,7 +42,7 @@ import org.apache.sysml.runtime.util.DataConverter;
  * 
  * 
  */
-public class Matrix extends FunctionParameter 
+public class Matrix extends FunctionParameter
 {
 	
 	private static final long serialVersionUID = -1058329938431848909L;

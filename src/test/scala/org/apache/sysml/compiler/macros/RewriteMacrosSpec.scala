@@ -25,7 +25,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.sysml.api.linalg.{Matrix, SystemMLAlgorithm}
 import org.apache.sysml.api.linalg.api._
-import org.apache.sysml.api.mlcontext.{MLContext, Matrix => MLMatrix}
+import org.apache.sysml.api.mlcontext.{MLContext, Matrix => _}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FreeSpec, Matchers}

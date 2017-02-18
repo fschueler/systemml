@@ -26,6 +26,7 @@ import org.apache.spark.sql.Row;
 import org.apache.sysml.runtime.controlprogram.caching.MatrixObject;
 import org.apache.sysml.runtime.controlprogram.context.SparkExecutionContext;
 import org.apache.sysml.runtime.instructions.spark.utils.RDDConverterUtils;
+import scala.deprecated;
 
 /**
  * Matrix encapsulates a SystemML matrix. It allows for easy conversion to
