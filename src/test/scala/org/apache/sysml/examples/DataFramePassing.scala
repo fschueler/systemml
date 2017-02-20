@@ -62,7 +62,7 @@ object DataFramePassing extends App {
   println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
 
   val alg2 = systemml {
-    val M = Matrix.rand(3, 3)
+    val M = Matrix.rand(100, 100)
     val N = M %*% tr
 
     N
