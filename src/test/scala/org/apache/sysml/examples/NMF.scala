@@ -101,5 +101,5 @@ object NMF extends App {
     (W, H) // return values
   }
 
-  val (w, h) = nmf.run()
+  val (w, h) = nmf.run(false)
 }

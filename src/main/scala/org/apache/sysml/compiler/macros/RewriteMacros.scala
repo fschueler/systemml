@@ -38,12 +38,10 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
 
   override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
-    //removeShadowedThis,
     fixSymbolTypes,
     stubTypeTrees,
     unQualifyStatics,
     normalizeStatements
-    // Source.normalize
   )
 
   /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */
@@ -153,7 +151,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     val inputMap = inputs.map(x => x.name.decodedName.toString -> x).toMap
     val bindingRefMap = bindingRefs.map(x => x.name.decodedName.toString -> x).toMap
 
-    // TODO this needs to be more robust for possible and impossible return types
     /** extract the return type that has to be retained from mlcontext */
     val (outType: u.Type, outNames: List[u.Tree]) = e.tree match {
       case u.Block(_, expr) => expr match {
@@ -161,7 +158,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         case a: u.Apply if a.symbol.name == u.TermName("apply") => (a.tpe, a.args)
         case _ if expr.tpe =:= u.typeOf[Unit] =>
           (u.typeOf[Unit], List())
-          //abort("Return type can not be unit.")
         case _ =>
           (expr.tpe, List(expr))
       }
@@ -201,7 +197,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
       val inputs = Seq(..${inParams})
       val outputs = Seq(..${outParams})
 
-      def run(): ${u.weakTypeOf[T]} = {
+      def run(explain: Boolean = false): ${u.weakTypeOf[T]} = {
         println("=" * 80)
         println((" " * 26) + "RUNNING GENERATED DML SCRIPT")
         println("=" * 80)
@@ -209,7 +205,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
         println("=" * 80)
 
         val ml = implicitly[_root_.org.apache.sysml.api.mlcontext.MLContext]
-        ml.setExplain(true)
+        ml.setExplain(explain)
         println("Input parameters:" +  List(..${inParams}).mkString(", "))
         val script = dml($dmlString).in(inputs).out(..${outParams})
         val res = ml.execute(script)
@@ -219,7 +215,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
     }}"""
 
     val res = dmlPipeline(typeCheck = true)()(alg)
-    println(showCode(res))
     c.Expr[T]((removeShadowedThis andThen unTypeCheck)(res))
   }
 }

@@ -23,6 +23,6 @@ trait SystemMLAlgorithm[T] {
   val inputs: Seq[(String, Any)]
   val outputs: Seq[String]
 
-  def run(): T
+  def run(explain: Boolean = false): T
 }
 
