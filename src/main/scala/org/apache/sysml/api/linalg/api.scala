@@ -22,6 +22,9 @@ package org.apache.sysml.api.linalg
 import org.apache.sysml.compiler.macros.RewriteMacros
 import scala.language.experimental.macros
 
+/**
+  * Package object containing all builtin-functions for the SystemML API.
+  */
 package object api {
   import Format._
 
@@ -32,7 +35,6 @@ package object api {
 
   // whole row/column selector
   object :::
-
 
   ////////////////////////////////////////////////
   // BUILTIN FUNCTIONS
@@ -820,6 +822,15 @@ package object api {
     */
   def trace(mat: Matrix): Double = ???
 
+  /**
+    * Parallel predicate of all cell values.
+    * Applies the predicate p to all cells x and replaces the cell with either 0.0 (false) or 1.0 (true).
+    *
+    * @param mat Input matrix where each cell value is used as first argument for the predicate.
+    * @param x The value to apply as second argument to the predicate.
+    * @param op The predicate operator to use.
+    * @return Matrix containing 1.0 (true) or 0.0 (false) depending on the evaluation of the predicate.
+    */
   @deprecated
   def ppred(mat: Matrix, x: Double, op: String): Matrix = ???
 
