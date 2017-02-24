@@ -17,17 +17,21 @@
  * under the License.
  */
 
-package org.apache.sysml.examples
+package org.apache.sysml.api.linalg.examples
 
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.apache.sysml.api.linalg.Matrix
-import org.apache.sysml.api.linalg.api.{max, mean, min, systemml}
+import org.apache.sysml.api.linalg.api.{max, mean, systemml}
 import org.apache.sysml.api.mlcontext.MLContext
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import scala.util.Random
 
+@RunWith(classOf[JUnitRunner])
 object DataFramePassing extends App {
+
   val numRows = 100
   val numCols = 100
   val spark = SparkSession.builder().master("local[2]").appName("DataFramePassing").getOrCreate()

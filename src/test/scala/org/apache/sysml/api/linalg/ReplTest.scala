@@ -17,19 +17,15 @@
  * under the License.
  */
 
-package org.apache.sysml.compiler.macros
+package org.apache.sysml.api.linalg
 
-import java.io.File
 import java.nio.file.Files
 
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SparkSession
-import org.apache.sysml.api.mlcontext.MLContext
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FreeSpec, Matchers}
 
-import scala.tools.nsc.{GenericRunnerSettings, Settings}
+import scala.tools.nsc.GenericRunnerSettings
 import scala.tools.nsc.interpreter.IMain
 
 @RunWith(classOf[JUnitRunner])
@@ -57,6 +53,8 @@ class ReplTest extends FreeSpec with Matchers {
 
   val imports =
     """
+      |import org.apache.spark.sql.{Row, SparkSession}
+      |import org.apache.spark.sql.types._
       |import org.apache.spark.SparkContext
       |import org.apache.spark.sql.SparkSession
       |import org.apache.sysml.api.mlcontext.MLContext
@@ -64,7 +62,7 @@ class ReplTest extends FreeSpec with Matchers {
       |import org.apache.sysml.api.linalg._
       |import org.apache.sysml.api.linalg.api._
       |
-      |lazy val spark = SparkSession.builder().master("local[2]").appName("ReplTest").getOrCreate()
+      |lazy val spark = SparkSession.builder().master("local[*]").appName("ReplTest").getOrCreate()
       |lazy val sc: SparkContext = spark.sparkContext
       |
       |implicit lazy val mlctx: MLContext = new MLContext(sc)
@@ -78,7 +76,7 @@ class ReplTest extends FreeSpec with Matchers {
     "compile and run" in {
       val alg1 =
         """
-          |val algorithm = systemml {
+          |val algorithm1 = systemml {
           |  val x = Matrix.rand(3, 3)
           |  val y = Matrix.rand(3, 3)
           |  val z = x + y
@@ -91,7 +89,7 @@ class ReplTest extends FreeSpec with Matchers {
 
       val run1 =
         """
-          |val res = algorithm.run()
+          |val res = algorithm1.run()
         """.stripMargin
 
       repl.interpret(run1)
@@ -103,7 +101,24 @@ class ReplTest extends FreeSpec with Matchers {
     "Should be converted to a matrix" in {
       val crDF =
         """
-          |val df = spark.read.format("com.databricks.spark.csv").option("header", "true").load("/data/arxiv_abstracts/cs_abstracts.csv")
+          |  val movieData = getClass.getResource("/movie_ratings")
+          |  val ratingsText = sc.textFile(movieData.getPath)
+          |
+          |  // select only the first three feature columns
+          |  val data = ratingsText.map(row => {
+          |    val parts = row.split(",")
+          |    val i     = parts(0).toDouble
+          |    val j     = parts(1).toDouble
+          |    val v     = parts(2).toDouble
+          |    Row(i, j, v)})
+          |
+          |  // The schema is encoded in a string
+          |  val schemaString = "userID movieID rating"
+          |
+          |  // Generate the schema based on the string of schema
+          |  val fields = schemaString.split(" ").map(fieldName => StructField(fieldName, DoubleType, nullable = true))
+          |  val schema = StructType(fields)
+          |  val df = spark.createDataFrame(data, schema)
         """.stripMargin
 
       // create a dataframe
@@ -111,10 +126,10 @@ class ReplTest extends FreeSpec with Matchers {
 
       val alg1 =
         """
-          |val algorithm = systemml {
-          |  val x = Matrix.fromDataFrame(df)
-          |  val y = sum(x)
-          |  y
+          |val algorithm2 = systemml {
+          |  val X = Matrix.fromDataFrame(df)
+          |  val Y = X %*% X.t
+          |  Y
           |}
         """.stripMargin
 
@@ -123,7 +138,7 @@ class ReplTest extends FreeSpec with Matchers {
 
       val run1 =
         """
-          |val res = algorithm.run()
+          |val res = algorithm2.run()
         """.stripMargin
 
       repl.interpret(run1)

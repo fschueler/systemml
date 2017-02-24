@@ -17,35 +17,41 @@
  * under the License.
  */
 
-package org.apache.sysml.examples
+package org.apache.sysml.api.linalg.examples
 
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.types._
 import org.apache.sysml.api.mlcontext.MLContext
 import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.linalg._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 object ALS extends App {
 
-  val conf = new SparkConf()
-    .setMaster("local[2]")
-    .setAppName("SystemML Spark App")
+  val spark = SparkSession.builder().appName("ApiSpec").master("local[*]").getOrCreate()
+  val sc    = spark.sparkContext
 
-  val sc: SparkContext = new SparkContext(conf)
-//  val spark = SparkSession.builder().getOrCreate()
-//
-//  val ratingsText = sc.textFile("/data/netflix/training_set_normalized/mv_000*.txt")
-//  val data = ratingsText.map(s => s.split(",")).map(arr => arr(0) + " " + arr(1) + " " + arr(2)).cache
-//
-//  data.take(5).foreach(println)
-//
-//  // get size of user-item matrix
-//  val rows = data.map(s => s.split(" ")(0).toInt).max()  // number of rows for user-item matrix
-//  val cols = data.map(s => s.split(" ")(1).toInt).max()  // number of cols for user-item matrix
-//
-//  // get train test split for cross-validation
-//  // for simplicity, we'll just do random sampling
-//  val Array(train, test) = data.randomSplit(Array(0.7, 0.3), 98765)
+  val movieData = getClass.getResource("/movie_ratings")
+
+  val ratingsText = sc.textFile(movieData.getPath)
+
+  // select only the first three feature columns
+  val data = ratingsText.map(row => {
+    val parts = row.split(",")
+    val i     = parts(0).toDouble
+    val j     = parts(1).toDouble
+    val v     = parts(2).toDouble
+    Row(i, j, v)})
+
+  // The schema is encoded in a string
+  val schemaString = "userID movieID rating"
+
+  // Generate the schema based on the string of schema
+  val fields = schemaString.split(" ").map(fieldName => StructField(fieldName, DoubleType, nullable = true))
+  val schema = StructType(fields)
+  val df = spark.createDataFrame(data, schema)
 
   //-----------------------------------------------------------------
   // Create kernel in SystemML's DSL using the R-like syntax for ALS
@@ -64,7 +70,7 @@ object ALS extends App {
     val thr     = 0.001
 
     // input data
-    val X = read("/data/netflix/training_small", Format.CSV)
+    val X = Matrix.fromDataFrame(df)
     val m = X.nrow
     val n = X.ncol
 

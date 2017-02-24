@@ -32,7 +32,7 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class APISpec extends BaseAPISpec {
-  val spark = SparkSession.builder().appName("RewriteMacroSpec").master("local[4]").getOrCreate()
+  val spark = SparkSession.builder().appName("ApiSpec").master("local[*]").getOrCreate()
   val sc    = spark.sparkContext
 
   implicit var mlctx: MLContext = _
