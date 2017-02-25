@@ -65,7 +65,7 @@ class ReplTest extends FreeSpec with Matchers {
       |lazy val spark = SparkSession.builder().master("local[*]").appName("ReplTest").getOrCreate()
       |lazy val sc: SparkContext = spark.sparkContext
       |
-      |implicit lazy val mlctx: MLContext = new MLContext(sc)
+      |val mlctx: MLContext = new MLContext(sc)
     """.stripMargin
 
   // imports
@@ -89,7 +89,7 @@ class ReplTest extends FreeSpec with Matchers {
 
       val run1 =
         """
-          |val res = algorithm1.run()
+          |val res = algorithm1.run(mlctx, true)
         """.stripMargin
 
       repl.interpret(run1)
@@ -138,7 +138,7 @@ class ReplTest extends FreeSpec with Matchers {
 
       val run1 =
         """
-          |val res = algorithm2.run()
+          |val res = algorithm2.run(mlctx, true)
         """.stripMargin
 
       repl.interpret(run1)

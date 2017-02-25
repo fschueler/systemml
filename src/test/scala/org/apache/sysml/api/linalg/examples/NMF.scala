@@ -89,6 +89,6 @@ object NMF extends App {
     (W, H) // return values
   }
 
-  val (w, h) = nmf.run(false)
+  val (w, h) = nmf.run(mlctx, true)
   println("W: " + w)
 }

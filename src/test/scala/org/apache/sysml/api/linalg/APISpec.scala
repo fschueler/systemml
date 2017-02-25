@@ -55,7 +55,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("A", "B", "C", "D")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result._1 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 2, 2)
         result._2 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 2, 2)
@@ -92,7 +92,7 @@ class APISpec extends BaseAPISpec {
 
         dfTest.algorithm.outputs shouldEqual Array("A", "B")
 
-        val result = dfTest.algorithm.run(false)
+        val result = dfTest.algorithm.run(mlctx, true)
 
         // TODO check result
       }
@@ -110,7 +110,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("A", "B")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2),
                            Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2))
@@ -130,7 +130,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("A", "B", "C")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 2, 2),
                            Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1),
@@ -161,7 +161,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f", "g", "h")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result shouldEqual(1.0,
                            Matrix(Array(1.0, 1.0, 1.0), 1, 3),
@@ -201,7 +201,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("A", "B", "C", "D", "E", "F", "G", "H")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result._1 shouldEqual Matrix(Array(1.0, 0.0, 0.0,
                                            0.0, 0.0, 0.0), 2, 3)
@@ -236,7 +236,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("v", "w")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result shouldEqual(Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1),
                            Matrix(Array(1.0, 2.0, 3.0, 4.0), 4, 1))
@@ -256,7 +256,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("v", "w", "x")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0, 1.0), 4, 1)
         result._3 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 0.0), 4, 1)
@@ -284,7 +284,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("B", "C", "D")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result shouldEqual(Matrix(Array(1.0, 3.0, 2.0, 4.0), 2, 2), 2, 2)
       }
@@ -314,7 +314,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(7.0, 3.0, 10.0, 2.5)
         }
@@ -337,7 +337,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(7, 3, 10, 2.5)
         }
@@ -360,7 +360,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(7.0, 3.0, 10.0, 2.5)
         }
@@ -383,7 +383,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("c", "d", "e", "f")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(7.0, 3.0, 10.0, 2.5)
         }
@@ -410,7 +410,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
             Matrix(Array(-4.0, -4.0, -4.0, -4.0), 2, 2),
@@ -436,7 +436,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
             Matrix(Array(-4.0, -4.0, -4.0, -4.0), 2, 2),
@@ -462,7 +462,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
             Matrix(Array(4.0, 4.0, 4.0, 4.0), 2, 2),
@@ -488,7 +488,7 @@ class APISpec extends BaseAPISpec {
           algorithm.inputs shouldBe empty
           algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
-          val result = algorithm.run(false)
+          val result = algorithm.run(mlctx, true)
 
           result shouldEqual(Matrix(Array(6.0, 6.0, 6.0, 6.0), 2, 2),
             Matrix(Array(4.0, 4.0, 4.0, 4.0), 2, 2),
@@ -518,7 +518,7 @@ class APISpec extends BaseAPISpec {
         algorithm.inputs shouldBe empty
         algorithm.outputs shouldEqual Array("C", "D", "E", "F", "G")
 
-        val result = algorithm.run(false)
+        val result = algorithm.run(mlctx, true)
 
         result shouldEqual(Matrix(Array(2.0, 2.0, 2.0, 2.0), 2, 2),
           Matrix(Array(0.0, 0.0, 0.0, 0.0), 2, 2),
@@ -549,7 +549,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("C", "D", "E")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(0.0, 0.0, 0.0, 1.0, 1.0,
                                          0.0, 0.0, 0.0, 1.0, 1.0,
@@ -589,7 +589,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual (-4.0, 1.0, -10e5, 10e6, 0.0, 0.0)
     }
@@ -631,7 +631,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual (
         Matrix(Array(1.0, -3.0, -4.0, 0.0, 0.0, 0.0, 1.0, -3.0, -4.0), 3, 3),
@@ -669,7 +669,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(1.0, 0.0, -18.0)
     }
@@ -693,7 +693,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("D", "E", "F", "G")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(
         Matrix(Array(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 4, 3),
@@ -727,7 +727,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("D", "E", "F", "G", "H")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(
         Matrix(Array(1.0, -1.0, 1.0, -1.0, -1.0, 1.0), 2, 3),
@@ -756,7 +756,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("D", "E", "F")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(
         Matrix(Array(4.0, 3.0, 2.0, 1.0), 4, 1),
@@ -783,7 +783,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(9.0, 0.0, 0.0)
     }
@@ -807,7 +807,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("D", "E", "F", "G")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(1.0, -1.0, 1.0, -10e5, 1.0, 0.0, 1.0, 1.0, Double.NegativeInfinity), 3, 3)
       result._2 shouldEqual Matrix(Array(1.0, 1.0, 5.0, 1.0, 10e5, 1.0, Double.MaxValue, Double.PositiveInfinity, 1.0), 3, 3)
@@ -833,7 +833,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("C", "D", "E", "F")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(2.0, 2.0, 2.0), 3, 1)
       result._2 shouldEqual Matrix(Array(1.0, 1.0, 1.0), 3, 1)
@@ -861,7 +861,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(0.0, 1.0, 3.0/9.0, 2.5)
     }
@@ -887,7 +887,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(0.0, 0.0, 9.0, 3.0, 5.0/3.0, Math.sqrt(5.0/3.0))
     }
@@ -913,7 +913,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(1.25, 0.0, 2.5625, 1.25, 0.0, 2.5625)
     }
@@ -937,7 +937,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(12.0, 15.0, 18.0), 1, 3)
       result._2 shouldEqual Matrix(Array(4.0, 5.0, 6.0), 1, 3)
@@ -964,7 +964,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("C", "D")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual 8.697380952380952
       result._2 shouldEqual 8.697380952380952
@@ -987,7 +987,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("D", "E")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), 3, 3)
       result._2 shouldEqual Matrix(Array(2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0), 3, 3)
@@ -1018,7 +1018,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(6.5, 6.5)
     }
@@ -1047,7 +1047,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f", "G", "H")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual(
         0.2, 0.5, 0.8, 0.1, 0.3, 0.6,
@@ -1074,7 +1074,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a", "b", "c", "d", "e", "f")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(12.0, 15.0, 18.0), 3, 1)
       result._2 shouldEqual Matrix(Array(4.0, 5.0, 6.0), 3, 1)
@@ -1101,7 +1101,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("B", "C", "D", "E")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result._1 shouldEqual Matrix(Array(1.0, 2.0, 4.0, 6.0, 9.0, 12.0), 3, 2)
       result._2 shouldEqual Matrix(Array(1.0, 2.0, 3.0, 8.0, 15.0, 48.0), 3, 2)
@@ -1149,7 +1149,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("c", "d", "e", "f", "g", "h", "i", "j", "C", "D", "E", "F", "G", "H", "I", "J")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       // TODO add correctness test
     }
@@ -1180,7 +1180,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("c", "d", "e", "f", "g", "h", "C", "D", "E", "F", "G", "H")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       // TODO add correctness test
     }
@@ -1204,7 +1204,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("B")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual Matrix(Array(-1.0, 1.0, -1.0, 0.0), 2, 2)
     }
@@ -1223,7 +1223,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("B")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual Matrix(Array(2.0, 0.0, 0.0, 6.0, 1.0, 0.0, -8.0, 5.0, 3.0), 3, 3)
     }
@@ -1242,7 +1242,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("B")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual Matrix(Array(5.0, 5.0, 5.0, 5.0), 4, 1)
     }
@@ -1274,7 +1274,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("X")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual Matrix(Array(4.0, 3.0, -2.0), 3, 1)
     }
@@ -1292,7 +1292,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("B")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual Matrix(Array(1.0, 3.0, 2.0, 4.0), 2, 2)
     }
@@ -1311,7 +1311,7 @@ class APISpec extends BaseAPISpec {
       algorithm.inputs shouldBe empty
       algorithm.outputs shouldEqual Array("a")
 
-      val result = algorithm.run(false)
+      val result = algorithm.run(mlctx, true)
 
       result shouldEqual 15.0
     }

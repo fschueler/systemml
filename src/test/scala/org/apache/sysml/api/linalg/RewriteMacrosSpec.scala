@@ -48,7 +48,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         (m, n)
       }
 
-      val (m: Matrix, n: Double) = alg.run(false)
+      val (m: Matrix, n: Double) = alg.run(mlctx, true)
     }
 
     MatrixOutputTest.main(Array())
@@ -66,7 +66,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         C
       }
 
-      val res = alg.run(false)
+      val res = alg.run(mlctx, true)
       println("Matrix multiplication result: " + res)
     }
 
@@ -93,7 +93,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         }
       }
 
-      val res = loop.run(false)
+      val res = loop.run(mlctx, true)
     }
 
     LoopTest.main(Array())
@@ -125,7 +125,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         (W, H) // return values
       }
 
-      val (w, h) = nmf.run(false)
+      val (w, h) = nmf.run(mlctx, true)
       println(w)
     }
 
@@ -155,7 +155,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         (minOut, maxOut, meanOut)
       }
 
-      val (minOut: Double, maxOut: Double, meanOut: Double) = alg.run(false)
+      val (minOut: Double, maxOut: Double, meanOut: Double) = alg.run(mlctx, true)
 
       println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
     }
@@ -180,7 +180,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         (x, y)
       }
 
-      val res = alg.run(false)
+      val res = alg.run(mlctx, true)
       println(res)
     }
 

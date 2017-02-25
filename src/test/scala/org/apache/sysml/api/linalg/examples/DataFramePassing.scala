@@ -61,7 +61,7 @@ object DataFramePassing extends App {
     (minOut, maxOut, meanOut, tr)
   }
 
-  val  (minOut: Double, maxOut: Double, meanOut: Double, tr: Matrix) = alg.run(false)
+  val  (minOut: Double, maxOut: Double, meanOut: Double, tr: Matrix) = alg.run(mlctx, true)
 
   println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
 
@@ -72,6 +72,6 @@ object DataFramePassing extends App {
     N
   }
 
-  val res = alg2.run(false)
+  val res = alg2.run(mlctx, true)
 
 }

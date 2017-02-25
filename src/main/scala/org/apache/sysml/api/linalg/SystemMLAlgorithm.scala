@@ -19,10 +19,12 @@
 
 package org.apache.sysml.api.linalg
 
+import org.apache.sysml.api.mlcontext.MLContext
+
 trait SystemMLAlgorithm[T] {
   val inputs: Seq[(String, Any)]
   val outputs: Seq[String]
 
-  def run(explain: Boolean = false): T
+  def run(ml: MLContext, printDML: Boolean = false): T
 }
 

@@ -197,15 +197,13 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
       val inputs = Seq(..${inParams})
       val outputs = Seq(..${outParams})
 
-      def run(explain: Boolean = false): ${u.weakTypeOf[T]} = {
+      def run(ml: _root_.org.apache.sysml.api.mlcontext.MLContext, printDML: Boolean = false): ${u.weakTypeOf[T]} = {
         println("=" * 80)
         println((" " * 26) + "RUNNING GENERATED DML SCRIPT")
         println("=" * 80)
         println(${formatted})
         println("=" * 80)
 
-        val ml = implicitly[_root_.org.apache.sysml.api.mlcontext.MLContext]
-        ml.setExplain(explain)
         println("Input parameters:" +  List(..${inParams}).mkString(", "))
         val script = dml($dmlString).in(inputs).out(..${outParams})
         val res = ml.execute(script)

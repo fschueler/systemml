@@ -171,6 +171,6 @@ object ALS extends App {
     (U, V, losses)
   }
 
-  val (u, v, l) = script1.run(false)
+  val (u, v, l) = script1.run(mlcontext, true)
   println(s"U: $u, V: $v, losses: $l")
 }

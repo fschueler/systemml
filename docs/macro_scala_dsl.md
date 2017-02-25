@@ -114,7 +114,7 @@ object MyAlgorithm extends App {
   val spark = SparkSession.builder().master("local[*]").appName("MyAlgorithm").getOrCreate()
   val sc    = spark.sparkContext
 
-  implicit val mlctx = new MLContext(sc)
+  val mlctx = new MLContext(sc)
 
   val algorithm = parallelize {
     val A: Matrix = Matrix.rand(5, 3)
@@ -123,24 +123,23 @@ object MyAlgorithm extends App {
     C
   }
 
-  val result: Matrix = algorithm.run()
+  val result: Matrix = algorithm.run(mlctx)
 }
 ```
 
-This will execute the algorithm using SystemML and Spark. Executing the `run()`-method then returns the result of type `Matrix`. If you run the code in a spark shell, you will not have to create the `SparkSession` and `SparkContext` yourself but can use the pre-initialized ones. To get the generated statements from SystemML, you can give an additional `explain` parameter to `run(explain=true)`.
+This will execute the algorithm using SystemML and Spark. Executing the `run()`-method then returns the result of type `Matrix`. If you run the code in a spark shell, you will not have to create the `SparkSession` and `SparkContext` yourself but can use the pre-initialized ones. To get the generated DML code, you can give an additional `printDML` parameter to `run(mlctx, printDML=true)`.
 
 Internally, the `systemml` function converts the Scala code into DML and you will get to see the generated code once you execute `run()`. For our above example, the expanded/transformed version would look like this:
 
 ```Scala
 val algorithm = new SystemMLAlgorithm[Matrix]  {
 
-  def run(): Matrix = {
+  def run(ml: MLContext, printDML: Boolean = false): Matrix = {
     val dmlString = s"""| A = rand(5, 3)
                         | B = rand(3, 7)
                         | C = A %*% B
                     """
 
-    val ml = implicitly[MLContext]              
     val script = dml(dmlString).in(Seq()).out(Seq("C"))
     val res = ml.execute(script)
     val out = res.getTuple[Matrix]("C")
@@ -214,7 +213,7 @@ object NMF extends App {
 
   val tfidf = rescaledData.withColumn("dense_features", project.apply(rescaledData("features"))).select("dense_features")
 
-  implicit val mlctx: MLContext = new MLContext(sc)
+  val mlctx: MLContext = new MLContext(sc)
 
   val nmf = systemml {
     val V = Matrix.fromDataFrame(tfidf) // tfidf feature matrix coming from somewhere
@@ -233,14 +232,14 @@ object NMF extends App {
     (W, H) // return values
   }
 
-  val (w, h) = nmf.run(false)
+  val (w, h) = nmf.run(mlctx, false)
   println("W: " + w)
 }
 ```
 We write the whole algorithm inside the `systemml` block and specify our return value at the end of the block as it is usually done in Scala. The `systemml` macro returns an instance of the class `SystemMLAlgorithm` which includes additional boilerplate code for execution in SystemML. To actually execute the generated code we call:
 
 ```Scala
-val (w, h) = nmf.run()
+val (w, h) = nmf.run(mlctx)
 ```
 
 This will run the generated code on SystemML and return the requested values. Internally, the `SystemMLAlgorithm.run()` method uses SystemML's `MLContext`. The `systemml` macro can automatically discover that we want `(W, H)` as our return value and makes sure that these are set in the `MLContext`. Similarly it can discover that we have passed the dataframe `df` into the macro and sets it as an input to the `MLContext`.
@@ -258,7 +257,7 @@ val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCol
 val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
 val df = spark.createDataFrame(data, schema)
 
-val alg = parallelize {
+val alg = systemml {
       val matrix: Matrix = Matrix.fromDataFrame(df)
 
       val minOut = min(matrix)
@@ -268,7 +267,7 @@ val alg = parallelize {
       (minOut, maxOut, meanOut)
     }
 
-val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
+val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run(mlctx)
 
 println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
 ```
